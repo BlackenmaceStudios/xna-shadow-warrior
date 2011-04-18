@@ -1,0 +1,16 @@
+﻿<xapCache source="c:\dev\shadow warrior\shadow warrior\Bin\Debug\shadow_warrior.xap" wasSigned="False" certificateThumbprint="" TimeStampUrl="" lastWriteTime="4/17/2011 11:12:30 PM">
+  <file source="c:\dev\shadow warrior\shadow warrior\Properties\WMAppManifest.xml" archivePath="WMAppManifest.xml" lastWriteTime="4/16/2011 2:58:39 PM" />
+  <file source="c:\dev\shadow warrior\shadow warrior\obj\Debug\shadow warrior.dll" archivePath="shadow warrior.dll" lastWriteTime="4/17/2011 11:12:20 PM" />
+  <file source="c:\dev\shadow warrior\build\Bin\Debug\build.dll" archivePath="build.dll" lastWriteTime="4/17/2011 11:12:20 PM" />
+  <file source="c:\dev\shadow warrior\build\Bin\Debug\WriteableBitmapExWinPhone.dll" archivePath="WriteableBitmapExWinPhone.dll" lastWriteTime="2/15/2011 7:32:48 PM" />
+  <file source="c:\dev\shadow warrior\shadow warrior\base\SW.GRP" archivePath="base\SW.GRP" lastWriteTime="4/16/2011 7:52:58 AM" />
+  <file source="c:\dev\shadow warrior\shadow warrior\WPInteropManifest.xml" archivePath="WPInteropManifest.xml" lastWriteTime="4/16/2011 3:02:30 PM" />
+  <file source="c:\dev\shadow warrior\shadow warrior\ApplicationIcon.png" archivePath="ApplicationIcon.png" lastWriteTime="4/15/2011 12:26:27 PM" />
+  <file source="c:\dev\shadow warrior\shadow warrior\Background.png" archivePath="Background.png" lastWriteTime="4/15/2011 12:26:46 PM" />
+  <file source="c:\dev\shadow warrior\shadow warrior\base\music\track2.mp3" archivePath="base\music\track2.mp3" lastWriteTime="4/16/2011 7:52:57 AM" />
+  <file source="c:\dev\shadow warrior\shadow warrior\base\music\track3.mp3" archivePath="base\music\track3.mp3" lastWriteTime="4/16/2011 7:52:57 AM" />
+  <file source="c:\dev\shadow warrior\shadow warrior\base\music\track4.mp3" archivePath="base\music\track4.mp3" lastWriteTime="4/16/2011 7:52:58 AM" />
+  <file source="c:\dev\shadow warrior\shadow warrior\base\music\track5.mp3" archivePath="base\music\track5.mp3" lastWriteTime="4/16/2011 7:52:58 AM" />
+  <file source="c:\dev\shadow warrior\shadow warrior\SplashScreenImage.jpg" archivePath="SplashScreenImage.jpg" lastWriteTime="4/16/2011 11:10:04 AM" />
+  <file source="c:\dev\shadow warrior\shadow warrior\Bin\Debug\AppManifest.xaml" archivePath="AppManifest.xaml" lastWriteTime="4/16/2011 5:53:44 PM" />
+</xapCache>
