@@ -34,7 +34,10 @@
         </StackPanel>
         <StackPanel Name="gameviewpanel" Loaded="Page_Loaded" Visibility="Visible" Margin="79,0,0,0">
             <Image Height="390"  Visibility="Visible" Name="viewportimg" Stretch="Fill" Width="640" HorizontalAlignment="Right" />
-            <Button Content="Fire" Height="59" Name="firebutton" Width="110" BorderThickness="0" HorizontalAlignment="Right" FontSize="20" />
+            <Canvas Height="61" Name="canvas1" Width="516" HorizontalAlignment="Right">
+                <Button Content="Fire" Height="59" Name="firebutton" Width="111" BorderThickness="0" FontSize="20" Canvas.Left="405" Canvas.Top="2" HorizontalAlignment="Right" />
+                <Button BorderThickness="0" Canvas.Left="273" Canvas.Top="0" Content="Jump" FontSize="20" Height="59" Name="jumpbutton" Width="111" />
+            </Canvas>
             <TextBlock Height="32" Name="buildtag" Text="Build Tag" Width="365" TextAlignment="Right" HorizontalAlignment="Right" Padding="10,0" />
         </StackPanel>
         

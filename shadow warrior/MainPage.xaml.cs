@@ -78,6 +78,12 @@ namespace shadow_warrior
             if (turnleft_button.IsPressed) angvel -= 35;
 
             swgame.HandleLocalPlayerInput(fvel, svel, angvel);
+
+            if (firebutton.IsPressed) 
+                swgame.HandleLocalPlayerInputFire();
+
+            if (jumpbutton.IsPressed)
+                swgame.HandleLocalPlayerInputJump();
         }
 
         void Page_CompositionTarget_Rendering(object sender, EventArgs e)

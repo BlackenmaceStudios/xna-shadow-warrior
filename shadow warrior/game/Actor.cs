@@ -9,6 +9,15 @@ namespace sw
     {
         internal int daposx, daposy, daposz;
         internal short daang, dacursectnum;
+        internal int health;
+
+        public int Health
+        {
+            get
+            {
+                return health;
+            }
+        }
 
         public virtual void Spawn()
         {

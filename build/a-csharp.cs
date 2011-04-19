@@ -299,11 +299,15 @@ namespace build
         }
         public static  void spritevline(int bx, int by, int cnt, byte[] bufplc, int bufplcbase, int p)
         {
+            byte ch;
 	        gbuf = bufplc;
             gbufpos = bufplcbase;
 	        for(;cnt>2;cnt--)
 	        {
-                Engine._device.SetScreenPixel(p, Engine.palette.palookup[gbuf[gbufpos + ((bx >> 16) * glogy + (by >> 16))] + gpalpos]);
+                ch = gbuf[gbufpos + ((bx >> 16) * glogy + (by >> 16))];
+
+                if(ch != 255)
+                    Engine._device.SetScreenPixel(p, Engine.palette.palookup[ch + gpalpos]);
 		        bx += gbxinc;
 		        by += gbyinc;
                 p += bpl;
