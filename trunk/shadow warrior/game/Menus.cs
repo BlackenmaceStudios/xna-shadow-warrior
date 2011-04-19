@@ -23,7 +23,10 @@ namespace sw
         public int TEXT_YCENTER(int height) { return((200 - height)/2);}
         public int TEXT_TEST_COL(int width) { return TEXT_XCENTER(width); }
 
+
         private readonly int MenuDrawFlags = (Flags.ROTATE_SPRITE_SCREEN_CLIP);
+
+        
 
         public void MNU_MeasureStringLarge(string str, ref short w, ref short h)
             {

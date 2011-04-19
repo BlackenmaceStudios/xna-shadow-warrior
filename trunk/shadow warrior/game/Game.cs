@@ -98,6 +98,16 @@ namespace sw
             Engine.rotatesprite(0, 0, Flags.RS_SCALE, 0, TITLE_PIC, 20, 0, (byte)TITLE_ROT_FLAGS, 0, 0, Engine.xdim - 1, Engine.ydim - 1);
         }
 
+        public void HandleLocalPlayerInputFire()
+        {
+            localplayer.FireWeapon();
+        }
+
+        public void HandleLocalPlayerInputJump()
+        {
+            localplayer.Jump();
+        }
+
         public void HandleLocalPlayerInput(int fvel, int svel, int angvel)
         {
             if (localplayer != null)
