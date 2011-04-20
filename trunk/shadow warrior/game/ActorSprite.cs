@@ -18,7 +18,7 @@ namespace sw
     //
     public class ActorSprite : Actor
     {
-        private spritetype _sprite;
+        internal spritetype _sprite;
 
         //
         // ActorSprite
@@ -40,6 +40,17 @@ namespace sw
             }
 
             MyTypes.SET(_sprite.cstat, Flags.CSTAT_SPRITE_BLOCK | Flags.CSTAT_SPRITE_BLOCK_HITSCAN);
+        }
+
+        internal void SetHitscan(bool isHitscanable)
+        {
+            if (isHitscanable)
+            {
+                _sprite.cstat = MyTypes.SET(_sprite.cstat, Flags.CSTAT_SPRITE_BLOCK_HITSCAN);
+                return;
+            }
+
+            _sprite.cstat = MyTypes.RESET(_sprite.cstat, Flags.CSTAT_SPRITE_BLOCK_HITSCAN);
         }
 
         //

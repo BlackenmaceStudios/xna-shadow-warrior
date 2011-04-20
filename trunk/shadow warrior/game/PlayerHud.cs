@@ -80,6 +80,29 @@ namespace sw
             DrawFullscreenSprite(320, 210, (short)framenum);
         }
 
+        //
+        // DrawWeaponSwordBloody
+        //
+        public void DrawWeaponSwordBloody()
+        {
+            if (state == WEAPON_STATE.WEAPON_IDLE)
+            {
+                framenum = 4090;
+            }
+            else if (state == WEAPON_STATE.WEAPON_FIRING)
+            {
+                framenum += 0.5f;
+
+                if (framenum >= 4094)
+                {
+                    framenum = 4081;
+                    state = WEAPON_STATE.WEAPON_IDLE;
+                }
+            }
+
+            DrawFullscreenSprite(320, 210, (short)framenum);
+        }
+
 
         private const int PANEL_HEALTH_BOX_X = 22;
         private const int PANEL_BOX_Y = (189-6);

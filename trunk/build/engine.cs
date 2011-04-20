@@ -31,6 +31,8 @@ namespace build
             public byte[] memory;
         }
 
+        private static int randomseed = 17;
+
         public static short[] tilesizx = new short[MAXTILES];
         public static short[] tilesizy = new short[MAXTILES];
         public static int[] picanm = new int[MAXTILES];
@@ -370,6 +372,15 @@ palette:
             }
 
             return 0;
+        }
+
+        //
+        // krand
+        //
+        public static uint krand()
+        {
+	        randomseed = (randomseed*27584621)+1;
+	        return(((uint)randomseed)>>16);
         }
 
         //

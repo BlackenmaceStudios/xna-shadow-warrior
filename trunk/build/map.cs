@@ -355,6 +355,277 @@ namespace build
             return (int)(cnt >> 31);
         }
 
+        public int hitscan(int xs, int ys, int zs, short sectnum, int vx, int vy, int vz,
+	            ref int hitsect, ref short hitwall, ref short hitsprite,
+	            ref int hitx, ref int hity, ref int hitz, uint cliptype)
+        {
+	        sectortype sec;
+	        walltype wal, wal2;
+	        spritetype spr;
+            int z, zz, x1, y1 = 0, z1 = 0, x2, y2, z2, x3, y3, x4, y4, intx = 0, inty = 0, intz = 0;
+	        int topt, topu, bot, dist, offx, offy, cstat;
+            int i, j, k, l, tilenum, xoff, yoff, dax, day, daz = 0, daz2 = 0;
+	        int ang, cosang, sinang, xspan, yspan, xrepeat, yrepeat;
+	        int dawalclipmask, dasprclipmask;
+	        short tempshortcnt, tempshortnum, dasector, startwall, endwall;
+	        short nextsector;
+	        bool clipyou;
+
+	        hitsect = -1; hitwall = -1; hitsprite = -1;
+	        if (sectnum < 0) return(-1);
+
+	        hitx = hitscangoalx; hity = hitscangoaly;
+
+	        dawalclipmask = (int)(cliptype&65535);
+	        dasprclipmask = (int)(cliptype>>16);
+
+	        clipsectorlist[0] = sectnum;
+	        tempshortcnt = 0; tempshortnum = 1;
+	        do
+	        {
+		        dasector = (short)clipsectorlist[tempshortcnt]; sec = sector[dasector];
+
+		        x1 = 0x7fffffff;
+		        if ((sec.ceilingstat&2) != 0)
+		        {
+			        wal = wall[sec.wallptr]; wal2 = wall[wal.point2];
+			        dax = wal2.x-wal.x; day = wal2.y-wal.y;
+			        i =(int)pragmas.nsqrtasm((uint)(dax*dax+day*day)); if (i == 0) continue;
+			        i = pragmas.divscale15(sec.ceilingheinum,i);
+			        dax *= i; day *= i;
+
+			        j = (vz<<8)-pragmas.dmulscale15(dax,vy,-day,vx);
+			        if (j != 0)
+			        {
+				        i = ((sec.ceilingz-zs)<<8)+pragmas.dmulscale15(dax,ys-wal.y,-day,xs-wal.x);
+				        if (((i^j) >= 0) && ((pragmas.klabs(i)>>1) < pragmas.klabs(j)))
+				        {
+					        i = pragmas.divscale30(i,j);
+					        x1 = xs + pragmas.mulscale30(vx,i);
+					        y1 = ys + pragmas.mulscale30(vy,i);
+					        z1 = zs + pragmas.mulscale30(vz,i);
+				        }
+			        }
+		        }
+		        else if ((vz < 0) && (zs >= sec.ceilingz))
+		        {
+			        z1 = sec.ceilingz; i = z1-zs;
+			        if ((pragmas.klabs(i)>>1) < -vz)
+			        {
+				        i = pragmas.divscale30(i,vz);
+				        x1 = xs + pragmas.mulscale30(vx,i);
+				        y1 = ys + pragmas.mulscale30(vy,i);
+			        }
+		        }
+		        if ((x1 != 0x7fffffff) && (pragmas.klabs(x1-xs)+pragmas.klabs(y1-ys) < pragmas.klabs((hitx)-xs)+pragmas.klabs((hity)-ys)))
+			        if (inside(x1,y1,dasector) != 0)
+			        {
+				        hitsect = dasector; hitwall = -1; hitsprite = -1;
+				        hitx = x1; hity = y1; hitz = z1;
+			        }
+
+		        x1 = 0x7fffffff;
+		        if ((sec.floorstat&2) != 0)
+		        {
+			        wal = wall[sec.wallptr]; wal2 = wall[wal.point2];
+			        dax = wal2.x-wal.x; day = wal2.y-wal.y;
+			        i = (int)pragmas.nsqrtasm((uint)(dax*dax+day*day)); if (i == 0) continue;
+			        i = pragmas.divscale15(sec.floorheinum,i);
+			        dax *= i; day *= i;
+
+			        j = (vz<<8)-pragmas.dmulscale15(dax,vy,-day,vx);
+			        if (j != 0)
+			        {
+				        i = ((sec.floorz-zs)<<8)+pragmas.dmulscale15(dax,ys-wal.y,-day,xs-wal.x);
+				        if (((i^j) >= 0) && ((pragmas.klabs(i)>>1) < pragmas.klabs(j)))
+				        {
+					        i = pragmas.divscale30(i,j);
+					        x1 = xs + pragmas.mulscale30(vx,i);
+					        y1 = ys + pragmas.mulscale30(vy,i);
+					        z1 = zs + pragmas.mulscale30(vz,i);
+				        }
+			        }
+		        }
+		        else if ((vz > 0) && (zs <= sec.floorz))
+		        {
+			        z1 = sec.floorz; i = z1-zs;
+			        if ((pragmas.klabs(i)>>1) < vz)
+			        {
+				        i = pragmas.divscale30(i,vz);
+				        x1 = xs + pragmas.mulscale30(vx,i);
+				        y1 = ys + pragmas.mulscale30(vy,i);
+			        }
+		        }
+		        if ((x1 != 0x7fffffff) && (pragmas.klabs(x1-xs)+pragmas.klabs(y1-ys) < pragmas.klabs((hitx)-xs)+pragmas.klabs((hity)-ys)))
+			        if (inside(x1,y1,dasector) != 0)
+			        {
+				        hitsect = dasector; hitwall = -1; hitsprite = -1;
+				        hitx = x1; hity = y1; hitz = z1;
+			        }
+
+		        startwall = sec.wallptr; endwall = (short)(startwall + sec.wallnum);
+
+		        for(z=startwall;z<endwall;z++)
+		        {
+                    wal=wall[z];
+			        wal2 = wall[wal.point2];
+			        x1 = wal.x; y1 = wal.y; x2 = wal2.x; y2 = wal2.y;
+
+			        if ((x1-xs)*(y2-ys) < (x2-xs)*(y1-ys)) continue;
+			        if (Engine.rintersect(xs,ys,zs,vx,vy,vz,x1,y1,x2,y2,ref intx,ref inty,ref intz) == 0) continue;
+
+			        if (pragmas.klabs(intx-xs)+pragmas.klabs(inty-ys) >= pragmas.klabs((hitx)-xs)+pragmas.klabs((hity)-ys)) continue;
+
+			        nextsector = wal.nextsector;
+			        if ((nextsector < 0) || (wal.cstat&dawalclipmask) != 0)
+			        {
+				        hitsect = dasector; hitwall = (short)z; hitsprite = -1;
+				        hitx = intx; hity = inty; hitz = intz;
+				        continue;
+			        }
+			        getzsofslope(nextsector,intx,inty,ref daz,ref daz2);
+			        if ((intz <= daz) || (intz >= daz2))
+			        {
+                        hitsect = dasector; hitwall = (short)z; hitsprite = -1;
+				        hitx = intx; hity = inty; hitz = intz;
+				        continue;
+			        }
+
+			        for(zz=tempshortnum-1;zz>=0;zz--)
+				        if (clipsectorlist[zz] == nextsector) break;
+			        if (zz < 0) clipsectorlist[tempshortnum++] = nextsector;
+		        }
+
+		        for(z=headspritesect[dasector];z>=0;z=nextspritesect[z])
+		        {
+			        spr = sprite[z];
+			        cstat = spr.cstat;
+			        if ((cstat&dasprclipmask) == 0) continue;
+
+			        x1 = spr.x; y1 = spr.y; z1 = spr.z;
+			        switch(cstat&48)
+			        {
+				        case 0:
+					        topt = vx*(x1-xs) + vy*(y1-ys); if (topt <= 0) continue;
+					        bot = vx*vx + vy*vy; if (bot == 0) continue;
+
+					        intz = zs+pragmas.scale(vz,topt,bot);
+
+					        i = (Engine.tilesizy[spr.picnum]*spr.yrepeat<<2);
+					        if ((cstat&128) != 0) z1 += (i>>1);
+					        if ((Engine.picanm[spr.picnum]&0x00ff0000) != 0) z1 -= ((int)((sbyte)((Engine.picanm[spr.picnum]>>16)&255))*spr.yrepeat<<2);
+					        if ((intz > z1) || (intz < z1-i)) continue;
+					        topu = vx*(y1-ys) - vy*(x1-xs);
+
+					        offx = pragmas.scale(vx,topu,bot);
+					        offy = pragmas.scale(vy,topu,bot);
+					        dist = offx*offx + offy*offy;
+					        i = Engine.tilesizx[spr.picnum]*spr.xrepeat; i *= i;
+					        if (dist > (i>>7)) continue;
+					        intx = xs + pragmas.scale(vx,topt,bot);
+					        inty = ys + pragmas.scale(vy,topt,bot);
+
+					        if (pragmas.klabs(intx-xs)+pragmas.klabs(inty-ys) > pragmas.klabs((hitx)-xs)+pragmas.klabs((hity)-ys)) continue;
+
+					        hitsect = dasector; hitwall = -1; hitsprite = (short)z;
+					        hitx = intx; hity = inty; hitz = intz;
+					        break;
+				        case 16:
+						        //These lines get the 2 points of the rotated sprite
+						        //Given: (x1, y1) starts out as the center point
+					        tilenum = spr.picnum;
+					        xoff = (int)((sbyte)((Engine.picanm[tilenum]>>8)&255))+((int)spr.xoffset);
+					        if ((cstat&4) > 0) xoff = -xoff;
+					        k = spr.ang; l = spr.xrepeat;
+					        dax = Engine.table.sintable[k&2047]*l; day = Engine.table.sintable[(k+1536)&2047]*l;
+					        l = Engine.tilesizx[tilenum]; k = (l>>1)+xoff;
+					        x1 -= pragmas.mulscale16(dax,k); x2 = x1+pragmas.mulscale16(dax,l);
+					        y1 -= pragmas.mulscale16(day,k); y2 = y1+pragmas.mulscale16(day,l);
+
+					        if ((cstat&64) != 0)   //back side of 1-way sprite
+						        if ((x1-xs)*(y2-ys) < (x2-xs)*(y1-ys)) continue;
+
+					        if (Engine.rintersect(xs,ys,zs,vx,vy,vz,x1,y1,x2,y2,ref intx,ref inty,ref intz) == 0) continue;
+
+					        if (pragmas.klabs(intx-xs)+pragmas.klabs(inty-ys) > pragmas.klabs((hitx)-xs)+pragmas.klabs((hity)-ys)) continue;
+
+					        k = ((Engine.tilesizy[spr.picnum]*spr.yrepeat)<<2);
+					        if ((cstat&128) != 0) daz = spr.z+(k>>1); else daz = spr.z;
+					        if ((Engine.picanm[spr.picnum]&0x00ff0000) != 0) daz -= ((int)((sbyte)((Engine.picanm[spr.picnum]>>16)&255))*spr.yrepeat<<2);
+					        if ((intz < daz) && (intz > daz-k))
+					        {
+                                hitsect = dasector; hitwall = -1; hitsprite = (short)z;
+						        hitx = intx; hity = inty; hitz = intz;
+					        }
+					        break;
+				        case 32:
+					        if (vz == 0) continue;
+					        intz = z1;
+					        if (((intz-zs)^vz) < 0) continue;
+					        if ((cstat&64) != 0)
+						        if ((zs > intz) == ((cstat&8)==0)) continue;
+
+					        intx = xs+pragmas.scale(intz-zs,vx,vz);
+					        inty = ys+pragmas.scale(intz-zs,vy,vz);
+
+					        if (pragmas.klabs(intx-xs)+pragmas.klabs(inty-ys) > pragmas.klabs((hitx)-xs)+pragmas.klabs((hity)-ys)) continue;
+
+					        tilenum = spr.picnum;
+					        xoff = (int)((sbyte)((Engine.picanm[tilenum]>>8)&255))+((int)spr.xoffset);
+					        yoff = (int)((sbyte)((Engine.picanm[tilenum]>>16)&255))+((int)spr.yoffset);
+					        if ((cstat&4) > 0) xoff = -xoff;
+					        if ((cstat&8) > 0) yoff = -yoff;
+
+					        ang = spr.ang;
+					        cosang = Engine.table.sintable[(ang+512)&2047]; sinang = Engine.table.sintable[ang];
+					        xspan = Engine.tilesizx[tilenum]; xrepeat = spr.xrepeat;
+					        yspan = Engine.tilesizy[tilenum]; yrepeat = spr.yrepeat;
+
+					        dax = ((xspan>>1)+xoff)*xrepeat; day = ((yspan>>1)+yoff)*yrepeat;
+                            x1 += pragmas.dmulscale16(sinang, dax, cosang, day) - intx;
+                            y1 += pragmas.dmulscale16(sinang, day, -cosang, dax) - inty;
+					        l = xspan*xrepeat;
+                            x2 = x1 - pragmas.mulscale16(sinang, l);
+                            y2 = y1 + pragmas.mulscale16(cosang, l);
+					        l = yspan*yrepeat;
+					        k = -pragmas.mulscale16(cosang,l); x3 = x2+k; x4 = x1+k;
+					        k = -pragmas.mulscale16(sinang,l); y3 = y2+k; y4 = y1+k;
+
+					        clipyou = false;
+					        if ((y1^y2) < 0)
+					        {
+						        if ((x1^x2) < 0) clipyou ^= (x1*y2<x2*y1)^(y1<y2);
+						        else if (x1 >= 0) clipyou ^= true;
+					        }
+					        if ((y2^y3) < 0)
+					        {
+						        if ((x2^x3) < 0) clipyou ^= (x2*y3<x3*y2)^(y2<y3);
+						        else if (x2 >= 0) clipyou ^= true;
+					        }
+					        if ((y3^y4) < 0)
+					        {
+						        if ((x3^x4) < 0) clipyou ^= (x3*y4<x4*y3)^(y3<y4);
+						        else if (x3 >= 0) clipyou ^= true;
+					        }
+					        if ((y4^y1) < 0)
+					        {
+						        if ((x4^x1) < 0) clipyou ^= (x4*y1<x1*y4)^(y4<y1);
+						        else if (x4 >= 0) clipyou ^= true;
+					        }
+
+					        if (clipyou != false)
+					        {
+						        hitsect = dasector; hitwall = -1; hitsprite = (short)z;
+						        hitx = intx; hity = inty; hitz = intz;
+					        }
+					        break;
+			        }
+		        }
+		        tempshortcnt++;
+	        } while (tempshortcnt < tempshortnum);
+	        return(0);
+        }
+
         public void updatesector(int x, int y, ref short sectnum)
         {
 	        walltype wal;
@@ -4914,6 +5185,10 @@ namespace build
         public short sectnum, statnum;
         public short ang, owner, xvel, yvel, zvel;
         public short lotag, hitag, extra;
+
+// jv
+        public object obj;
+// jv end
 
         public spritetype(ref kFile file)
         {
