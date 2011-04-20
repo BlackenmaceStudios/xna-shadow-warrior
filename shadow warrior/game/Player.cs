@@ -16,12 +16,13 @@ namespace sw
         private bool playervoicefire = true;
         private int poszv = 0;
         private bSoundEffect DIGI_ZILLAREGARDS;
-        private bSoundEffect DIGI_SWORDGOTU1;
+        private bSoundEffect[] DIGI_SWORDGOTU1 = new bSoundEffect[3];
         private bSoundEffect DIGI_KUNGFU;
         private int jumping_counter = 0;
 
         private bSoundEffect DIGI_SWORDSWOOSH;
         private bool playenterlevelsound = true;
+        private bool usebloodysword = false;
 
         public Player()
         {
@@ -35,7 +36,9 @@ namespace sw
         public void Precache(bSoundManager soundManager)
         {
             DIGI_ZILLAREGARDS = soundManager.LoadSound("JGEN06.VOC");
-            DIGI_SWORDGOTU1 = soundManager.LoadSound("TSWORD05.VOC");
+            DIGI_SWORDGOTU1[0] = soundManager.LoadSound("TSWORD05.VOC");
+            DIGI_SWORDGOTU1[1] = soundManager.LoadSound("TSWORD08.VOC");
+            DIGI_SWORDGOTU1[2] = soundManager.LoadSound("TSWORD01.VOC");
             DIGI_KUNGFU = soundManager.LoadSound("KUNGFU06.VOC");
             DIGI_SWORDSWOOSH = soundManager.LoadSound("SWRDSTR1.VOC");
         }
@@ -54,12 +57,38 @@ namespace sw
         //
         // FireWeapon
         //
+        private Random rnd = new Random();
         public void FireWeapon()
         {
             if (_hud.state == WEAPON_STATE.WEAPON_IDLE)
             {
+                int dasect = 0;
+                short dawall = 0, daspr = 0;
+                int x4 = 0, y4 = 0, z4 = 0;
                 DIGI_SWORDSWOOSH.PlaySound();
                 _hud.state = WEAPON_STATE.WEAPON_FIRING;
+
+                int daz2 = ((100 - 100) * 2000) + (((int)Engine.krand() - 32768) >> 1);
+
+                Engine.board.hitscan(daposx, daposy, daposz, dacursectnum, Engine.table.sintable[(daang + 512) & 2047], Engine.table.sintable[daang & 2047],
+                                    daz2, ref dasect, ref dawall, ref daspr, ref x4, ref y4, ref z4, Engine.CLIPMASK1);
+
+                if (daspr != -1 && Engine.board.sprite[daspr].obj != null)
+                {
+                    Actor actor = (Actor)Engine.board.sprite[daspr].obj;
+
+                    actor.Damage(40);
+
+                    if (actor.Health <= 0)
+                    {
+                        if (usebloodysword == false)
+                        {
+                            usebloodysword = true;
+                            _hud.state = WEAPON_STATE.WEAPON_IDLE;
+                        }
+                        DIGI_SWORDGOTU1[rnd.Next(3)].PlaySound();
+                    }
+                }
             }
 
             if (playervoicefire == true)
@@ -169,7 +198,14 @@ namespace sw
         //
         private void DrawWeapon()
         {
-            _hud.DrawWeaponSword();
+            if (usebloodysword)
+            {
+                _hud.DrawWeaponSwordBloody();
+            }
+            else
+            {
+                _hud.DrawWeaponSword();
+            }
         }
 
         //
@@ -180,7 +216,7 @@ namespace sw
             if (_hud.state == WEAPON_STATE.WEAPON_IDLE)
                 playervoicefire = true;
 
-            Engine.board.drawrooms(daposx, daposy, daposz - 20, daang, 100, dacursectnum);
+            Engine.board.drawrooms(daposx, daposy, daposz - (38 << 8), daang, 100, dacursectnum);
             Engine.board.drawmasks();
 
             DrawWeapon();

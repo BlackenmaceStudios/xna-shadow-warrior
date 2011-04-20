@@ -25,6 +25,14 @@ namespace sw
         }
 
         //
+        // Damage
+        //
+        public virtual void Damage(int damage)
+        {
+
+        }
+
+        //
         // UpdatePosition
         //
         public void UpdatePosition(int x, int y, int z, short ang, short cursectnum)

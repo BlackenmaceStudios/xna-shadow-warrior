@@ -260,8 +260,11 @@ namespace sw
 
                 Actor actor = null;
 
-                if (picnum >= Names2.ST1 && picnum <= Names2.ST_QUICK_DEFEND || picnum == Names2.TRACK_SPRITE)
+                if ((picnum >= Names2.ST1 && picnum <= Names2.ST_QUICK_DEFEND) || picnum == Names2.TRACK_SPRITE || picnum == 1901)
                     actor = new ST1(sprite);
+
+                if (picnum == 4096 || picnum == 4162)
+                    actor = new EvilNinja(sprite);
 
                 /*
                 switch (picnum)
@@ -277,6 +280,7 @@ namespace sw
                 */
                 if (actor != null)
                 {
+                    sprite.obj = actor;
                     actor.Spawn();
                     _actors.Add(actor);
                 }
@@ -311,6 +315,11 @@ namespace sw
         private void GameFrame()
         {
             localplayer.Think();
+
+            foreach (Actor actor in _actors)
+            {
+                actor.Think();
+            }
         }
 
         //

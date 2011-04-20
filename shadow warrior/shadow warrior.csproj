@@ -64,6 +64,7 @@
     <Compile Include="game\ActorSprite.cs" />
     <Compile Include="game\Anim.cs" />
     <Compile Include="game\ColorMap.cs" />
+    <Compile Include="game\EvilNinja.cs" />
     <Compile Include="game\Flags.cs" />
     <Compile Include="game\Game.cs" />
     <Compile Include="game\mact\soundmanager.cs" />

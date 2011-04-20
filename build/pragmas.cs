@@ -191,6 +191,11 @@ namespace build
             return (int)(((Int64)(eax) << 14) / (Int64)(ebx));
         }
 
+        public static int divscale15(int eax, int ebx)
+        {
+            return (int)(((Int64)(eax) << 15) / (Int64)(ebx));
+        }
+
         public static int divscale16(int eax, int ebx)
         {
             return (int)(((Int64)(eax) << 16) / (Int64)(ebx));
@@ -279,6 +284,11 @@ namespace build
         public static int dmulscale14(int eax, int edx, int esi, int edi)
         {
             return (int)((((Int64)(eax) * (Int64)(edx)) + ((Int64)(esi) * (Int64)(edi))) >> 14);
+        }
+
+        public static int dmulscale15(int eax, int edx, int esi, int edi)
+        {
+            return (int)((((Int64)(eax) * (Int64)(edx)) + ((Int64)(esi) * (Int64)(edi))) >> 15);
         }
 
         public static int dmulscale16(int eax, int edx, int esi, int edi)
