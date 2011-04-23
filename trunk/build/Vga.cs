@@ -230,9 +230,18 @@ namespace build
         //
         // Present
         //
+        private int skipframe = 0;
         public void Present()
         {
-            _screenbuffer.Invalidate();
+            if (skipframe == 2)
+            {
+                _screenbuffer.Invalidate();
+                skipframe = 0;
+            }
+            else
+            {
+                skipframe++;
+            }
         }
     }
 }

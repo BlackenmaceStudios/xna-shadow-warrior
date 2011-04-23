@@ -83,7 +83,7 @@ namespace sw
             for (int i = 0; i < _voxels.Count; i++)
             {
                 Engine.qloadkvx(_voxels[i].voxelnum, _voxels[i].voxelpath);
-             //   Engine.tiletovox[_voxels[i].tilenum] = _voxels[i].voxelnum;
+                Engine.tiletovox[_voxels[i].tilenum] = _voxels[i].voxelnum;
             }
         }
     }

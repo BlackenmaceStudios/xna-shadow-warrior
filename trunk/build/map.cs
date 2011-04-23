@@ -143,6 +143,16 @@ namespace build
 
         private int mirrorsx1, mirrorsx2, mirrorsy1, mirrorsy2;
 
+        private int B_LITTLE32(int val)
+        {
+            return val;
+        }
+
+        private short B_LITTLE16(short val)
+        {
+            return val;
+        }
+
         //private int[] spritesx = new int[MAXSPRITESONSCREEN];
         //private int[] spritesy = new int[MAXSPRITESONSCREEN];
         //private int[] spritesz = new int[MAXSPRITESONSCREEN];
@@ -2005,12 +2015,13 @@ namespace build
 	        else if ((cstat&48) == 48)
 	        {
 		        int nxrepeat, nyrepeat;
+                int tspritez = tspr.z;
 
-		        lx = 0; rx = Engine.xdim-1;
+		        lx = 0; rx = Engine._device.xdim-1;
 		        for(x=lx;x<=rx;x++)
 		        {
-			        lwall[x] = (int)Engine._device.startumost[x+Engine.windowx1]-Engine.windowy1;
-			        swall[x] = (int)Engine._device.startdmost[x+Engine.windowx1]-Engine.windowy1;
+			        lwall[x] = (int)Engine._device.startumost[x+Engine._device.windowx1]-Engine._device.windowy1;
+			        swall[x] = (int)Engine._device.startdmost[x+Engine._device.windowx1]-Engine._device.windowy1;
 		        }
 		        for(i=smostwallcnt-1;i>=0;i--)
 		        {
@@ -2051,15 +2062,9 @@ namespace build
 			        if (x == rx) return;
 		        }
 
-		        for(i=0;i<Engine.MAXVOXMIPS;i++)
-			        if (Engine.voxoff[vtilenum].mipmaps[i].voxdata == null)
-			        {
-				        //kloadvoxel(vtilenum);
-				        break;
-			        }
-                Engine.bVoxelMipmap voxelmip = Engine.voxoff[vtilenum].mipmaps[0];
-
-                if (Engine.voxscale[vtilenum] == 65536)
+		        Engine.bVoxelMipmap intptr = Engine.voxoff[vtilenum][0];
+                intptr._reader.BaseStream.Position = 0;
+		        if (Engine.voxscale[vtilenum] == 65536)
 		        {
 			        nxrepeat = (((int)tspr.xrepeat)<<16);
 			        nyrepeat = (((int)tspr.yrepeat)<<16);
@@ -2070,33 +2075,33 @@ namespace build
 			        nyrepeat = ((int)tspr.yrepeat)*Engine.voxscale[vtilenum];
 		        }
 
-		        if ((cstat&128) == 0) tspr.z -= pragmas.mulscale22(voxelmip.xpivot,nyrepeat);
+                if ((cstat & 128) == 0) tspritez -= pragmas.mulscale22(B_LITTLE32(intptr.GetInt(5)), nyrepeat);
 		        yoff = (int)((sbyte)((Engine.picanm[sprite[tspr.owner].picnum]>>16)&255))+((int)tspr.yoffset);
-		        tspr.z -= pragmas.mulscale14(yoff,nyrepeat);
+		        tspritez -= pragmas.mulscale14(yoff,nyrepeat);
 
 		        globvis = globalvisibility;
 		        if (sec.visibility != 0) globvis = pragmas.mulscale4(globvis,(int)((sbyte)(sec.visibility+16)));
 
                 if ((Engine.searchit >= 1) && (yp > (4 << 8)) && (Engine.searchy >= lwall[Engine.searchx]) && (Engine.searchy < swall[Engine.searchx]))
 		        {
-			        siz = pragmas.divscale19(Engine.xdimenscale,yp);
+                    siz = pragmas.divscale19(Engine._device.xdimenscale, yp);
 
-                    xv = pragmas.mulscale16(nxrepeat, Engine.xyaspect);
+                    xv = pragmas.mulscale16(nxrepeat, Engine._device.xyaspect);
 
-			        xspan = ((voxelmip.numbytes+voxelmip.xsiz)>>1);
-                    yspan = voxelmip.ysiz;
-			        xsiz = pragmas.mulscale30(siz,xv*xspan);
-			        ysiz = pragmas.mulscale30(siz,nyrepeat*yspan);
+			        xspan = ((B_LITTLE32(intptr.GetInt(0))+B_LITTLE32(intptr.GetInt(1)))>>1);
+			        yspan = B_LITTLE32(intptr.GetInt(2));
+                    xsiz = pragmas.mulscale30(siz, xv * xspan);
+                    ysiz = pragmas.mulscale30(siz, nyrepeat * yspan);
 
 				        //Watch out for divscale overflow
 			        if (((xspan>>11) < xsiz) && (yspan < (ysiz>>1)))
 			        {
 				        x1 = xb-(xsiz>>1);
-				        if ((xspan&1) != 0) x1 += pragmas.mulscale31(siz,xv);  //Odd xspans
-				        i = pragmas.mulscale30(siz,xv*xoff);
+                        if ((xspan & 1) != 0) x1 += pragmas.mulscale31(siz, xv);  //Odd xspans
+                        i = pragmas.mulscale30(siz, xv * xoff);
 				        if ((cstat&4) == 0) x1 -= i; else x1 += i;
 
-				        y1 = pragmas.mulscale16(tspr.z-globalposz,siz);
+                        y1 = pragmas.mulscale16(tspritez - globalposz, siz);
 				        //y1 -= mulscale30(siz,nyrepeat*yoff);
 				        y1 += (globalhoriz<<8)-ysiz;
 				        //if (cstat&128)  //Already fixed up above
@@ -2104,30 +2109,34 @@ namespace build
 
 				        x2 = x1+xsiz-1;
 				        y2 = y1+ysiz-1;
-				        if (((y1|255) < (y2|255)) && (Engine.searchx >= (x1>>8)+1) && (Engine.searchx <= (x2>>8)))
+                        if (((y1 | 255) < (y2 | 255)) && (Engine.searchx >= (x1 >> 8) + 1) && (Engine.searchx <= (x2 >> 8)))
 				        {
 					        if ((sec.ceilingstat&3) == 0)
-						        startum = globalhoriz+pragmas.mulscale24(siz,sec.ceilingz-globalposz)-1;
+                                startum = globalhoriz + pragmas.mulscale24(siz, sec.ceilingz - globalposz) - 1;
 					        else
 						        startum = 0;
-					        if ((sec.floorstat&3) == 0)
-						        startdm = globalhoriz+pragmas.mulscale24(siz,sec.floorz-globalposz)+1;
-					        else
-						        startdm = 0x7fffffff;
-
+                            if ((sec.floorstat & 3) == 0)
+                                startdm = globalhoriz + pragmas.mulscale24(siz, sec.floorz - globalposz) + 1;
+                            else
+                            {
+                                // jv
+                                startdm = 2147483647; // startdm = 0x7fffffff;
+                            }
+// jv end
 						        //sprite
-					        if ((Engine.searchy >= Math.Max(startum,(y1>>8))) && (Engine.searchy < Math.Min(startdm,(y2>>8))))
+                            if ((Engine.searchy >= Math.Max(startum, (y1 >> 8))) && (Engine.searchy < Math.Min(startdm, (y2 >> 8))))
 					        {
-						        Engine.searchsector = sectnum; Engine.searchwall = spritenum;
-						        Engine.searchstat = 3; Engine.searchit = 1;
+                                Engine.searchsector = sectnum; Engine.searchwall = spritenum;
+                                Engine.searchstat = 3; Engine.searchit = 1;
 					        }
 				        }
 			        }
 		        }
 
+
 		        i = (int)tspr.ang+1536;
 
-		        drawvox(tspr.x,tspr.y,tspr.z,i,(int)tspr.xrepeat,(int)tspr.yrepeat,vtilenum,tspr.shade,tspr.pal,ref lwall,ref swall);
+                drawvox(tspr.x, tspr.y, tspritez, i, (int)tspr.xrepeat, (int)tspr.yrepeat, vtilenum, tspr.shade, tspr.pal, ref lwall, ref swall);
 	        }
 	      //  if (automapping == 1) show2dsprite[spritenum>>3] |= pow2char[spritenum&7];
 
@@ -2476,10 +2485,7 @@ namespace build
 	        int lx, rx, nx, ny, x1=0, y1=0, z1, x2=0, y2=0, z2, yplc, yinc=0;
 	        int yoff, xs=0, ys=0, xe, ye, xi=0, yi=0, cbackx, cbacky, dagxinc, dagyinc;
 	        int shortptr;
-            int voxend;
-            int oand, oand16, oand32;
-            int voxptr;
-            Engine.bVoxel voxel;
+	        int voxptr, voxend, oand, oand16, oand32;
             Engine.bVoxelMipmap davoxptr;
 
 	        cosang = Engine.table.sintable[(globalang+512)&2047];
@@ -2489,22 +2495,21 @@ namespace build
 
             i = pragmas.klabs(pragmas.dmulscale6(dasprx - globalposx, cosang, daspry - globalposy, sinang));
             j = (int)(Engine.palette.getpalookup((int)pragmas.mulscale21(globvis, i), (int)dashade) << 8);
-	        A.setupdrawslab(Engine.ylookup[1],dapal,j);
+	        A.setupdrawslab(Engine.ylookup[1],Engine.palette.palookup[dapal], j);
 	        j = 1310720;
 	        j *= Math.Min(daxscale,dayscale); j >>= 6;  //New hacks (for sized-down voxels)
-	        for(k=0;k<Engine.MAXVOXMIPS;k++)
+	        for(k=0;k<5;k++)
 	        {
 		        if (i < j) { i = k; break; }
 		        j <<= 1;
 	        }
-            if (k >= Engine.MAXVOXMIPS) i = Engine.MAXVOXMIPS - 1;
+	        if (k >= 5) i = 5-1;
 
-	        if (Engine.novoxmips) i = 0;
-
-            voxel = Engine.voxoff[daindex];
-	        davoxptr = voxel.mipmaps[i];
-            if (davoxptr.voxdata == null && i > 0) { davoxptr = voxel.mipmaps[0]; i = 0; }
-            if (davoxptr.voxdata == null) return;
+	      //  if (novoxmips) i = 0;
+            davoxptr = Engine.voxoff[daindex][i];
+            
+            if (davoxptr == null && i > 0) { davoxptr = Engine.voxoff[daindex][0]; i = 0; } 
+	        if (davoxptr == null) return;
 
 	        if (Engine.voxscale[daindex] == 65536)
 		        { daxscale <<= (i+8); dayscale <<= (i+8); }
@@ -2515,24 +2520,26 @@ namespace build
 	        }
 
 	        odayscale = dayscale;
-	        daxscale = pragmas.mulscale16(daxscale,Engine._device.xyaspect);
-            daxscale = pragmas.scale(daxscale, Engine._device.xdimenscale, Engine._device.xdimen << 8);
-            dayscale = pragmas.scale(dayscale, pragmas.mulscale16(Engine._device.xdimenscale, Engine._device.viewingrangerecip), Engine._device.xdimen << 8);
+	        daxscale = pragmas.mulscale16(daxscale,Engine.xyaspect);
+            daxscale = pragmas.scale(daxscale, Engine.xdimenscale, Engine.xdimen << 8);
+            dayscale = pragmas.scale(dayscale, pragmas.mulscale16(Engine.xdimenscale, Engine.viewingrangerecip), Engine.xdimen << 8);
 
 	        daxscalerecip = (1<<30)/daxscale;
 	        dayscalerecip = (1<<30)/dayscale;
 
-            daxsiz = davoxptr.xsiz; daysiz = davoxptr.ysiz; dazsiz = davoxptr.zsiz;
-            daxpivot = davoxptr.xpivot; daypivot = davoxptr.ypivot; dazpivot = davoxptr.zpivot;
+            davoxptr._reader.BaseStream.Position = 0;
+            daxsiz = davoxptr.GetInt(0); daysiz = davoxptr.GetInt(1); dazsiz = davoxptr.GetInt(2);
+            daxpivot = davoxptr.GetInt(3); daypivot = davoxptr.GetInt(4); dazpivot = davoxptr.GetInt(5);
+            davoxptr._reader.BaseStream.Position += (6 << 2);
 
-            x = pragmas.mulscale16(globalposx - dasprx, daxscalerecip);
+	        x = pragmas.mulscale16(globalposx-dasprx,daxscalerecip);
             y = pragmas.mulscale16(globalposy - daspry, daxscalerecip);
             backx = ((pragmas.dmulscale10(x, sprcosang, y, sprsinang) + daxpivot) >> 8);
             backy = ((pragmas.dmulscale10(y, sprcosang, x, -sprsinang) + daypivot) >> 8);
-	        cbackx = Math.Min(Math.Max(backx,0),daxsiz-1);
-	        cbacky = Math.Min(Math.Max(backy,0),daysiz-1);
+            cbackx = Math.Min(Math.Max(backx, 0), daxsiz - 1);
+            cbacky = Math.Min(Math.Max(backy, 0), daysiz - 1);
 
-            sprcosang = pragmas.mulscale14(daxscale, sprcosang);
+	        sprcosang = pragmas.mulscale14(daxscale,sprcosang);
             sprsinang = pragmas.mulscale14(daxscale, sprsinang);
 
             x = (dasprx - globalposx) - pragmas.dmulscale18(daxpivot, sprcosang, daypivot, -sprsinang);
@@ -2549,8 +2556,8 @@ namespace build
 	        x = 0; y = 0; j = Math.Max(daxsiz,daysiz);
 	        for(i=0;i<=j;i++)
 	        {
-                Engine.ggxinc[i] = x; x += gxinc;
-                Engine.ggyinc[i] = y; y += gyinc;
+		        Engine.ggxinc[i] = x; x += gxinc;
+		        Engine.ggyinc[i] = y; y += gyinc;
 	        }
 
             if ((pragmas.klabs(globalposz - dasprz) >> 10) >= pragmas.klabs(odayscale)) return;
@@ -2558,7 +2565,7 @@ namespace build
             yoff = ((pragmas.klabs(gxinc) + pragmas.klabs(gyinc)) >> 1);
 	        xyvoxoffs = ((daxsiz+1)<<2);
 
-            Engine._device.BeginDrawing();	//{{{
+	        Engine._device.BeginDrawing();	//{{{
 
 	        for(cnt=0;cnt<8;cnt++)
 	        {
@@ -2590,7 +2597,7 @@ namespace build
 			        xe += xi; ye += yi;
 		        }
 
-                i = pragmas.ksgn(ys - backy) + pragmas.ksgn(xs - backx) * 3 + 4;
+		        i = pragmas.ksgn(ys-backy)+pragmas.ksgn(xs-backx)*3+4;
 		        switch(i)
 		        {
 			        case 6: case 7: x1 = 0; y1 = 0; break;
@@ -2606,108 +2613,99 @@ namespace build
 			        case 6: case 3: x2 = gxinc+gyinc; y2 = gyinc-gxinc; break;
 		        }
 
-                int isbackx = 0, isbacky = 0;
+                int cmpx = 0, cmpy = 0;
 
-                if (xs < backx) isbackx = 1;
-                if (ys < backy) isbacky = 1;
+                if (xs < backx) cmpx = 1;
+                if (ys < backy) cmpy = 1;
 
-                oand = Engine.pow2char[(isbackx) + 0] + Engine.pow2char[(isbacky) + 2];
+                oand = Engine.pow2char[cmpx + 0] + Engine.pow2char[cmpy + 2];
 		        oand16 = oand+16;
 		        oand32 = oand+32;
 
-                if (yi > 0) { dagxinc = gxinc; dagyinc = pragmas.mulscale16(gyinc, Engine._device.viewingrangerecip); }
-                else { dagxinc = -gxinc; dagyinc = -pragmas.mulscale16(gyinc, Engine._device.viewingrangerecip); }
+		        if (yi > 0) { dagxinc = gxinc; dagyinc = pragmas.mulscale16(gyinc,Engine.viewingrangerecip); }
+                else { dagxinc = -gxinc; dagyinc = -pragmas.mulscale16(gyinc, Engine.viewingrangerecip); }
 
 			        //Fix for non 90 degree viewing ranges
-		        nxoff = pragmas.mulscale16(x2-x1,Engine._device.viewingrangerecip);
-                x1 = pragmas.mulscale16(x1, Engine._device.viewingrangerecip);
+                nxoff = pragmas.mulscale16(x2 - x1, Engine.viewingrangerecip);
+                x1 = pragmas.mulscale16(x1, Engine.viewingrangerecip);
 
-		        ggxstart = gxstart+Engine.ggyinc[ys];
+                ggxstart = gxstart + Engine.ggyinc[ys];
                 ggystart = gystart - Engine.ggxinc[ys];
 
+                int basepos = (6 << 2);
 		        for(x=xs;x!=xe;x+=xi)
 		        {
-                    slabxoffs = x; //(int)&davoxptr[B_LITTLE32(intptr[x])];
-                    shortptr = x; // ((x * (daysiz + 1)) << 1);//(short *)&davoxptr[((x*(daysiz+1))<<1)+xyvoxoffs];
+                    davoxptr._reader.BaseStream.Position = basepos;
+
+                    slabxoffs = basepos + davoxptr.GetInt(x); // (int)&davoxptr[B_LITTLE32(intptr[x])];
+                    shortptr = basepos + ((x * (daysiz + 1)) << 1) + xyvoxoffs;//(short *)&davoxptr[((x*(daysiz+1))<<1)+xyvoxoffs];
 
                     nx = pragmas.mulscale16(ggxstart + Engine.ggxinc[x], Engine.viewingrangerecip) + x1;
                     ny = ggystart + Engine.ggyinc[x];
 			        for(y=ys;y!=ye;y+=yi,nx+=dagyinc,ny-=dagxinc)
 			        {
 				        if ((ny <= nytooclose) || (ny >= nytoofar)) continue;
-
-                        //voxptr = (char*)(B_LITTLE16(shortptr[y]) + slabxoffs);
-                        //voxend = (char*)(B_LITTLE16(shortptr[y + 1]) + slabxoffs);
-
-                        //xoffset[x] + xyoffset[x][y]
-                        voxptr = davoxptr.xoffset[x] + davoxptr.xyoffset[x, y];
-                        voxend = davoxptr.xoffset[x] + davoxptr.xyoffset[x, y + 1];
+                        davoxptr._reader.BaseStream.Position = shortptr;
+				        voxptr = davoxptr.GetShort(y) + slabxoffs;
+                        voxend = davoxptr.GetShort(y + 1) + slabxoffs;//(char *)(B_LITTLE16(shortptr[y+1])+slabxoffs);
 				        if (voxptr == voxend) continue;
 
-				        lx = pragmas.mulscale32(nx>>3,(int)distrecip[(ny+y1)>>14])+Engine._device.halfxdimen;
+                        lx = pragmas.mulscale32(nx >> 3, (int)distrecip[(ny + y1) >> 14]) + Engine.halfxdimen;
 				        if (lx < 0) lx = 0;
-                        rx = pragmas.mulscale32((nx + nxoff) >> 3, (int)distrecip[(ny + y2) >> 14]) + Engine._device.halfxdimen;
-                        if (rx > Engine._device.xdimen) rx = Engine._device.xdimen;
+                        rx = pragmas.mulscale32((nx + nxoff) >> 3, (int)distrecip[(ny + y2) >> 14]) + Engine.halfxdimen;
+                        if (rx > Engine.xdimen) rx = Engine.xdimen;
 				        if (rx <= lx) continue;
 				        rx -= lx;
 
-				        l1 = (int)distrecip[(ny-yoff)>>14];
+                        l1 = (int)distrecip[(ny - yoff) >> 14];
                         l2 = (int)distrecip[(ny + yoff) >> 14];
-
-                        byte slabztop = 0;             //Starting z coordinate of top of slab
-                        byte slabzleng = 0;            //# of bytes in the color array - slab height
-                        byte slabbackfacecullinfo = 0; //Low 6 bits tell which of 6 faces are exposed
-
-                        for (; voxptr < voxend; voxptr += slabzleng)
+                        davoxptr._reader.BaseStream.Position = voxptr;
+                        for (; voxptr < voxend; voxptr += davoxptr.data[voxptr + 1] + 3)
 				        {
-                            slabztop = davoxptr.voxdata[voxptr + 0];
-                            slabzleng = davoxptr.voxdata[voxptr + 1];
-                            slabbackfacecullinfo = davoxptr.voxdata[voxptr + 2];
-
-                            j = (slabztop<< 15) - syoff;
+                            j = (davoxptr.data[voxptr + 0] << 15) - syoff;
 					        if (j < 0)
 					        {
-                                k = j + (slabzleng<< 15);
+                                k = j + (davoxptr.data[voxptr + 1] << 15);
 						        if (k < 0)
 						        {
-                                    if ((slabbackfacecullinfo& oand32) == 0) continue;
+                                    if ((davoxptr.data[voxptr + 2] & oand32) == 0) continue;
 							        z2 = pragmas.mulscale32(l2,k) + globalhoriz;     //Below slab
 						        }
 						        else
 						        {
-                                    if ((slabbackfacecullinfo& oand) == 0) continue;    //Middle of slab
+                                    if ((davoxptr.data[voxptr + 2] & oand) == 0) continue;    //Middle of slab
 							        z2 = pragmas.mulscale32(l1,k) + globalhoriz;
 						        }
-						        z1 = pragmas.mulscale32(l1,j) + globalhoriz;
+                                z1 = pragmas.mulscale32(l1, j) + globalhoriz;
 					        }
 					        else
 					        {
-                                if ((slabbackfacecullinfo& oand16) == 0) continue;
-						        z1 = pragmas.mulscale32(l2,j) + globalhoriz;        //Above slab
-                                z2 = pragmas.mulscale32(l1, j + (slabzleng<< 15)) + globalhoriz;
+                                if ((davoxptr.data[voxptr + 2] & oand16) == 0) continue;
+                                z1 = pragmas.mulscale32(l2, j) + globalhoriz;        //Above slab
+                                z2 = pragmas.mulscale32(l1, j + (davoxptr.data[voxptr + 1] << 15)) + globalhoriz;
 					        }
 
-                            if (slabzleng== 1)
+                            if (davoxptr.data[voxptr + 1] == 1)
 					        {
 						        yplc = 0; yinc = 0;
 						        if (z1 < daumost[lx]) z1 = daumost[lx];
 					        }
 					        else
 					        {
-                                if (z2 - z1 >= 1024) yinc = pragmas.divscale16(davoxptr.voxdata[voxptr + 1], z2 - z1);
-                                else if (z2 > z1) yinc = (Engine.lowrecip[z2 - z1] * slabzleng>> 8);
+                                if (z2 - z1 >= 1024) yinc = pragmas.divscale16(davoxptr.data[voxptr + 1], z2 - z1);
+                                else if (z2 > z1) yinc = (Engine.lowrecip[z2 - z1] * davoxptr.data[voxptr + 1] >> 8);
 						        if (z1 < daumost[lx]) { yplc = yinc*(daumost[lx]-z1); z1 = daumost[lx]; } else yplc = 0;
 					        }
 					        if (z2 > dadmost[lx]) z2 = dadmost[lx];
 					        z2 -= z1; if (z2 <= 0) continue;
 
-                            A.drawslab(rx, yplc, z2, yinc, davoxptr.voxdata, 3 + voxptr, Engine.ylookup[z1] + lx + frameoffset);
+                            A.drawslab(rx, yplc, z2, yinc, davoxptr.data, (voxptr + 3), Engine.ylookup[z1] + lx + frameoffset);
 				        }
 			        }
 		        }
 	        }
 
-            Engine._device.EndDrawing();
+	        Engine._device.EndDrawing();	//}}}
         }
         
         //
