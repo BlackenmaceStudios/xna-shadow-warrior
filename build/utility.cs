@@ -21,11 +21,13 @@ namespace build
         public static IBUtility lib;
         public static void Init()
         {
+#if false
             DllImport.Init();
             DllImport.Register("buildnative.dll", "F0D5AFD8-DA24-4e85-9335-BEBCADE5B92A");
 
             var c = new BUtilityClass();
             lib = c as IBUtility;
+#endif
 /*
             int[] buffer = new int[1000000];
 

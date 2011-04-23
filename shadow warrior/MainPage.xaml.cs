@@ -29,7 +29,7 @@ namespace shadow_warrior
         public MainPage()
         {
             InitializeComponent();
-            buildtag.Text = "Shadow Warrior Build " + GetBuildTime();
+            //buildtag.Text = "Shadow Warrior Build " + GetBuildTime();
         }
 
 
@@ -52,7 +52,7 @@ namespace shadow_warrior
 
             music = new MediaElement();
             music.Stop();
-            gameviewpanelbackground.Children.Add(music);
+            gameviewpanel.Children.Add(music);
 
             // Set focus on the page
             this.Focus();
@@ -61,7 +61,7 @@ namespace shadow_warrior
             swgame = new Game();
             swgame.Init(ref viewportimg, music);
 
-            gameviewpanelbackground.Visibility = System.Windows.Visibility.Collapsed;
+            //gameviewpanelbackground.Visibility = System.Windows.Visibility.Collapsed;
 
             // Game loop.
             CompositionTarget.Rendering += new EventHandler(Page_CompositionTarget_Rendering);
