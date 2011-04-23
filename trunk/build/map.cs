@@ -143,9 +143,18 @@ namespace build
 
         private int mirrorsx1, mirrorsx2, mirrorsy1, mirrorsy2;
 
-        private int[] spritesx = new int[MAXSPRITESONSCREEN];
-        private int[] spritesy = new int[MAXSPRITESONSCREEN];
-        private int[] spritesz = new int[MAXSPRITESONSCREEN];
+        //private int[] spritesx = new int[MAXSPRITESONSCREEN];
+        //private int[] spritesy = new int[MAXSPRITESONSCREEN];
+        //private int[] spritesz = new int[MAXSPRITESONSCREEN];
+
+        private struct VisSprite_t
+        {
+            public int x;
+            public int y;
+            public int z;
+        }
+
+        private VisSprite_t[] vissprites = new VisSprite_t[MAXSPRITESONSCREEN];
 
         private int[] nrx1 = new int[8];
         private int[] nry1 = new int[8]; 
@@ -214,6 +223,8 @@ namespace build
 
         private void copybufbyte(int sstart, ref short[] S, int dstart, ref short[] D, int c)
         {
+            Array.Copy(S, sstart, D, dstart, c);
+            /*
             int p = sstart, q = dstart;
             while ((c--) > 0)
             {
@@ -221,6 +232,7 @@ namespace build
             }
 
             return;
+            */
         }
 
         int[] m;
@@ -1018,7 +1030,7 @@ namespace build
 
 	        fw = sector[sectnum].wallptr; i = wall[fw].point2;
 	        dx = wall[i].x-wall[fw].x; dy = wall[i].y-wall[fw].y;
-            dasqr = (int)pragmas.krecipasm((int)pragmas.nsqrtasm((uint)(dx * dx + dy * dy)));
+            dasqr = pragmas.krecipasm((int)pragmas.nsqrtasm((uint)(dx * dx + dy * dy)));
 
 	        if (xb1[w] == 0)
 		        { xv = cosglobalang+sinviewingrangeglobalang; yv = singlobalang-cosviewingrangeglobalang; }
@@ -1180,8 +1192,8 @@ namespace build
 
 	        tspr = tsprite[snum];
 
-	        xb = spritesx[snum];
-	        yp = spritesy[snum];
+            xb = vissprites[snum].x;
+	        yp = vissprites[snum].y;
 	        tilenum = tspr.picnum;
 	        spritenum = tspr.owner;
 	        cstat = tspr.cstat;
@@ -1213,7 +1225,9 @@ namespace build
 
 	        sectnum = tspr.sectnum; sec = sector[sectnum];
 	        globalpal = tspr.pal;
-	        if (Engine.palette.isLookupValid(globalpal) == false) globalpal = 0;	// JBF: fixes null-pointer crash
+// jv - removed
+	        //if (Engine.palette.isLookupValid(globalpal) == false) globalpal = 0;	// JBF: fixes null-pointer crash
+// jv end
 	        globalshade = tspr.shade;
 	        if ((cstat&2) != 0)
 	        {
@@ -1235,10 +1249,10 @@ namespace build
 		        yspan = Engine.tilesizy[tilenum];
 		        xsiz = pragmas.mulscale30(siz,xv*xspan);
 		        ysiz = pragmas.mulscale14(siz,tspr.yrepeat*yspan);
-
-		        if (((Engine.tilesizx[tilenum]>>11) >= xsiz) || (yspan >= (ysiz>>1)))
-			        return;  //Watch out for divscale overflow
-
+// jv - removed
+		//        if (((Engine.tilesizx[tilenum]>>11) >= xsiz) || (yspan >= (ysiz>>1)))
+		//	        return;  //Watch out for divscale overflow
+// jv end
 		        x1 = xb-(xsiz>>1);
 		        if ((xspan&1) != 0) x1 += pragmas.mulscale31(siz,xv);  //Odd xspans
 		        i =pragmas.mulscale30(siz,xv*xoff);
@@ -1469,12 +1483,12 @@ namespace build
 		        bot = pragmas.mulscale11(xp1-xp2,Engine.xdimen) + pragmas.mulscale2(xb1[MAXWALLSB-1]-Engine.halfxdimen,botinc);
 
 		        j = xb2[MAXWALLSB-1]+3;
-		        z = pragmas.mulscale20(top,pragmas.krecipasm(bot));
+                z = pragmas.mulscale20(top, pragmas.krecipasm(bot));
 		        lwall[xb1[MAXWALLSB-1]] = (z>>8);
 		        for(x=xb1[MAXWALLSB-1]+4;x<=j;x+=4)
 		        {
 			        top += topinc; bot += botinc;
-			        zz = z; z = pragmas.mulscale20(top,pragmas.krecipasm(bot));
+                    zz = z; z = pragmas.mulscale20(top, pragmas.krecipasm(bot));
 			        lwall[x] = (z>>8);
 			        i = ((z+zz)>>1);
 			        lwall[x-2] = (i>>8);
@@ -1538,7 +1552,7 @@ namespace build
 		        owallmost(ref uwall,(int)(MAXWALLSB-1),z1-globalposz);
 		        owallmost(ref dwall,(int)(MAXWALLSB-1),z2-globalposz);
 		        for(i=xb1[MAXWALLSB-1];i<=xb2[MAXWALLSB-1];i++)
-			        { swall[i] = (pragmas.krecipasm(hplc)<<2); hplc += hinc; }
+                { swall[i] = (pragmas.krecipasm(hplc) << 2); hplc += hinc; }
 
 		        for(i=smostwallcnt-1;i>=0;i--)
 		        {
@@ -1552,7 +1566,7 @@ namespace build
 				        if (Math.Min(yb1[MAXWALLSB-1],yb2[MAXWALLSB-1]) > Math.Max(yb1[j],yb2[j]))
 				        {
 // jv
-                            x = -128; // 0x80000000;
+                            x = -2147483648; // 0x80000000;
 // jv end
 				        }
 				        else
@@ -1578,13 +1592,13 @@ namespace build
                                         if (wall[thewall[j]].nextsector == tspr.sectnum)
                                         {
 // jv
-                                            x = -128; // 0x80000000;
+                                            x = -2147483648; // 0x80000000;
 // jv end
                                         }
                                         else
                                         {
 // jv
-                                            x = -129; // 0x7fffffff;
+                                            x = 2147483647; // 0x7fffffff;
 // jv end
                                         }
 							        }
@@ -1607,21 +1621,22 @@ namespace build
                                             { if (darx2 > x) darx2 = x; }
 
                                             // jv
-                                            //x = 0x80000001;
-                                            x = 16777344;
+                                            x = -2147483647; // 0x80000001;
                                             // jv end
                                         }
                                         else
                                         {
                                             // jv
                                             //x = 0x7fffffff;
-                                            x = -129;
+                                            x = 2147483647;
                                             // jv end
                                         }
 							        }
 						        }
 					        }
 				        }
+                       
+
 				        if (x < 0)
 				        {
 					        if (dalx2 < xb1[MAXWALLSB-1]) dalx2 = xb1[MAXWALLSB-1];
@@ -1847,7 +1862,7 @@ namespace build
 		        lpoint = -1; lmax = 0x7fffffff;
                 rpoint = -1; 
 // jv
-                rmax = -129;//0x80000000;
+                rmax = -2147483648;//0x80000000;
 // jv end
 		        for(z=0;z<npoints;z++)
 		        {
@@ -2224,7 +2239,9 @@ namespace build
 
 	        if ((Engine.picanm[globalpicnum]&192) != 0) globalpicnum += Engine.animateoffs((short)globalpicnum,(short)sectnum);
 	       // setgotpic(globalpicnum);
-	        if ((Engine.tilesizx[globalpicnum] <= 0) || (Engine.tilesizy[globalpicnum] <= 0)) return;
+// jv
+	       // if ((Engine.tilesizx[globalpicnum] <= 0) || (Engine.tilesizy[globalpicnum] <= 0)) return;
+// jv end
             if (Engine.waloff[(int)globalpicnum] == null) Engine.loadtile((short)globalpicnum);
 
 	        wal = wall[sec.wallptr];
@@ -2332,12 +2349,12 @@ namespace build
 
                     while (nptr1 <= mptr1)
 			        {
-                        slopalookupbuf[mptr1--] = (Engine.palette.getpalookup((int)pragmas.mulscale24( pragmas.krecipasm(m1), globvis), globalshade) << 8);
+                        slopalookupbuf[mptr1--] = (Engine.palette.getpalookup((int)pragmas.mulscale24(pragmas.krecipasm(m1), globvis), globalshade) << 8);
 				        m1 -= l;
 			        }
                     while (nptr2 >= mptr2)
 			        {
-                        slopalookupbuf[mptr2++] = (Engine.palette.getpalookup((int)pragmas.mulscale24( pragmas.krecipasm(m2), globvis), globalshade) << 8);
+                        slopalookupbuf[mptr2++] = (Engine.palette.getpalookup((int)pragmas.mulscale24(pragmas.krecipasm(m2), globvis), globalshade) << 8);
 				        m2 += l;
 			        }
 
@@ -2705,7 +2722,9 @@ namespace build
 	        if (sec.floorpal != Engine.palette.globalpalwritten)
 	        {
 		        Engine.palette.globalpalwritten = sec.floorpal;
-		        if (Engine.palette.isLookupValid(Engine.palette.globalpalwritten) == false) Engine.palette.globalpalwritten = globalpal;	// JBF: fixes null-pointer crash
+// jv
+		        //if (Engine.palette.isLookupValid(Engine.palette.globalpalwritten) == false) Engine.palette.globalpalwritten = globalpal;	// JBF: fixes null-pointer crash
+// jv end
 		        A.setpalookupaddress(Engine.palette.globalpalwritten, 0);
 	        }
 
@@ -2875,7 +2894,9 @@ namespace build
 	        if (sec.ceilingpal != Engine.palette.globalpalwritten)
 	        {
 		        Engine.palette.globalpalwritten = sec.ceilingpal;
-		        if (Engine.palette.isLookupValid(Engine.palette.globalpalwritten) == false) Engine.palette.globalpalwritten = globalpal;	// JBF: fixes null-pointer crash
+// jv
+		        //if (Engine.palette.isLookupValid(Engine.palette.globalpalwritten) == false) Engine.palette.globalpalwritten = globalpal;	// JBF: fixes null-pointer crash
+// jv end
                 A.setpalookupaddress(Engine.palette.globalpalwritten, 0);
 	        }
 
@@ -4056,7 +4077,7 @@ namespace build
 		        if (yp > (4<<8))
 		        {
 			        xp = pragmas.dmulscale6(ys,cosglobalang,-xs,singlobalang);
-			        spritesx[i] = pragmas.scale(xp+yp,Engine.xdimen<<7,yp);
+                    vissprites[i].x = pragmas.scale(xp + yp, Engine.xdimen << 7, yp);
 		        }
 		        else if ((tsprite[i].cstat&48) == 0)
 		        {
@@ -4064,12 +4085,12 @@ namespace build
 			        if (i != spritesortcnt)
 			        {
 				        tsprite[i] = tsprite[spritesortcnt];
-				        spritesx[i] = spritesx[spritesortcnt];
-				        spritesy[i] = spritesy[spritesortcnt];
+                        vissprites[i].x = vissprites[spritesortcnt].x;
+                        vissprites[i].y = vissprites[spritesortcnt].y;
 			        }
 			        continue;
 		        }
-		        spritesy[i] = yp;
+                vissprites[i].y = yp;
 	        }
 
 	        gap = 1; while (gap < spritesortcnt) gap = (gap<<1)+1;
@@ -4077,50 +4098,46 @@ namespace build
 		        for(i=0;i<spritesortcnt-gap;i++)
 			        for(l=i;l>=0;l-=gap)
 			        {
-				        if (spritesy[l] <= spritesy[l+gap]) break;
+                        if (vissprites[l].y <= vissprites[l + gap].y) break;
 				        pragmas.swaplong<spritetype>(ref tsprite[l],ref tsprite[l+gap]);
-				        pragmas.swaplong<int>(ref spritesx[l],ref spritesx[l+gap]);
-				        pragmas.swaplong<int>(ref spritesy[l],ref spritesy[l+gap]);
+				        pragmas.swaplong<VisSprite_t>(ref vissprites[l],ref vissprites[l+gap]);
 			        }
 
 	        if (spritesortcnt > 0)
-		        spritesy[spritesortcnt] = (spritesy[spritesortcnt-1]^1);
+		        vissprites[spritesortcnt].y = (vissprites[spritesortcnt-1].y^1);
 
-	        ys = spritesy[0]; i = 0;
+	        ys = vissprites[0].y; i = 0;
 	        for(j=1;j<=spritesortcnt;j++)
 	        {
-		        if (spritesy[j] == ys) continue;
-		        ys = spritesy[j];
+		        if (vissprites[j].y == ys) continue;
+		        ys = vissprites[j].y;
 		        if (j > i+1)
 		        {
 			        for(k=i;k<j;k++)
 			        {
-				        spritesz[k] = tsprite[k].z;
+				        vissprites[k].z = tsprite[k].z;
 				        if ((tsprite[k].cstat&48) != 32)
 				        {
 					        yoff = (int)((sbyte)((Engine.picanm[tsprite[k].picnum]>>16)&255))+((int)tsprite[k].yoffset);
-					        spritesz[k] -= ((yoff*tsprite[k].yrepeat)<<2);
+					        vissprites[k].z -= ((yoff*tsprite[k].yrepeat)<<2);
 					        yspan = (Engine.tilesizy[tsprite[k].picnum]*(tsprite[k].yrepeat<<2));
-					        if ((tsprite[k].cstat&128) == 0) spritesz[k] -= (yspan>>1);
-					        if (pragmas.klabs(spritesz[k]-globalposz) < (yspan>>1)) spritesz[k] = globalposz;
+					        if ((tsprite[k].cstat&128) == 0) vissprites[k].z -= (yspan>>1);
+					        if (pragmas.klabs(vissprites[k].z-globalposz) < (yspan>>1)) vissprites[k].z = globalposz;
 				        }
 			        }
 			        for(k=i+1;k<j;k++)
 				        for(l=i;l<k;l++)
-					        if (pragmas.klabs(spritesz[k]-globalposz) < pragmas.klabs(spritesz[l]-globalposz))
+					        if (pragmas.klabs(vissprites[k].z-globalposz) < pragmas.klabs(vissprites[l].z-globalposz))
 					        {
 						        pragmas.swaplong<spritetype>(ref tsprite[k],ref tsprite[l]);
-						        pragmas.swaplong<int>(ref spritesx[k],ref spritesx[l]);
-						        pragmas.swaplong<int>(ref spritesy[k],ref spritesy[l]);
-						        pragmas.swaplong<int>(ref spritesz[k],ref spritesz[l]);
+                                pragmas.swaplong<VisSprite_t>(ref vissprites[k], ref vissprites[l]);
 					        }
 			        for(k=i+1;k<j;k++)
 				        for(l=i;l<k;l++)
 					        if (tsprite[k].statnum < tsprite[l].statnum)
 					        {
 						        pragmas.swaplong<spritetype>(ref tsprite[k],ref tsprite[l]);
-						        pragmas.swaplong<int>(ref spritesx[k],ref spritesx[l]);
-						        pragmas.swaplong<int>(ref spritesy[k],ref spritesy[l]);
+                                pragmas.swaplong<VisSprite_t>(ref vissprites[k], ref vissprites[l]);
 					        }
 		        }
 		        i = j;
@@ -4158,7 +4175,7 @@ namespace build
                     k = -1;
                     gap = 0;
                     for (i = spritesortcnt - 2; i >= 0; i--)
-                        if ((xb1[j] <= (spritesx[i] >> 8)) && ((spritesx[i] >> 8) <= xb2[j]))
+                        if ((xb1[j] <= (vissprites[i].x >> 8)) && ((vissprites[i].x >> 8) <= xb2[j]))
                             if (spritewallfront(tsprite[i], (int)thewall[j]) == false)
                             {
                                 drawsprite(i);
@@ -4174,8 +4191,9 @@ namespace build
                                 if (i > k)
                                 {
                                     tsprite[k] = tsprite[i];
-                                    spritesx[k] = spritesx[i];
-                                    spritesy[k] = spritesy[i];
+                                    vissprites[k] = vissprites[i];
+                                    //spritesx[k] = spritesx[i];
+                                    //spritesy[k] = spritesy[i];
                                 }
                                 k++;
                             }
@@ -4530,7 +4548,9 @@ namespace build
 					        globvis = globalvisibility;
 					        if (sec.visibility != 0) globvis = pragmas.mulscale4( globvis,(int)((byte)(sec.visibility+16)));
 					        globalpal = (int)wal.pal;
-					        if (Engine.palette.isLookupValid(globalpal) == false) globalpal = 0;	// JBF: fixes crash
+// jv
+					        //if (Engine.palette.isLookupValid(globalpal) == false) globalpal = 0;	// JBF: fixes crash
+// jv end
 					        globalyscale = (wal.yrepeat<<(globalshiftval-19));
 					        if ((globalorientation&4) == 0)
 						        globalzd = (((globalposz-nextsec.ceilingz)*globalyscale)<<8);
@@ -4631,7 +4651,9 @@ namespace build
 						        globalshade = (int)wal.shade;
 						        globalpal = (int)wal.pal;
 					        }
-					        if (Engine.palette.isLookupValid(globalpal) == false) globalpal = 0;	// JBF: fixes crash
+// jv
+					        //if (Engine.palette.isLookupValid(globalpal) == false) globalpal = 0;	// JBF: fixes crash
+// jv end
 					        globvis = globalvisibility;
 					        if (sec.visibility != 0) globvis = pragmas.mulscale4( globvis,(int)((byte)(sec.visibility+16)));
 					        globalshiftval = (Engine.picsiz[globalpicnum]>>4);
@@ -4723,7 +4745,9 @@ namespace build
 			        globvis = globalvisibility;
 			        if (sec.visibility != 0) globvis = pragmas.mulscale4( globvis,(int)((byte)(sec.visibility+16)));
 			        globalpal = (int)wal.pal;
-			        if (Engine.palette.isLookupValid(globalpal) == false) globalpal = 0;	// JBF: fixes crash
+// jv
+			        //if (Engine.palette.isLookupValid(globalpal) == false) globalpal = 0;	// JBF: fixes crash
+// jv end
 			        globalshiftval = (Engine.picsiz[globalpicnum]>>4);
 			        if (Engine.pow2long[globalshiftval] != Engine.tilesizy[globalpicnum]) globalshiftval++;
 			        globalshiftval = 32-globalshiftval;
@@ -4939,7 +4963,7 @@ namespace build
 	        while ((numbunches > 0) && (numhits > 0))
 	        {
 // jv
-                Array.Clear(tempbuf, 0, (int)((numbunches + 3) >> 2));
+              //  Array.Clear(tempbuf, 0, (int)((numbunches + 3) >> 2));
 		       // clearbuf(0, ref tempbuf,(int)((numbunches+3)>>2),0L);
 // jv end
 		        tempbuf[0] = 1;
@@ -4947,10 +4971,18 @@ namespace build
 		        closest = 0;              //Almost works, but not quite :(
 		        for(i=1;i<numbunches;i++)
 		        {
-			        if ((j = bunchfront(i,closest)) < 0) continue;
+                    if ((j = bunchfront(i, closest)) < 0)
+                    {
+                        tempbuf[i] = 0;
+                        continue;
+                    }
 			        tempbuf[i] = 1;
-			        if (j == 0) { tempbuf[closest] = 1; closest = i; }
+			        if (j == 0) { 
+                        tempbuf[closest] = 1; 
+                        closest = i; 
+                    }
 		        }
+                
 		        for(i=0;i<numbunches;i++) //Double-check
 		        {
 			        if (tempbuf[i] != 0) continue;
@@ -4958,7 +4990,7 @@ namespace build
 			        tempbuf[i] = 1;
                     if (j == 0) { tempbuf[closest] = 1; closest = i; i = 0; };
 		        }
-
+                
 		        drawalls(closest);
 
 		       // if (automapping)

@@ -32,6 +32,7 @@ namespace shadow_warrior
             buildtag.Text = "Shadow Warrior Build " + GetBuildTime();
         }
 
+
         private string GetBuildTime()
         {
             Assembly assembly = Assembly.GetExecutingAssembly();

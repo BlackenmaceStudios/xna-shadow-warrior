@@ -25,9 +25,9 @@ namespace build
         public WriteableBitmap _screenbuffer;
         private Rectangle _screenrect;
 #if BUILD_INTEROPSERVICES
-        private IntPtr _screenbufferptr;
+        private object _screenbufferptr;
 #endif
-        bPalette _palette;
+        public bPalette _palette;
         bPalette _paletteold;
         Thread renderthread;
         int numblits = 0;
@@ -88,6 +88,9 @@ namespace build
             ydim = height;
 
             _screenbuffer = new WriteableBitmap(width, height+1);
+
+            _screenbufferptr = GCServices.Alloc(_screenbuffer.Pixels, System.Runtime.InteropServices.GCHandleType.Pinned);
+
             _screenrect = new Rectangle(0, 0, width, height);
 
             Engine.frameplace = 0;
@@ -155,12 +158,12 @@ namespace build
 	        */
         }
 
-        
+        /*
         public void SetScreenPixel(int pbase, byte val)
         {
-            int pdat = val * 3;
+           // int pdat = val * 3;
 
-            _screenbuffer.Pixels[pbase] = _palette._palettebuffer[pdat];//(255 << 24) | ((byte)(_palette[pdat + 0] * 4) << 16) | (byte)(_palette[pdat + 1] * 4) << 8 | (byte)(_palette[pdat + 2] * 4);
+            _screenbuffer.Pixels[pbase] = _palette._palettebuffer[val];//(255 << 24) | ((byte)(_palette[pdat + 0] * 4) << 16) | (byte)(_palette[pdat + 1] * 4) << 8 | (byte)(_palette[pdat + 2] * 4);
 
 
             //_screenbuffer[pbase].R = (byte)(_palette[pdat + 0] * 4);
@@ -168,6 +171,7 @@ namespace build
             //_screenbuffer[pbase].B = (byte)(_palette[pdat + 2] * 4);
            // _screenbuffer[pbase].A = 255;
         }
+        */
 
         //
         // SetScreenBufferFromPixelData

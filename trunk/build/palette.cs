@@ -24,6 +24,7 @@ namespace build
         {
             set
             {
+                /*
                 if (_palookup[value].palookup == null)
                 {
                     _currentpal = 0;
@@ -32,19 +33,12 @@ namespace build
                 {
                     _currentpal = value;
                 }
+                */
                 palookup = _palookup[_currentpal].palookup;
             }
         }
-
-        public bool isLookupValid(int lookupnum)
-        {
-            if (_palookup[_currentpal].palookup == null)
-                return false;
-
-            return true;
-        }
         
-        public int[] _palettebuffer = new int[768];
+        public int[] _palettebuffer = new int[256];
 
         public const int FASTPALGRIDSIZ = 8;
         public int[] rdist = new int[129]; 
@@ -201,9 +195,9 @@ namespace build
         //
         public void initfastcolorlookup2()
         {
-            for (int i = 0; i < palette.Length; i += 3)
+            for (int i = 0, a = 0; i < palette.Length; i += 3, a++)
             {
-                _palettebuffer[i] = (255 << 24) | ((byte)(palette[i + 0] * 4) << 16) | (byte)(palette[i + 1] * 4) << 8 | (byte)(palette[i + 2] * 4);
+                _palettebuffer[a] = (255 << 24) | ((byte)(palette[i + 0] * 4) << 16) | (byte)(palette[i + 1] * 4) << 8 | (byte)(palette[i + 2] * 4);
             }
         }
 

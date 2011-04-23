@@ -94,6 +94,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="base\SW.GRP" />
+    <Content Include="buildnative.dll" />
+    <Content Include="Microsoft.Phone.InteropServices.dll" />
     <Content Include="WPInteropManifest.xml" />
     <None Include="Properties\AppManifest.xml" />
     <None Include="Properties\WMAppManifest.xml" />
