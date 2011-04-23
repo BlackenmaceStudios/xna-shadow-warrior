@@ -27,6 +27,10 @@ namespace build
         private static int dmvallocal = 0;
         private static int[] reciptable = new int[2048];
 
+        #if BUILD_INTEROPSERVICES
+        private static object recriptablegchandle;
+        #endif
+
         public static int dmval
         {
             get
@@ -50,12 +54,17 @@ namespace build
             }
         }
 
-        public static void InitPragmas()
+        public unsafe static void InitPragmas()
         {
             initksqrt();
 
             for (int i = 0; i < 2048; i++) 
                 reciptable[i] = (int)divscale30( 2048, i + 2048);
+
+#if BUILD_INTEROPSERVICES
+            recriptablegchandle = GCServices.Alloc(reciptable, GCHandleType.Pinned);
+            Utility.lib.InitTables((int *)GCServices.AddrOfPinnedObject(recriptablegchandle).ToPointer());
+#endif
         }
 
         public static int mulscale1(int eax, int edx)
@@ -332,20 +341,18 @@ namespace build
         }
 
         private static longfloat f;
+
         public static int krecipasm(int i)
         { // Ken did this
-           // return pragmas.divscale32(1L, i);
             f.i = 0;
             f.f = (float)i;
             i = f.i;
 	       // float f = (float)i; i = f;
             return ((reciptable[((int)i >> 12) & 2047] >> (int)((((int)i - 0x3f800000) >> 23) & 31)) ^ ((int)i >> 31));
-           
         }
 
-       
 
-        public static uint nsqrtasm(uint a)
+        public static int nsqrtasm(uint a)
         {
             // JBF 20030901: This was a damn lot simpler to reverse engineer than
             // msqrtasm was. Really, it was just like simplifying an algebra equation.
@@ -368,7 +375,7 @@ namespace build
             a = (a & 0xffff0000) | (sqrtable[a]);	// mov ax, word ptr sqrtable[eax*2]
             a >>= ((c & 0xff00) >> 8);		// mov cl, ch
             // shr eax, cl
-            return a;
+            return (int)a;
         }
         public static void qinterpolatedown16(int start, ref int[] lptr, int num, int val, int add)
         { 

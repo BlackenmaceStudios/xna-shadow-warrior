@@ -62,13 +62,6 @@ namespace build
 
         public static void hlineasm4(int cnt, int skiploadincs, int paloffs, uint by, uint bx, int pbase)
         {
-	        //PointerObject<byte> palptr;
-          //  byte[] buffer = p.parent.buffer;
-          //  int pbase = p.arraynum;
-
-            int palptrbase = ghlinepalpos + paloffs;
-
-	      //  palptr = ghlinepal[paloffs];
 	        if (skiploadincs == 0) 
             { 
                 gbxinc = asm1; 
@@ -77,11 +70,8 @@ namespace build
 
 	        for(;cnt>=0;cnt--)
 	        {
-                //uint val = (bx >> (32 - glogx) << glogy) + (by >> (32-glogy));
-
-
-                Engine._device.SetScreenPixel(pbase, Engine.palette.palookup[palptrbase + gbuf[gbufpos + ((bx >> (32 - glogx) << glogy) + (by >> (32 - glogy)))]]);
-                //Engine._device._screenbuffer[pbase] = Engine._device._devicepalette[ghlinepal[palptrbase + gbuf[((bx >> (32 - glogx) << glogy) + (by >> (32-glogy))) + gbufpos/*((bx>>(32-glogx))<<glogy)+(by>>(32-glogy))*/]]];
+                //Engine._device.SetScreenPixel(pbase, Engine.palette.palookup[(ghlinepalpos + paloffs) + gbuf[gbufpos + ((bx >> (32 - glogx) << glogy) + (by >> (32 - glogy)))]]);
+                Engine._device._screenbuffer.Pixels[pbase] = Engine._device._palette._palettebuffer[Engine.palette.palookup[(ghlinepalpos + paloffs) + gbuf[gbufpos + ((bx >> (32 - glogx) << glogy) + (by >> (32 - glogy)))]]];
 		        bx -=(uint)gbxinc;
                 by -= (uint)gbyinc;
                 pbase--;
@@ -113,7 +103,8 @@ namespace build
                 u = (uint)(bx + globalx3 * i);
                 v = (uint)(by + globaly3 * i);
 
-                Engine._device.SetScreenPixel(ppos, pal[gbuf[gbufpos + ((u >> (32 - glogx)) << glogy) + (v >> (32 - glogy))] + slopalptr2[slopalbase]]);
+                //Engine._device.SetScreenPixel(ppos, pal[gbuf[gbufpos + ((u >> (32 - glogx)) << glogy) + (v >> (32 - glogy))] + slopalptr2[slopalbase]]);
+                Engine._device._screenbuffer.Pixels[ppos] = Engine._device._palette._palettebuffer[pal[gbuf[gbufpos + ((u >> (32 - glogx)) << glogy) + (v >> (32 - glogy))] + slopalptr2[slopalbase]]];
                 slopalbase--;
 		        //p += gpinc;
                 ppos += gpinc;
@@ -125,7 +116,7 @@ namespace build
         public static void setupvlineasm(int neglogy) { glogy = neglogy; }
         public static void vlineasm1(int vinc, int paloffs, int cnt, uint vplc, byte[] gbuf2, int basebuf, int pbase)
         {
-            int gbufsize = gbuf2.Length;
+ //           int gbufsize = gbuf2.Length;
 	        gbuf = gbuf2;
             gbufpos = basebuf;
             //gpal = Engine.palette.palookup;
@@ -133,13 +124,12 @@ namespace build
 
 	        for(;cnt>=0;cnt--)
 	        {
-                int val = (int)(gbufpos + (vplc >> glogy));
 // jv
-                if ((val >= gbufsize))
-                   return;
+         //       if ((gbufpos + (vplc >> glogy) >= gbufsize))
+           //        return;
 // jv end
-                Engine._device.SetScreenPixel(pbase, Engine.palette.palookup[gpalpos + gbuf[val]]);
-                //Engine._device._screenbuffer[pbase] = Engine._device._devicepalette[gpal[gpalpos + gbuf[gbufpos + ((vplc) >> glogy)]]];
+                //Engine._device.SetScreenPixel(pbase, Engine.palette.palookup[gpalpos + gbuf[gbufpos + (vplc >> glogy)]]);
+                Engine._device._screenbuffer.Pixels[pbase] = Engine._device._palette._palettebuffer[Engine.palette.palookup[gpalpos + gbuf[gbufpos + (vplc >> glogy)]]];
                 pbase += bpl;
                 vplc += (uint)vinc;
 	        }
@@ -149,34 +139,19 @@ namespace build
         public static void mvlineasm1(int vinc, byte[] paloffs, int paloffspos, int cnt, uint vplc, byte[] bufplc, int bufplcpos, int bufplcbase, int p, int tsizx, int tsizy)
         {
 	        byte ch;
-            int picsize = bufplc.Length;
 
 	        gbuf = bufplc;
             gbufpos = bufplcpos;
 	        //gpal = paloffs;
             gpalpos = paloffspos;
 
-// jv -- hack
-           // if (bufplcbase < 0)
-            //    bufplcbase = bufplcbase;
-            
-            // offscreen? 
-            if (bufplcbase < 0)
-                return;
-// jv - end
-
 	        for(;cnt>=0;cnt--)
 	        {
-                int tilepos = (int)(bufplcbase + (vplc >> (glogy)));
-
-                if (tilepos >= gbuf.Length)
-                    return;
-
                 ch = gbuf[bufplcbase + (vplc >> (glogy))];
                 if (ch != 255)
                 {
-                   // Engine._device._screenbuffer[p] = Engine._device._devicepalette[gpal[gpalpos + ch]];
-                    Engine._device.SetScreenPixel(p, Engine.palette.palookup[gpalpos + ch]);
+                    //Engine._device.SetScreenPixel(p, Engine.palette.palookup[gpalpos + ch]);
+                    Engine._device._screenbuffer.Pixels[p] = Engine._device._palette._palettebuffer[Engine.palette.palookup[gpalpos + ch]];
                 }
 		        p += bpl;
                 vplc += (uint)vinc;
@@ -198,8 +173,11 @@ namespace build
 		        for(;cnt>=0;cnt--)
 		        {
                     ch = gbuf[bufplcbase + (vplc >> glogy)];
-			        if (ch != 255)
-                        Engine._device.SetScreenPixel(p, gtrans[p/*.memory*/+ (Engine.palette.palookup[ch + gpalpos] << 8) + gtranspos]);
+                    if (ch != 255)
+                    {
+                        //   Engine._device.SetScreenPixel(p, gtrans[p/*.memory*/+ (Engine.palette.palookup[ch + gpalpos] << 8) + gtranspos]);
+                        Engine._device._screenbuffer.Pixels[p] = Engine._device._palette._palettebuffer[gtrans[p/*.memory*/+ (Engine.palette.palookup[ch + gpalpos] << 8) + gtranspos]];
+                    }
 			        p += bpl;
                     vplc += (uint)vinc;
 		        }
@@ -209,8 +187,11 @@ namespace build
 		        for(;cnt>=0;cnt--)
 		        {
 			        ch = gbuf[bufplcbase + (vplc>>glogy)];
-			        if (ch != 255)
-                        Engine._device.SetScreenPixel(p, gtrans[(p/*p.memory*/<< 8) + Engine.palette.palookup[ch + gpalpos] + gtranspos]);
+                    if (ch != 255)
+                    {
+                        //Engine._device.SetScreenPixel(p, gtrans[(p/*p.memory*/<< 8) + Engine.palette.palookup[ch + gpalpos] + gtranspos]);
+                        Engine._device._screenbuffer.Pixels[p] = Engine._device._palette._palettebuffer[gtrans[p/*.memory*/+ (Engine.palette.palookup[ch + gpalpos] << 8) + gtranspos]];
+                    }
 			        p += bpl;
                     vplc += (uint)vinc;
 		        }
@@ -230,13 +211,12 @@ namespace build
 
 	        for(cntup16>>=16;cntup16>0;cntup16--)
 	        {
-                uint val = bx >> (32 - glogx);
-                val = val << glogy;
-                val += by >> (32 - glogy);
-
                 ch = gbuf[gbufpos + ((bx>>(32-glogx))<<glogy)+(by>>(32-glogy))];
-		        if (ch != 255)
-                    Engine._device.SetScreenPixel(p, Engine.palette.palookup[ch + gpalpos]);
+                if (ch != 255)
+                {
+                 //   Engine._device.SetScreenPixel(p, Engine.palette.palookup[ch + gpalpos]);
+                    Engine._device._screenbuffer.Pixels[p] = Engine._device._palette._palettebuffer[Engine.palette.palookup[ch + gpalpos]];
+                }
                 bx += (uint)asm1;
                 by += (uint)asm2;
 		        p++;
@@ -261,13 +241,12 @@ namespace build
 	        {
 		        for(cntup16>>=16;cntup16>0;cntup16--)
 		        {
-                    uint val = bx >> (32 - glogx);
-                    val = val << glogy;
-                    val += by >> (32 - glogy);
-
                     ch = gbuf[gbufpos + ((bx >> (32 - glogx)) << glogy) + (by >> (32 - glogy))];
-			        if (ch != 255) // jv?
-                        Engine._device.SetScreenPixel(p, gtrans[(p/*.memory*/) + (Engine.palette.palookup[ch + gpalpos] << 8) + gtranspos]);
+                    if (ch != 255) // jv?
+                    {
+                     //   Engine._device.SetScreenPixel(p, gtrans[(p/*.memory*/) + (Engine.palette.palookup[ch + gpalpos] << 8) + gtranspos]);
+                        Engine._device._screenbuffer.Pixels[p] = Engine._device._palette._palettebuffer[gtrans[(p/*.memory*/) + (Engine.palette.palookup[ch + gpalpos] << 8) + gtranspos]];
+                    }
                     bx += (uint)asm1;
                     by += (uint)asm2;
 			        p++;
@@ -279,7 +258,10 @@ namespace build
 		        {
                     ch = gbuf[gbufpos + ((bx >> (32 - glogx)) << glogy) + (by >> (32 - glogy))];
 			        if (ch != 255) /// jv
-                        Engine._device.SetScreenPixel(p, gtrans[((p/*.memory*/) << 8) + Engine.palette.palookup[ch + gpalpos] + gtranspos]);
+                    {
+                        //Engine._device.SetScreenPixel(p, gtrans[((p/*.memory*/) << 8) + Engine.palette.palookup[ch + gpalpos] + gtranspos]);
+                        Engine._device._screenbuffer.Pixels[p] = Engine._device._palette._palettebuffer[gtrans[((p/*.memory*/) << 8) + Engine.palette.palookup[ch + gpalpos] + gtranspos]];
+                    }
                     bx += (uint)asm1;
                     by += (uint)asm2;
 			        p++;
@@ -307,7 +289,10 @@ namespace build
                 ch = gbuf[gbufpos + ((bx >> 16) * glogy + (by >> 16))];
 
                 if(ch != 255)
-                    Engine._device.SetScreenPixel(p, Engine.palette.palookup[ch + gpalpos]);
+                {
+                    //Engine._device.SetScreenPixel(p, Engine.palette.palookup[ch + gpalpos]);
+                    Engine._device._screenbuffer.Pixels[p] = Engine._device._palette._palettebuffer[Engine.palette.palookup[ch + gpalpos]];
+                }
 		        bx += gbxinc;
 		        by += gbyinc;
                 p += bpl;
@@ -332,8 +317,11 @@ namespace build
 	        for(;cnt>2;cnt--)
 	        {
                 ch = gbuf[gbufpos + ((bx >> 16) * glogy + (by >> 16))];
-		        if (ch != 255)
-                    Engine._device.SetScreenPixel(p, Engine.palette.palookup[ch + gpalpos]);
+                if (ch != 255)
+                {
+                    //   Engine._device.SetScreenPixel(p, Engine.palette.palookup[ch + gpalpos]);
+                    Engine._device._screenbuffer.Pixels[p] = Engine._device._palette._palettebuffer[Engine.palette.palookup[ch + gpalpos]];
+                }
 		        bx += gbxinc;
 		        by += gbyinc;
 		        p += bpl;
@@ -359,8 +347,11 @@ namespace build
 		        for(;cnt>1;cnt--)
 		        {
                     ch = gbuf[gbufpos + ((bx >> 16) * glogy + (by >> 16))];
-			        if (ch != 255)
-                        Engine._device.SetScreenPixel(p, gtrans[(p/*.memory*/) + (Engine.palette.palookup[ch + gpalpos] << 8) + gtranspos]);
+                    if (ch != 255)
+                    {
+                        //Engine._device.SetScreenPixel(p, gtrans[(p/*.memory*/) + (Engine.palette.palookup[ch + gpalpos] << 8) + gtranspos]);
+                        Engine._device._screenbuffer.Pixels[p] = Engine._device._palette._palettebuffer[gtrans[(p/*.memory*/) + (Engine.palette.palookup[ch + gpalpos] << 8) + gtranspos]];
+                    }
 			        bx += gbxinc;
 			        by += gbyinc;
 			        p += bpl;
@@ -371,8 +362,11 @@ namespace build
 		        for(;cnt>1;cnt--)
 		        {
                     ch = gbuf[gbufpos + ((bx >> 16) * glogy + (by >> 16))];
-			        if (ch != 255)
-                        Engine._device.SetScreenPixel(p, gtrans[((p/*.memory*/) << 8) + Engine.palette.palookup[ch + gpalpos] + gtranspos]);
+                    if (ch != 255)
+                    {
+                        //   Engine._device.SetScreenPixel(p, gtrans[((p/*.memory*/) << 8) + Engine.palette.palookup[ch + gpalpos] + gtranspos]);
+                        Engine._device._screenbuffer.Pixels[p] = Engine._device._palette._palettebuffer[gtrans[((p/*.memory*/) << 8) + Engine.palette.palookup[ch + gpalpos] + gtranspos]];
+                    }
 			        bx += gbxinc;
 			        by += gbyinc;
 			        p += bpl;
@@ -393,7 +387,11 @@ namespace build
 
             while (dy > 0)
             {
-                for (x = 0; x < dx; x++) Engine._device.SetScreenPixel((p + x),Engine.palette.palookup[gpalpos + vptr[(v >> 16) + vptrpos]]);
+                for (x = 0; x < dx; x++)
+                {
+                 //   Engine._device.SetScreenPixel((p + x), Engine.palette.palookup[gpalpos + vptr[(v >> 16) + vptrpos]]);
+                    Engine._device._screenbuffer.Pixels[p + x] = Engine._device._palette._palettebuffer[Engine.palette.palookup[gpalpos + vptr[(v >> 16) + vptrpos]]];
+                }
                 p += bpl; v += vi; dy--;
             }
         }

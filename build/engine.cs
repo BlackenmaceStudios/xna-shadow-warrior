@@ -443,6 +443,9 @@ palette:
         public static void Init()
         {
             int i, j;
+
+            Utility.Init();
+
             pragmas.InitPragmas();
 
             filesystem = new kFileSystem();
@@ -495,7 +498,11 @@ palette:
                 //faketimerhandler();
             }
             waloff[tilenume] = new tilecontainer();
-            waloff[tilenume].memory = artfil.kread((int)dasiz);
+            byte[] tempbuf = artfil.kread((int)dasiz);
+
+            waloff[tilenume].memory = new byte[tempbuf.Length * 2];
+            Array.Copy(tempbuf, 0, waloff[tilenume].memory, 0, tempbuf.Length);
+            Array.Copy(tempbuf, 0, waloff[tilenume].memory, tempbuf.Length, tempbuf.Length);
 
             //faketimerhandler();
             artfilplc = tilefileoffs[tilenume] + dasiz;
