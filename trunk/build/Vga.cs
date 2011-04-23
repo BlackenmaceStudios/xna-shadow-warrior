@@ -89,7 +89,7 @@ namespace build
 
             _screenbuffer = new WriteableBitmap(width, height+1);
 
-            _screenbufferptr = GCServices.Alloc(_screenbuffer.Pixels, System.Runtime.InteropServices.GCHandleType.Pinned);
+            //_screenbufferptr = GCServices.Alloc(_screenbuffer.Pixels, System.Runtime.InteropServices.GCHandleType.Pinned);
 
             _screenrect = new Rectangle(0, 0, width, height);
 

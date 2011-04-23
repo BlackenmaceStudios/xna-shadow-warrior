@@ -4236,7 +4236,9 @@ namespace build
 
             A.setupmvlineasm(globalshiftval);
 
-            for (x = startx; x <= x2; x++, p++)
+// jv - was <=
+            for (x = startx; x < x2; x++, p++)
+// jv end
             {
                 y1ve[0] = Math.Max(uwal[x], Engine._device.startumost[x + Engine.windowx1] - Engine.windowy1);
                 y2ve[0] = Math.Min(dwal[x], Engine._device.startdmost[x + Engine.windowx1] - Engine.windowy1);

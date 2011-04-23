@@ -26,31 +26,25 @@
     </phone:PhoneApplicationPage.ApplicationBar>-->
     <Grid Background="#FFC82C11">
         <Image Name="back" Source="base/ui/backscreen.png" Stretch="Fill" Margin="0,0,0,0" />
-        <Grid Height="155" Name="controlspanelback" Width="160" Margin="-1,322,569,2">
-            <Image Name="image3bk" Source="base/ui/yingyangblur.png" Stretch="Fill" Margin="0,-6,-24,-14" />
-        </Grid>
         <Grid Name="lowangpanel" Width="160" Margin="-1,0,569,234"></Grid>
-        <StackPanel Name="gameviewpanelbackground" Loaded="Page_Loaded" Visibility="Visible" Margin="142,0,0,95" Background="#000000">
-        </StackPanel>
-        <StackPanel Name="gameviewpanel" Loaded="Page_Loaded" Visibility="Visible" Margin="79,0,0,0">
-            <Image Height="390"  Visibility="Visible" Name="viewportimg" Stretch="Fill" Width="640" HorizontalAlignment="Right" />
-            <Canvas Height="61" Name="canvas1" Width="516" HorizontalAlignment="Right">
-                <Button Content="Fire" Height="59" Name="firebutton" Width="111" BorderThickness="0" FontSize="20" Canvas.Left="405" Canvas.Top="2" HorizontalAlignment="Right" />
-                <Button BorderThickness="0" Canvas.Left="273" Canvas.Top="0" Content="Jump" FontSize="20" Height="59" Name="jumpbutton" Width="111" />
-            </Canvas>
-            <TextBlock Height="32" Name="buildtag" Text="Build Tag" Width="365" TextAlignment="Right" HorizontalAlignment="Right" Padding="10,0" />
-        </StackPanel>
-        
-        <Grid Height="155" Name="controlspanel" Width="160" Margin="-1,322,569,2">
-            <Image Name="image3" Source="base/ui/wp7movement.png" Stretch="Fill" Margin="0,-6,-24,-14" />
-            <Button Height="57" HorizontalAlignment="Left" Margin="68,11,0,0" Name="moveup_button" VerticalAlignment="Top" Width="49" BorderThickness="0"  />
-            <Button Height="47" HorizontalAlignment="Left" Margin="107,57,0,0" Name="straferight_button" VerticalAlignment="Top" Width="74" BorderThickness="0"  />
-            <Button Height="63" HorizontalAlignment="Left" Margin="68,88,0,0" Name="moveback_button" VerticalAlignment="Top" Width="48" BorderThickness="0"  />
-            <Button Height="37" HorizontalAlignment="Left" Margin="29,19,0,0" Name="turnleft_button" VerticalAlignment="Top" Width="43" BorderThickness="0" />
-            <Button Height="44" HorizontalAlignment="Left" Margin="115,21,0,0" Name="turnright_button" VerticalAlignment="Top" Width="46" BorderThickness="0"  />
-            <Button Height="47" HorizontalAlignment="Left" Margin="0,55,0,0" Name="strafeleft_button" VerticalAlignment="Top" Width="74" BorderThickness="0" />
-        </Grid>
 
-        
+        <StackPanel Name="gameviewpanel" Loaded="Page_Loaded" Visibility="Visible" Margin="113,0,0,70" Background="#FF0A0A0A">
+            <Image Height="394"  Visibility="Visible" Name="viewportimg" Stretch="Fill" Width="596" HorizontalAlignment="Right" />
+            
+        </StackPanel>
+        <Canvas Height="61" Name="canvas1" Width="423" HorizontalAlignment="Left" Margin="304,416,0,3">
+            <Button Content="Fire" Height="59" Name="firebutton" Width="111" BorderThickness="0" FontSize="20" Canvas.Left="306" Canvas.Top="6" HorizontalAlignment="Right" />
+            <Button BorderThickness="0" Canvas.Left="189" Canvas.Top="6" Content="Jump" FontSize="20" Height="59" Name="jumpbutton" Width="111" HorizontalAlignment="Left" />
+        </Canvas>
+        <Grid Height="155" Name="controlspanel" Margin="-2,329,569,-4">
+            <Image Name="image3" Source="base/ui/wp7movement.png" Stretch="Fill" Margin="0,-6,-24,-14" />
+            <Button Height="57" HorizontalAlignment="Left" Margin="68,11,0,0" Name="moveup_button" VerticalAlignment="Top" Width="49" BorderThickness="0" />
+            <Button Height="47" HorizontalAlignment="Left" Margin="107,57,0,0" Name="straferight_button" VerticalAlignment="Top" Width="74" BorderThickness="0" />
+            <Button Height="63" HorizontalAlignment="Left" Margin="68,88,0,0" Name="moveback_button" VerticalAlignment="Top" Width="48" BorderThickness="0" />
+            <Button Height="37" HorizontalAlignment="Left" Margin="29,19,0,0" Name="turnleft_button" VerticalAlignment="Top" Width="43" BorderThickness="0" />
+            <Button Height="44" HorizontalAlignment="Left" Margin="115,21,0,0" Name="turnright_button" VerticalAlignment="Top" Width="46" BorderThickness="0" />
+            <Button Height="47" HorizontalAlignment="Left" Margin="0,55,0,0" Name="strafeleft_button" VerticalAlignment="Top" Width="74" BorderThickness="0" />
+            
+        </Grid>
     </Grid>
 </phone:PhoneApplicationPage>
