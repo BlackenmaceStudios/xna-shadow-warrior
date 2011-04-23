@@ -29,7 +29,7 @@
         <Grid Name="lowangpanel" Width="160" Margin="-1,0,569,234"></Grid>
 
         <StackPanel Name="gameviewpanel" Loaded="Page_Loaded" Visibility="Visible" Margin="113,0,0,70" Background="#FF0A0A0A">
-            <Image Height="394"  Visibility="Visible" Name="viewportimg" Stretch="Fill" Width="596" HorizontalAlignment="Right" />
+            <Image Height="394"  Visibility="Visible" Name="viewportimg" Stretch="None" Width="596" HorizontalAlignment="Right" />
             
         </StackPanel>
         <Canvas Height="61" Name="canvas1" Width="423" HorizontalAlignment="Left" Margin="304,416,0,3">

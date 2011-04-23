@@ -20,6 +20,8 @@ namespace sw
     {
         internal spritetype _sprite;
 
+
+
         //
         // ActorSprite
         //

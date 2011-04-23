@@ -71,10 +71,10 @@ namespace shadow_warrior
         {
             int fvel = 0, svel = 0, angvel = 0;
 
-            if (strafeleft_button.IsPressed) svel += 200;
-            if (straferight_button.IsPressed) svel -= 200;
-            if (moveup_button.IsPressed) fvel += 200;
-            if (moveback_button.IsPressed) fvel -= 200;
+            if (strafeleft_button.IsPressed) svel += 400;
+            if (straferight_button.IsPressed) svel -= 400;
+            if (moveup_button.IsPressed) fvel += 400;
+            if (moveback_button.IsPressed) fvel -= 400;
             if (turnright_button.IsPressed) angvel += 35;
             if (turnleft_button.IsPressed) angvel -= 35;
 
