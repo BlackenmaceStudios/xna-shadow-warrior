@@ -176,7 +176,7 @@ namespace build
                     if (ch != 255)
                     {
                         //   Engine._device.SetScreenPixel(p, gtrans[p/*.memory*/+ (Engine.palette.palookup[ch + gpalpos] << 8) + gtranspos]);
-                        Engine._device._screenbuffer.Pixels[p] = Engine._device._palette._palettebuffer[gtrans[p/*.memory*/+ (Engine.palette.palookup[ch + gpalpos] << 8) + gtranspos]];
+                        Engine._device._screenbuffer.Pixels[p] = Engine._device._palette._palettebuffer[gtrans[(Engine.palette.palookup[ch + gpalpos] << 8) + gtranspos]];
                     }
 			        p += bpl;
                     vplc += (uint)vinc;

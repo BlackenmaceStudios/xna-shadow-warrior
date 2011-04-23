@@ -155,58 +155,116 @@ palette:
    KVX file.
  */
 #endregion
-        internal struct bVoxelMipmap
+        internal class bVoxelMipmap
         {
-            public int numbytes;
-            public int xsiz; 
-            public int ysiz; 
-            public int zsiz;
-	        public int xpivot; 
-            public int ypivot;
-            public int zpivot;
-            public int[] xoffset; // (xsiz+1);
-            public short[,] xyoffset; // xsiz*(ysiz+1)
-            public byte[] voxdata; // numbytes-24-(xsiz+1)*4-xsiz*(ysiz+1)
+            public byte[] data;
+            public EndianBinaryReader _reader;
+
+            public bVoxelMipmap(byte[] buffer)
+            {
+                data = buffer;
+                _reader = new EndianBinaryReader(new System.IO.MemoryStream(data));
+            }
+
+            public int GetInt(int p)
+            {
+                int ret;
+                int oldpos = (int)_reader.BaseStream.Position;
+
+                _reader.BaseStream.Position += p * sizeof(int);
+                ret =  _reader.ReadInt32();
+                _reader.BaseStream.Position = oldpos;
+
+                return ret;
+            }
+
+            public short GetShort(int p)
+            {
+                short ret;
+                int oldpos = (int)_reader.BaseStream.Position;
+
+                _reader.BaseStream.Position += p * sizeof(short);
+                ret = _reader.ReadInt16();
+                _reader.BaseStream.Position = oldpos;
+                return ret;
+            }
         }
 
         internal class bVoxel
         {
-            public int nummipmaps = 0;
-            public bVoxelMipmap[] mipmaps = new bVoxelMipmap[MAXVOXMIPS];
+            private bVoxelMipmap mipmaplvl1;
+            private bVoxelMipmap mipmaplvl2;
+            private bVoxelMipmap mipmaplvl3;
+            private bVoxelMipmap mipmaplvl4;
+            private bVoxelMipmap mipmaplvl5;
 
-            public void AddMipMap(ref kFile fil)
+            public bVoxel(kFile fil)
             {
-                bVoxelMipmap mipmaplevel = new bVoxelMipmap();
-                mipmaplevel.numbytes = fil.kreadint();
-                mipmaplevel.xsiz = fil.kreadint();
-                mipmaplevel.ysiz = fil.kreadint();
-                mipmaplevel.zsiz = fil.kreadint();
+                long lengcnt = 0;
+                long lengtot = fil.Length;
 
-                mipmaplevel.xpivot = fil.kreadint();
-                mipmaplevel.ypivot = fil.kreadint();
-                mipmaplevel.zpivot = fil.kreadint();
-
-                mipmaplevel.xoffset = new int[(mipmaplevel.xsiz + 1) << 2];
-                for (int i = 0; i < mipmaplevel.xoffset.Length; i++)
+                for (int i = 0; i < MAXVOXMIPS; i++)
                 {
-                    mipmaplevel.xoffset[i] = fil.kreadint();
-                }
+                    int dasiz = fil.kreadint();
 
-                mipmaplevel.xyoffset = new short[mipmaplevel.xsiz, (mipmaplevel.ysiz + 1) << 1];
-                for (int i = 0; i < mipmaplevel.xsiz; i++)
-                {
-                    for (int d = 0; d < (mipmaplevel.ysiz + 1) << 1; d++)
+                    byte[] buffer = fil.kread( dasiz );
+
+                    switch (i)
                     {
-                        mipmaplevel.xyoffset[i,d] = fil.kreadshort();
+                        case 0:
+                            mipmaplvl1 = new bVoxelMipmap(buffer);
+                            break;
+
+                        case 1:
+                            mipmaplvl2 = new bVoxelMipmap(buffer);
+                            break;
+
+                        case 2:
+                            mipmaplvl3 = new bVoxelMipmap(buffer);
+                            break;
+
+                        case 3:
+                            mipmaplvl4 = new bVoxelMipmap(buffer);
+                            break;
+
+                        case 4:
+                            mipmaplvl5 = new bVoxelMipmap(buffer);
+                            break;
+                    }
+
+                    lengcnt += dasiz + 4;
+                    if (lengcnt >= lengtot - 768) break;
+                }
+            }
+
+            public bVoxelMipmap this[ int index ]
+            {
+                get
+                {
+                    switch (index)
+                    {
+                        case 0:
+                            return mipmaplvl1;
+                            
+
+                        case 1:
+                            return mipmaplvl2;
+
+                        case 2:
+                            return mipmaplvl3;
+
+                        case 3:
+                            return mipmaplvl4;
+
+                        case 4:
+                            return mipmaplvl5;
+
+                        default:
+                            throw new Exception("Out of bounds mipmap");
                     }
                 }
-
-                mipmaplevel.voxdata = fil.kread(mipmaplevel.numbytes - 24 - (mipmaplevel.xsiz + 1) * 4 - mipmaplevel.xsiz * (mipmaplevel.ysiz + 1) * 2);
-
-                mipmaps[nummipmaps++] = mipmaplevel; 
             }
         }
-
         internal static bVoxel[] voxoff = new bVoxel[MAXTILES];
 
         public static bool EditStatus
@@ -633,22 +691,15 @@ palette:
             return (1);
         }
 
-        public static int qloadkvx(long voxindex, string filename)
+        public static int qloadkvx(int voxindex, string filename)
         {
 	        int i;
             kFile fil;
 
 	        if ((fil = filesystem.kopen4load(filename)) == null) return -1;
 
-            fil.SetLittleEdian();
+            voxoff[voxindex] = new bVoxel(fil);
 
-            voxoff[voxindex] = new bVoxel();
-
-	        for(i=0;i<1; /*MAXVOXMIPS*/i++)
-	        {
-                voxoff[voxindex].AddMipMap(ref fil);
-                if (fil.ReachedEndOfBuffer) break;
-	        }
             fil.Close();
 
 	        return 0;
