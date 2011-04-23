@@ -23,6 +23,7 @@ namespace build
         public int xdim;
         public int ydim;
         public WriteableBitmap _screenbuffer;
+       // public int[] _tempscreenbuffer;
         private Rectangle _screenrect;
 #if BUILD_INTEROPSERVICES
         private object _screenbufferptr;
@@ -87,7 +88,7 @@ namespace build
             xdim = width;
             ydim = height;
 
-            _screenbuffer = new WriteableBitmap(width, height+1);
+            _screenbuffer = new WriteableBitmap(width, height);
 
             //_screenbufferptr = GCServices.Alloc(_screenbuffer.Pixels, System.Runtime.InteropServices.GCHandleType.Pinned);
 
@@ -99,6 +100,8 @@ namespace build
 
             _screenbuffer.Clear();
             canvasimage.Source = _screenbuffer;
+
+          //  _tempscreenbuffer = new int[_screenbuffer.Pixels.Length];
 	
 	        imageSize = bytesperline*yres;
         }
@@ -233,15 +236,15 @@ namespace build
         private int skipframe = 0;
         public void Present()
         {
-            if (skipframe == 2)
-            {
+          //  if (skipframe == 1)
+          //  {
                 _screenbuffer.Invalidate();
-                skipframe = 0;
-            }
-            else
-            {
-                skipframe++;
-            }
+           //     skipframe = 0;
+         //   }
+          //  else
+          //  {
+         //       skipframe++;
+         //   }
         }
     }
 }

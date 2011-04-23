@@ -41,6 +41,7 @@ namespace sw
         private Player localplayer;
 
         private int nextlevelnum = -1;
+        public static int totalclock = 0;
 
         struct LEVEL_INFO
         {
@@ -196,7 +197,7 @@ namespace sw
             Engine.LoadTables();
 
             // Init the device
-            Engine.setgamemode(0, 320, 200, 8, ref canvasimage);
+            Engine.setgamemode(0, 596, 394, 8, ref canvasimage);
 
             // Create the colormaps.
             ColorMapManager.InitPalette();
@@ -259,7 +260,11 @@ namespace sw
                 int picnum = sprite.picnum;
 
                 Actor actor = null;
-
+// jv - hack for mirrors
+                if (picnum == 5058)
+                {
+                    sprite.cstat = MyTypes.SET(sprite.cstat, Flags.CSTAT_SPRITE_INVISIBLE);
+                }
                 if ((picnum >= Names2.ST1 && picnum <= Names2.ST_QUICK_DEFEND) || picnum == Names2.TRACK_SPRITE || picnum == 1901)
                     actor = new ST1(sprite);
 
@@ -299,12 +304,14 @@ namespace sw
 
             Engine.loadboard(LevelInfo[mapnum].LevelName, ref daposx, ref daposy, ref daposz, ref daang, ref dacursectnum);
             localplayer.UpdatePosition(daposx, daposy, daposz, daang, dacursectnum);
-
+            localplayer.Spawn();
             localplayer.Precache(soundManager);
 
             SpawnActors();
 
-            PlayMusic(mapnum + 1);
+            Mirrors.SetupMirrors();
+
+            PlayMusic(3);
 
             gamestate = gamestate_t.GAMESTATE_INGAME;
         }
@@ -343,6 +350,8 @@ namespace sw
                     GameFrame();
                     break;
             }
+
+            totalclock++;
 
             Engine.NextPage();
         }

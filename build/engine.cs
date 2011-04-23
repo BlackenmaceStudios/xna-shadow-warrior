@@ -86,6 +86,15 @@ namespace build
         private static int curbrightness = 0;
 
         public const int MAXVOXMIPS = 5;
+
+        public static void copybufreverse<T>(int base_s, T[] S, int base_d, T[] D, long c)
+        {
+            while ((c--) > 0)
+            {
+
+                D[base_d--] = S[base_s++];
+            }
+        }
 #region voxformatdoc
 /*
  * Each KVX file uses this structure for each of its mip-map levels:
@@ -158,12 +167,12 @@ palette:
         internal class bVoxelMipmap
         {
             public byte[] data;
-            public EndianBinaryReader _reader;
+            public System.IO.BinaryReader _reader;
 
             public bVoxelMipmap(byte[] buffer)
             {
                 data = buffer;
-                _reader = new EndianBinaryReader(new System.IO.MemoryStream(data));
+                _reader = new System.IO.BinaryReader(new System.IO.MemoryStream(data));
             }
 
             public int GetInt(int p)
@@ -276,54 +285,13 @@ palette:
         }
 
 
-        public static int viewingrange { get { return _device.viewingrange; }}
-        public static int viewingrangerecip { get { return _device.viewingrangerecip; } }
-        public static int yxaspect { get { return _device.yxaspect; } }
-        public static int xyaspect { get { return _device.xyaspect; } }
-        public static int xdimenscale { get { return _device.xdimenscale; } }
-        public static int xdimscale { get { return _device.xdimscale; } }
-        public static int xdimen { get { return _device.xdimen; } }
-        public static int ydimen { get { return _device.ydimen; } } 
-        public static int halfxdimen { get { return _device.halfxdimen; } }
-        public static int xdimenrecip { get { return _device.xdimenrecip; } }
-        public static int bytesperline { get { return _device.bytesperline; } }
 
         public static int[] ggxinc = new int[256+1];
         public static int[] ggyinc = new int[256 + 1];
         public static int[] lowrecip = new int[1024];
         public static int nytooclose, nytoofar;
 
-        public static int windowx2
-        {
-            get
-            {
-                return _device.windowx2;
-            }
-        }
-
-        public static int windowy2
-        {
-            get
-            {
-                return _device.windowy2;
-            }
-        }
-
-        public static int windowy1
-        {
-            get
-            {
-                return _device.windowy1;
-            }
-        }
-
-        public static int windowx1
-        {
-            get
-            {
-                return _device.windowx1;
-            }
-        }
+      
 
         public static void BeginDrawing()
         {

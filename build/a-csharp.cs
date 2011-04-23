@@ -116,19 +116,12 @@ namespace build
         public static void setupvlineasm(int neglogy) { glogy = neglogy; }
         public static void vlineasm1(int vinc, int paloffs, int cnt, uint vplc, byte[] gbuf2, int basebuf, int pbase)
         {
- //           int gbufsize = gbuf2.Length;
 	        gbuf = gbuf2;
-            gbufpos = basebuf;
-            //gpal = Engine.palette.palookup;
+            gbufpos = basebuf;   
             gpalpos = paloffs;
 
 	        for(;cnt>=0;cnt--)
 	        {
-// jv
-         //       if ((gbufpos + (vplc >> glogy) >= gbufsize))
-           //        return;
-// jv end
-                //Engine._device.SetScreenPixel(pbase, Engine.palette.palookup[gpalpos + gbuf[gbufpos + (vplc >> glogy)]]);
                 Engine._device._screenbuffer.Pixels[pbase] = Engine._device._palette._palettebuffer[Engine.palette.palookup[gpalpos + gbuf[gbufpos + (vplc >> glogy)]]];
                 pbase += bpl;
                 vplc += (uint)vinc;

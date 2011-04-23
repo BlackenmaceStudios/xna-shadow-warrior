@@ -71,6 +71,7 @@
     <Compile Include="game\mact\sound\music.cs" />
     <Compile Include="game\mact\sound\vocsound.cs" />
     <Compile Include="game\Menus.cs" />
+    <Compile Include="game\Mirrors.cs" />
     <Compile Include="game\MyTypes.cs" />
     <Compile Include="game\Names2.cs" />
     <Compile Include="game\Player.cs" />

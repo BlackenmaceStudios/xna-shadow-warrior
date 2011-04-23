@@ -92,8 +92,8 @@ namespace build
         private int globalvisibility, globalhisibility, globalpisibility, globalcisibility;
         private bool globparaceilclip, globparaflorclip;
 
-        private const int parallaxvisibility = 512;
-        private const int visibility = 512;
+        public int parallaxvisibility = 512;
+        public int visibility = 512;
 
         private int[] swall = new int[VgaDevice.MAXXDIM];
         private int[] lwall = new int[VgaDevice.MAXXDIM + 4];
@@ -128,6 +128,7 @@ namespace build
         private short[] bunchlast = new short[MAXWALLSB];
 
         private byte[] tempbuf = new byte[256];
+        private int[] tempbufint = new int[256];
 
         private const int MAXPSKYTILES = 256;
         private short[] pskyoff = new short[MAXPSKYTILES];
@@ -142,6 +143,8 @@ namespace build
         private int[] bufplce = new int[4];
 
         private int mirrorsx1, mirrorsx2, mirrorsy1, mirrorsy2;
+
+        public bool[] gotpic = new bool[MAXTILES];
 
         private int B_LITTLE32(int val)
         {
@@ -305,7 +308,10 @@ namespace build
 	        if (headspritestat[statnum] >= 0)
 		        prevspritestat[headspritestat[statnum]] = blanktouse;
 	        headspritestat[statnum] = blanktouse;
-
+// jv
+            if (sprite[blanktouse] == null)
+                sprite[blanktouse] = new spritetype();
+// jv end
 	        sprite[blanktouse].statnum = statnum;
 
 	        return(blanktouse);
@@ -691,10 +697,10 @@ namespace build
         {
 	        int i, j, k, x, y, xinc;
 
-	        if (Engine.xyaspect != Engine.oxyaspect)
+            if (Engine._device.xyaspect != Engine.oxyaspect)
 	        {
-		        Engine.oxyaspect = Engine.xyaspect;
-		        j = Engine.xyaspect*320;
+                Engine.oxyaspect = Engine._device.xyaspect;
+                j = Engine._device.xyaspect * 320;
                 Engine.lookups[Engine.horizlookup2 + (Engine.horizycent - 1)] = pragmas.divscale26( 131072, j);
 		        for(i=Engine.ydim*4-1;i>=0;i--)
 			        if (i != (Engine.horizycent-1))
@@ -703,21 +709,21 @@ namespace build
                         Engine.lookups[Engine.horizlookup2 + i] = pragmas.divscale14( pragmas.klabs(Engine.lookups[Engine.horizlookup + i]), j);
 			        }
 	        }
-	        if ((Engine.xdimen != Engine.oxdimen) || (Engine.viewingrange != Engine.oviewingrange))
+            if ((Engine._device.xdimen != Engine.oxdimen) || (Engine._device.viewingrange != Engine.oviewingrange))
 	        {
-		        Engine.oxdimen = Engine.xdimen;
-		        Engine.oviewingrange = Engine.viewingrange;
-		        xinc = pragmas.mulscale32( Engine.viewingrange*320,Engine.xdimenrecip);
-		        x = (640<<16)-pragmas.mulscale1(xinc,Engine.xdimen);
-		        for(i=0;i<Engine.xdimen;i++)
+                Engine.oxdimen = Engine._device.xdimen;
+                Engine.oviewingrange = Engine._device.viewingrange;
+                xinc = pragmas.mulscale32(Engine._device.viewingrange * 320, Engine._device.xdimenrecip);
+                x = (640 << 16) - pragmas.mulscale1(xinc, Engine._device.xdimen);
+                for (i = 0; i < Engine._device.xdimen; i++)
 		        {
 			        j = (x&65535); k = (x>>16); x += xinc;
 			        if (j != 0) j = pragmas.mulscale16( (int)Engine.table.radarang[k+1]-(int)Engine.table.radarang[k],j);
 			        radarang2[i] = (short)(((int)Engine.table.radarang[k]+j)>>6);
 		        }
 
-		        for(i=1;i<16384;i++) distrecip[i] = (uint)pragmas.divscale20(Engine.xdimen,i);
-		        nytooclose = Engine.xdimen*2100;
+		        for(i=1;i<16384;i++) distrecip[i] = (uint)pragmas.divscale20(Engine._device.xdimen,i);
+		        nytooclose = Engine._device.xdimen*2100;
 		        nytoofar = 16384*16384-1048576;
 	        }
         }
@@ -830,7 +836,7 @@ namespace build
 				        if ((gotsector[nextsectnum>>3]&Engine.pow2char[nextsectnum&7]) == 0)
 				        {
 					        templong = x1*y2-x2*y1;
-					        if ((templong+262144) < 524288)
+					        if (((uint)templong+262144) < 524288)
 						        if (pragmas.mulscale5( templong,templong) <= (x2-x1)*(x2-x1)+(y2-y1)*(y2-y1))
 							        sectorborder[sectorbordercnt++] = nextsectnum;
 				        }
@@ -855,9 +861,9 @@ namespace build
 			        if (xp1 >= -yp1)
 			        {
 				        if ((xp1 > yp1) || (yp1 == 0)) goto skipitaddwall;
-				        xb1[numscans] = Engine.halfxdimen + pragmas.scale(xp1,Engine.halfxdimen,yp1);
+				        xb1[numscans] = Engine._device.halfxdimen + pragmas.scale(xp1,Engine._device.halfxdimen,yp1);
 				        if (xp1 >= 0) xb1[numscans]++;   //Fix for SIGNED divide
-				        if (xb1[numscans] >= Engine.xdimen) xb1[numscans] = Engine.xdimen-1;
+				        if (xb1[numscans] >= Engine._device.xdimen) xb1[numscans] = Engine._device.xdimen-1;
 				        yb1[numscans] = yp1;
 			        }
 			        else
@@ -873,15 +879,15 @@ namespace build
 			        if (xp2 <= yp2)
 			        {
 				        if ((xp2 < -yp2) || (yp2 == 0)) goto skipitaddwall;
-				        xb2[numscans] = Engine.halfxdimen + pragmas.scale(xp2,Engine.halfxdimen,yp2) - 1;
+				        xb2[numscans] = Engine._device.halfxdimen + pragmas.scale(xp2,Engine._device.halfxdimen,yp2) - 1;
 				        if (xp2 >= 0) xb2[numscans]++;   //Fix for SIGNED divide
-				        if (xb2[numscans] >= Engine.xdimen) xb2[numscans] = Engine.xdimen-1;
+				        if (xb2[numscans] >= Engine._device.xdimen) xb2[numscans] = Engine._device.xdimen-1;
 				        yb2[numscans] = yp2;
 			        }
 			        else
 			        {
 				        if (xp1 > yp1) goto skipitaddwall;
-				        xb2[numscans] = Engine.xdimen-1;
+				        xb2[numscans] = Engine._device.xdimen-1;
 				        templong = xp2-xp1+yp1-yp2;
 				        if (templong == 0) goto skipitaddwall;
 				        yb2[numscans] = yp1 + pragmas.scale(yp2-yp1,yp1-xp1,templong);
@@ -954,8 +960,8 @@ namespace build
 
 	        if ((bad&12) == 12)
 	        {
-                //clearbufbyte(ix1, ref mostbuf, (ix2 - ix1 + 1)/**sizeof(mostbuf[0])*/, Engine.ydimen + (Engine.ydimen << 16));
-		        for (i=ix1; i<=ix2; i++) mostbuf[i] = (short)Engine.ydimen;
+                //clearbufbyte(ix1, ref mostbuf, (ix2 - ix1 + 1)/**sizeof(mostbuf[0])*/, Engine._device.ydimen + (Engine._device.ydimen << 16));
+                for (i = ix1; i <= ix2; i++) mostbuf[i] = (short)Engine._device.ydimen;
 		        return(bad);
 	        }
 
@@ -988,25 +994,25 @@ namespace build
 		        if ((bad&12) == 8)
 		        {
 			        if (xb1[w] <= xcross) { iy2 = inty; ix2 = xcross; }
-                    //clearbufbyte(xcross + 1, ref mostbuf[xcross + 1], (xb2[w] - xcross), Engine.ydimen + (Engine.ydimen << 16));
-			        for (i=xcross+1; i<=xb2[w]; i++) mostbuf[i] = (short)Engine.ydimen;
+                    //clearbufbyte(xcross + 1, ref mostbuf[xcross + 1], (xb2[w] - xcross), Engine._device.ydimen + (Engine._device.ydimen << 16));
+                    for (i = xcross + 1; i <= xb2[w]; i++) mostbuf[i] = (short)Engine._device.ydimen;
 		        }
 		        else
 		        {
 			        if (xcross <= xb2[w]) { iy1 = inty; ix1 = xcross; }
-                    //clearbufbyte(xb1[w], ref mostbuf, (xcross - xb1[w] + 1), Engine.ydimen + (Engine.ydimen << 16));
-			        for (i=xb1[w]; i<=xcross; i++) mostbuf[i] = (short)Engine.ydimen;
+                    //clearbufbyte(xb1[w], ref mostbuf, (xcross - xb1[w] + 1), Engine._device.ydimen + (Engine._device.ydimen << 16));
+                    for (i = xb1[w]; i <= xcross; i++) mostbuf[i] = (short)Engine._device.ydimen;
 		        }
 	        }
 
-	        y = (pragmas.scale(z,Engine.xdimenscale,iy1)<<4);
-	        yinc = ((pragmas.scale(z,Engine.xdimenscale,iy2)<<4)-y) / (ix2-ix1+1);
+            y = (pragmas.scale(z, Engine._device.xdimenscale, iy1) << 4);
+            yinc = ((pragmas.scale(z, Engine._device.xdimenscale, iy2) << 4) - y) / (ix2 - ix1 + 1);
 	        pragmas.qinterpolatedown16short(ix1, ref mostbuf,ix2-ix1+1,y+(globalhoriz<<16),yinc);
 
 	        if (mostbuf[ix1] < 0) mostbuf[ix1] = 0;
-	        if (mostbuf[ix1] > Engine.ydimen) mostbuf[ix1] = (short)Engine.ydimen;
+            if (mostbuf[ix1] > Engine._device.ydimen) mostbuf[ix1] = (short)Engine._device.ydimen;
 	        if (mostbuf[ix2] < 0) mostbuf[ix2] = 0;
-	        if (mostbuf[ix2] > Engine.ydimen) mostbuf[ix2] = (short)Engine.ydimen;
+            if (mostbuf[ix2] > Engine._device.ydimen) mostbuf[ix2] = (short)Engine._device.ydimen;
 
 	        return(bad);
         }
@@ -1062,7 +1068,7 @@ namespace build
 						         -dy*t,pragmas.mulscale20(x2,i)+((x1-wall[fw].x)<<8))+((z1-globalposz)<<7);
 
 
-	        if (xb2[w] == Engine.xdimen-1)
+	        if (xb2[w] == Engine._device.xdimen-1)
 		        { xv = cosglobalang-sinviewingrangeglobalang; yv = singlobalang+cosviewingrangeglobalang; }
 	        else
 		        { xv = (x2+x1)-globalposx; yv = (y2+y1)-globalposy; }
@@ -1113,7 +1119,7 @@ namespace build
 	        if ((bad&12) == 12)
 	        {
 		        //clearbufbyte(&mostbuf[ix1],(ix2-ix1+1)*sizeof(mostbuf[0]),ydimen+(ydimen<<16));
-		        for (i=ix1; i<=ix2; i++) mostbuf[i] = (short)Engine.ydimen;
+                for (i = ix1; i <= ix2; i++) mostbuf[i] = (short)Engine._device.ydimen;
 		        return(bad);
 	        }
 
@@ -1159,26 +1165,66 @@ namespace build
 		        {
 			        if (xb1[w] <= xcross) { z2 = intz; iy2 = inty; ix2 = xcross; }
 			        //clearbufbyte(&mostbuf[xcross+1],(xb2[w]-xcross)*sizeof(mostbuf[0]),ydimen+(ydimen<<16));
-			        for (i=xcross+1; i<=xb2[w]; i++) mostbuf[i] = (short)Engine.ydimen;
+                    for (i = xcross + 1; i <= xb2[w]; i++) mostbuf[i] = (short)Engine._device.ydimen;
 		        }
 		        else
 		        {
 			        if (xcross <= xb2[w]) { z1 = intz; iy1 = inty; ix1 = xcross; }
 			        //clearbufbyte(&mostbuf[xb1[w]],(xcross-xb1[w]+1)*sizeof(mostbuf[0]),ydimen+(ydimen<<16));
-			        for (i=xb1[w]; i<=xcross; i++) mostbuf[i] = (short)Engine.ydimen;
+                    for (i = xb1[w]; i <= xcross; i++) mostbuf[i] = (short)Engine._device.ydimen;
 		        }
 	        }
 
-	        y = (pragmas.scale(z1,Engine.xdimenscale,iy1)<<4);
-	        yinc = ((pragmas.scale(z2,Engine.xdimenscale,iy2)<<4)-y) / (ix2-ix1+1);
+            y = (pragmas.scale(z1, Engine._device.xdimenscale, iy1) << 4);
+            yinc = ((pragmas.scale(z2, Engine._device.xdimenscale, iy2) << 4) - y) / (ix2 - ix1 + 1);
 	        pragmas.qinterpolatedown16short(ix1, ref mostbuf,ix2-ix1+1,y+(globalhoriz<<16),yinc);
 
 	        if (mostbuf[ix1] < 0) mostbuf[ix1] = 0;
-	        if (mostbuf[ix1] > Engine.ydimen) mostbuf[ix1] = (short)Engine.ydimen;
+            if (mostbuf[ix1] > Engine._device.ydimen) mostbuf[ix1] = (short)Engine._device.ydimen;
 	        if (mostbuf[ix2] < 0) mostbuf[ix2] = 0;
-	        if (mostbuf[ix2] > Engine.ydimen) mostbuf[ix2] = (short)Engine.ydimen;
+            if (mostbuf[ix2] > Engine._device.ydimen) mostbuf[ix2] = (short)Engine._device.ydimen;
 
 	        return(bad);
+        }
+
+        public void updatesectorz(int x, int y, int z, ref short sectnum)
+        {
+            walltype wal;
+            int i, j, cz = 0, fz = 0;
+
+            getzsofslope(sectnum, x, y, ref cz, ref fz);
+            if ((z >= cz) && (z <= fz))
+                if (inside(x, y, sectnum) != 0) return;
+
+            if ((sectnum >= 0) && (sectnum < numsectors))
+            {
+                int walnum = sector[sectnum].wallptr;
+                
+                j = sector[sectnum].wallnum;
+                do
+                {
+                    wal = wall[walnum];
+                    i = wal.nextsector;
+                    if (i >= 0)
+                    {
+                        getzsofslope((short)i, x, y, ref cz, ref fz);
+                        if ((z >= cz) && (z <= fz))
+                            if (inside(x, y, (short)i) == 1)
+                            { sectnum = (short)i; return; }
+                    }
+                    walnum++; j--;
+                } while (j != 0);
+            }
+
+            for (i = numsectors - 1; i >= 0; i--)
+            {
+                getzsofslope((short)i, x, y, ref cz, ref fz);
+                if ((z >= cz) && (z <= fz))
+                    if (inside(x, y, (short)i) == 1)
+                    { sectnum = (short)i; return; }
+            }
+
+            sectnum = -1;
         }
 
         //
@@ -1251,9 +1297,9 @@ namespace build
 	        {
 		        if (yp <= (4<<8)) return;
 
-		        siz = pragmas.divscale19(Engine.xdimenscale,yp);
+		        siz = pragmas.divscale19(Engine._device.xdimenscale,yp);
 
-		        xv = pragmas.mulscale16(((int)tspr.xrepeat)<<16,Engine.xyaspect);
+		        xv = pragmas.mulscale16(((int)tspr.xrepeat)<<16,Engine._device.xyaspect);
 
 		        xspan = Engine.tilesizx[tilenum];
 		        yspan = Engine.tilesizy[tilenum];
@@ -1282,7 +1328,7 @@ namespace build
 		        if ((y1|255) >= (y2|255)) return;
 
 		        lx = (x1>>8)+1; if (lx < 0) lx = 0;
-		        rx = (x2>>8); if (rx >= Engine.xdimen) rx = Engine.xdimen-1;
+		        rx = (x2>>8); if (rx >= Engine._device.xdimen) rx = Engine._device.xdimen-1;
 		        if (lx > rx) return;
 
 		        yinc = pragmas.divscale32(yspan,ysiz);
@@ -1320,8 +1366,8 @@ namespace build
 
 		        for(x=lx;x<=rx;x++)
 		        {
-			        uwall[x] =(short)Math.Max(Engine._device.startumost[x+Engine.windowx1]-Engine.windowy1,(short)startum);
-                    dwall[x] = (short)Math.Min(Engine._device.startdmost[x + Engine.windowx1] - Engine.windowy1, (short)startdm);
+			        uwall[x] =(short)Math.Max(Engine._device.startumost[x+Engine._device.windowx1]-Engine._device.windowy1,(short)startum);
+                    dwall[x] = (short)Math.Min(Engine._device.startdmost[x + Engine._device.windowx1] - Engine._device.windowy1, (short)startdm);
 		        }
 		        daclip = 0;
 		        for(i=smostwallcnt-1;i>=0;i--)
@@ -1406,7 +1452,7 @@ namespace build
 		        }
 
 		        pragmas.qinterpolatedown16(lx, ref lwall,rx-lx+1,linum,linuminc);
-		        clearbuf(lx, ref swall,rx-lx+1,pragmas.mulscale19(yp,Engine.xdimscale));
+		        clearbuf(lx, ref swall,rx-lx+1,pragmas.mulscale19(yp,Engine._device.xdimscale));
 
 		        if ((cstat&2) == 0)
 			        maskwallscan(lx,rx,ref uwall,ref dwall,ref swall,ref lwall);
@@ -1451,9 +1497,9 @@ namespace build
 			        if (xp1 > yp1) return;
 
 			        if (yp1 == 0) return;
-			        xb1[MAXWALLSB-1] = Engine.halfxdimen + pragmas.scale(xp1,Engine.halfxdimen,yp1);
+			        xb1[MAXWALLSB-1] = Engine._device.halfxdimen + pragmas.scale(xp1,Engine._device.halfxdimen,yp1);
 			        if (xp1 >= 0) xb1[MAXWALLSB-1]++;   //Fix for SIGNED divide
-			        if (xb1[MAXWALLSB-1] >= Engine.xdimen) xb1[MAXWALLSB-1] = Engine.xdimen-1;
+			        if (xb1[MAXWALLSB-1] >= Engine._device.xdimen) xb1[MAXWALLSB-1] = Engine._device.xdimen-1;
 			        yb1[MAXWALLSB-1] = yp1;
 		        }
 		        else
@@ -1469,16 +1515,16 @@ namespace build
 			        if (xp2 < -yp2) return;
 
 			        if (yp2 == 0) return;
-			        xb2[MAXWALLSB-1] = Engine.halfxdimen + pragmas.scale(xp2,Engine.halfxdimen,yp2) - 1;
+			        xb2[MAXWALLSB-1] = Engine._device.halfxdimen + pragmas.scale(xp2,Engine._device.halfxdimen,yp2) - 1;
 			        if (xp2 >= 0) xb2[MAXWALLSB-1]++;   //Fix for SIGNED divide
-			        if (xb2[MAXWALLSB-1] >= Engine.xdimen) xb2[MAXWALLSB-1] = Engine.xdimen-1;
+			        if (xb2[MAXWALLSB-1] >= Engine._device.xdimen) xb2[MAXWALLSB-1] = Engine._device.xdimen-1;
 			        yb2[MAXWALLSB-1] = yp2;
 		        }
 		        else
 		        {
 			        if (xp1 > yp1) return;
 
-			        xb2[MAXWALLSB-1] = Engine.xdimen-1;
+			        xb2[MAXWALLSB-1] = Engine._device.xdimen-1;
 			        i = xp2-xp1+yp1-yp2;
 			        if (i == 0) return;
 			        yb2[MAXWALLSB-1] = yp1 + pragmas.scale(yp2-yp1,yp1-xp1,i);
@@ -1488,9 +1534,9 @@ namespace build
 			        return;
 
 		        topinc = -pragmas.mulscale10(yp1,xspan);
-		        top = (((pragmas.mulscale10(xp1,Engine.xdimen) -pragmas.mulscale9(xb1[MAXWALLSB-1]-Engine.halfxdimen,yp1))*xspan)>>3);
+		        top = (((pragmas.mulscale10(xp1,Engine._device.xdimen) -pragmas.mulscale9(xb1[MAXWALLSB-1]-Engine._device.halfxdimen,yp1))*xspan)>>3);
 		        botinc = ((yp2-yp1)>>8);
-		        bot = pragmas.mulscale11(xp1-xp2,Engine.xdimen) + pragmas.mulscale2(xb1[MAXWALLSB-1]-Engine.halfxdimen,botinc);
+		        bot = pragmas.mulscale11(xp1-xp2,Engine._device.xdimen) + pragmas.mulscale2(xb1[MAXWALLSB-1]-Engine._device.halfxdimen,botinc);
 
 		        j = xb2[MAXWALLSB-1]+3;
                 z = pragmas.mulscale20(top, pragmas.krecipasm(bot));
@@ -1524,8 +1570,8 @@ namespace build
 		        rx1[MAXWALLSB-1] = xp1; ry1[MAXWALLSB-1] = yp1;
 		        rx2[MAXWALLSB-1] = xp2; ry2[MAXWALLSB-1] = yp2;
 
-		        hplc = pragmas.divscale19(Engine.xdimenscale,yb1[MAXWALLSB-1]);
-		        hinc = pragmas.divscale19(Engine.xdimenscale,yb2[MAXWALLSB-1]);
+		        hplc = pragmas.divscale19(Engine._device.xdimenscale,yb1[MAXWALLSB-1]);
+		        hinc = pragmas.divscale19(Engine._device.xdimenscale,yb2[MAXWALLSB-1]);
 		        hinc = (hinc-hplc)/(xb2[MAXWALLSB-1]-xb1[MAXWALLSB-1]+1);
 
 		        z2 = tspr.z - ((yoff*tspr.yrepeat)<<2);
@@ -1622,7 +1668,7 @@ namespace build
                                         {
                                             xp1 = pragmas.dmulscale14(y, cosglobalang, (int)-x, singlobalang);
 
-                                            x = Engine.halfxdimen + pragmas.scale(xp1, Engine.halfxdimen, yp1);
+                                            x = Engine._device.halfxdimen + pragmas.scale(xp1, Engine._device.halfxdimen, yp1);
                                             if (xp1 >= 0) x++;   //Fix for SIGNED divide
 
                                             if (z1 < 0)
@@ -1731,7 +1777,7 @@ namespace build
 		        rzi[3] = rzi[0]+dax; rxi[3] = rxi[0]+day;
 
 			        //Put all points on same z
-		        ryi[0] = pragmas.scale((tspr.z-globalposz),Engine.yxaspect,320<<8);
+		        ryi[0] = pragmas.scale((tspr.z-globalposz),Engine._device.yxaspect,320<<8);
 		        if (ryi[0] == 0) return;
 		        ryi[1] = ryi[2] = ryi[3] = ryi[0];
 
@@ -1757,10 +1803,10 @@ namespace build
 		        globalypanning = (rzi[z]<<12);
 		        globalzd = (ryi[z]<<12);
 
-		        rzi[0] = pragmas.mulscale16(rzi[0],Engine.viewingrange);
-		        rzi[1] = pragmas.mulscale16(rzi[1],Engine.viewingrange);
-		        rzi[2] = pragmas.mulscale16(rzi[2],Engine.viewingrange);
-		        rzi[3] = pragmas.mulscale16(rzi[3],Engine.viewingrange);
+		        rzi[0] = pragmas.mulscale16(rzi[0],Engine._device.viewingrange);
+		        rzi[1] = pragmas.mulscale16(rzi[1],Engine._device.viewingrange);
+		        rzi[2] = pragmas.mulscale16(rzi[2],Engine._device.viewingrange);
+		        rzi[3] = pragmas.mulscale16(rzi[3],Engine._device.viewingrange);
 
 		        if (ryi[0] < 0)   //If ceilsprite is above you, reverse order of points
 		        {
@@ -1820,11 +1866,11 @@ namespace build
 
 			        //Clip edge 3
 		        npoints2 = 0;
-		        zzsgn = ryi[0]*Engine.halfxdimen + (rzi[0]*(globalhoriz-0));
+		        zzsgn = ryi[0]*Engine._device.halfxdimen + (rzi[0]*(globalhoriz-0));
 		        for(z=0;z<npoints;z++)
 		        {
 			        zz = z+1; if (zz == npoints) zz = 0;
-			        zsgn = zzsgn; zzsgn = ryi[zz]*Engine.halfxdimen + (rzi[zz]*(globalhoriz-0));
+			        zsgn = zzsgn; zzsgn = ryi[zz]*Engine._device.halfxdimen + (rzi[zz]*(globalhoriz-0));
 			        if (zsgn >= 0)
 			        {
 				        rxi2[npoints2] = rxi[z];
@@ -1845,11 +1891,11 @@ namespace build
 
 			        //Clip edge 4
 		        npoints = 0;
-		        zzsgn = ryi2[0]*Engine.halfxdimen + (rzi2[0]*(globalhoriz-Engine.ydimen));
+                zzsgn = ryi2[0] * Engine._device.halfxdimen + (rzi2[0] * (globalhoriz - Engine._device.ydimen));
 		        for(z=0;z<npoints2;z++)
 		        {
 			        zz = z+1; if (zz == npoints2) zz = 0;
-			        zsgn = zzsgn; zzsgn = ryi2[zz]*Engine.halfxdimen + (rzi2[zz]*(globalhoriz-Engine.ydimen));
+			        zsgn = zzsgn; zzsgn = ryi2[zz]*Engine._device.halfxdimen + (rzi2[zz]*(globalhoriz-Engine._device.ydimen));
 			        if (zsgn <= 0)
 			        {
 				        rxi[npoints] = rxi2[z];
@@ -1876,12 +1922,12 @@ namespace build
 // jv end
 		        for(z=0;z<npoints;z++)
 		        {
-			        xsi[z] = pragmas.scale(rxi[z],Engine.xdimen<<15,rzi[z]) + (Engine.xdimen<<15);
-			        ysi[z] = pragmas.scale(ryi[z],Engine.xdimen<<15,rzi[z]) + (globalhoriz<<16);
+                    xsi[z] = pragmas.scale(rxi[z], Engine._device.xdimen << 15, rzi[z]) + (Engine._device.xdimen << 15);
+                    ysi[z] = pragmas.scale(ryi[z], Engine._device.xdimen << 15, rzi[z]) + (globalhoriz << 16);
 			        if (xsi[z] < 0) xsi[z] = 0;
-			        if (xsi[z] > (Engine.xdimen<<16)) xsi[z] = (Engine.xdimen<<16);
+                    if (xsi[z] > (Engine._device.xdimen << 16)) xsi[z] = (Engine._device.xdimen << 16);
 			        if (ysi[z] < ((int)0<<16)) ysi[z] = ((int)0<<16);
-			        if (ysi[z] > ((int)Engine.ydimen<<16)) ysi[z] = ((int)Engine.ydimen<<16);
+                    if (ysi[z] > ((int)Engine._device.ydimen << 16)) ysi[z] = ((int)Engine._device.ydimen << 16);
 			        if (xsi[z] < lmax) { lmax = xsi[z]; lpoint = z;}
                     if (xsi[z] > rmax) { rmax = xsi[z]; rpoint = z; }
 		        }
@@ -1921,8 +1967,8 @@ namespace build
 		        rx = (int)((rmax+65535)>>16);
 		        for(x=lx;x<=rx;x++)
 		        {
-                    uwall[x] = (short)Math.Max((int)uwall[x], Engine._device.startumost[x + Engine.windowx1] - Engine.windowy1);
-                    dwall[x] = (short)Math.Min((int)dwall[x], Engine._device.startdmost[x + Engine.windowx1] - Engine.windowy1);
+                    uwall[x] = (short)Math.Max((int)uwall[x], Engine._device.startumost[x + Engine._device.windowx1] - Engine._device.windowy1);
+                    dwall[x] = (short)Math.Min((int)dwall[x], Engine._device.startdmost[x + Engine._device.windowx1] - Engine._device.windowy1);
 		        }
 
 			        //Additional uwall/dwall clipping goes here
@@ -1982,7 +2028,7 @@ namespace build
                 globalbuf = Engine.waloff[(int)globalpicnum].memory;
                 globalbufplc = 0;
 
-		        globvis = pragmas.mulscale16(globalhisibility,Engine.viewingrange);
+		        globvis = pragmas.mulscale16(globalhisibility,Engine._device.viewingrange);
 		        if (sec.visibility != 0) globvis = pragmas.mulscale4(globvis,(int)((byte)(sec.visibility+16)));
 
 		        x = Engine.picsiz[globalpicnum]; y = (((int)x>>4)&15); x &= 15;
@@ -1997,12 +2043,12 @@ namespace build
 		        globalxpanning = -pragmas.dmulscale6(globalx1,day,globalx2,dax);
 		        globalypanning = -pragmas.dmulscale6(globaly1,day,globaly2,dax);
 
-		        globalx2 = pragmas.mulscale16(globalx2,Engine.viewingrange);
-		        globaly2 = pragmas.mulscale16(globaly2,Engine.viewingrange);
-		        globalzd = pragmas.mulscale16(globalzd,Engine.viewingrangerecip);
+		        globalx2 = pragmas.mulscale16(globalx2,Engine._device.viewingrange);
+		        globaly2 = pragmas.mulscale16(globaly2,Engine._device.viewingrange);
+		        globalzd = pragmas.mulscale16(globalzd,Engine._device.viewingrangerecip);
 
-		        globalx1 = (globalx1-globalx2)*Engine.halfxdimen;
-		        globaly1 = (globaly1-globaly2)*Engine.halfxdimen;
+		        globalx1 = (globalx1-globalx2)*Engine._device.halfxdimen;
+		        globaly1 = (globaly1-globaly2)*Engine._device.halfxdimen;
 
 		        if ((cstat&2) == 0)
                     A.msethlineshift((int)x, y);
@@ -2247,10 +2293,9 @@ namespace build
 	        }
 
 	        if ((Engine.picanm[globalpicnum]&192) != 0) globalpicnum += Engine.animateoffs((short)globalpicnum,(short)sectnum);
-	       // setgotpic(globalpicnum);
-// jv
-	       // if ((Engine.tilesizx[globalpicnum] <= 0) || (Engine.tilesizy[globalpicnum] <= 0)) return;
-// jv end
+	        gotpic[globalpicnum] = true;
+	        if ((Engine.tilesizx[globalpicnum] <= 0) || (Engine.tilesizy[globalpicnum] <= 0)) return;
+
             if (Engine.waloff[(int)globalpicnum] == null) Engine.loadtile((short)globalpicnum);
 
 	        wal = wall[sec.wallptr];
@@ -2260,14 +2305,14 @@ namespace build
 	        i = pragmas.mulscale21(daslope,dasqr);
 	        wx *= i; wy *= i;
 
-	        globalx = -pragmas.mulscale19(singlobalang,Engine.xdimenrecip);
-	        globaly = pragmas.mulscale19(cosglobalang,Engine.xdimenrecip);
+	        globalx = -pragmas.mulscale19(singlobalang,Engine._device.xdimenrecip);
+	        globaly = pragmas.mulscale19(cosglobalang,Engine._device.xdimenrecip);
 	        globalx1 = (globalposx<<8);
 	        globaly1 = -(globalposy<<8);
-	        i = (dax1-Engine.halfxdimen)*Engine.xdimenrecip;
-	        globalx2 = pragmas.mulscale16(cosglobalang<<4,Engine.viewingrangerecip) - pragmas.mulscale27(singlobalang,i);
-	        globaly2 = pragmas.mulscale16( singlobalang<<4,Engine.viewingrangerecip) + pragmas.mulscale27(cosglobalang,i);
-	        globalzd = (Engine.xdimscale<<9);
+	        i = (dax1-Engine._device.halfxdimen)*Engine._device.xdimenrecip;
+	        globalx2 = pragmas.mulscale16(cosglobalang<<4,Engine._device.viewingrangerecip) - pragmas.mulscale27(singlobalang,i);
+	        globaly2 = pragmas.mulscale16( singlobalang<<4,Engine._device.viewingrangerecip) + pragmas.mulscale27(cosglobalang,i);
+	        globalzd = (Engine._device.xdimscale<<9);
 	        globalzx = -pragmas.dmulscale17(wx,globaly2,-wy,globalx2) + pragmas.mulscale10(1-globalhoriz,globalzd);
 	        globalz = -pragmas.dmulscale25( wx,globaly,-wy,globalx);
 
@@ -2328,15 +2373,15 @@ namespace build
 	        globvis = globalvisibility;
 	        if (sec.visibility != 0) globvis = pragmas.mulscale4( globvis,(int)((byte)(sec.visibility+16)));
 	        globvis = pragmas.mulscale13(globvis,daz);
-	        globvis = pragmas.mulscale16(globvis,Engine.xdimscale);
+            globvis = pragmas.mulscale16(globvis, Engine._device.xdimscale);
            // j = globalpal; // Engine.palette.palookup[globalpal].arraynum;
 
             A.setupslopevlin(((int)(Engine.picsiz[globalpicnum] & 15)) + (((int)(Engine.picsiz[globalpicnum] >> 4)) << 8), Engine.waloff[(int)globalpicnum].memory, 0, -Engine.ylookup[1]);
 
 	        l = (globalzd>>16);
 
-	        shinc = pragmas.mulscale16(globalz,Engine.xdimenscale);
-	        if (shinc > 0) shoffs = (4<<15); else shoffs = ((16380-Engine.ydimen)<<15);	// JBF: was 2044
+            shinc = pragmas.mulscale16(globalz, Engine._device.xdimenscale);
+            if (shinc > 0) shoffs = (4 << 15); else shoffs = ((16380 - Engine._device.ydimen) << 15);	// JBF: was 2044
 	        if (dastat == 0) y1 = umost[dax1]; else y1 = Math.Max(umost[dax1],dplc[dax1]);
 	        m1 = pragmas.mulscale16(y1,globalzd) + (globalzx>>6);
 		        //Avoid visibility overflow by crossing horizon
@@ -2396,9 +2441,10 @@ namespace build
 
 	        tsizx = Engine.tilesizx[globalpicnum];
             tsizy = Engine.tilesizy[globalpicnum];
-	        //setgotpic(globalpicnum);
-	        if ((tsizx <= 0) || (tsizy <= 0)) return;
-	        if ((uwal[x1] > Engine.ydimen) && (uwal[x2] > Engine.ydimen)) return;
+	        gotpic[globalpicnum] = true;
+	        if ((tsizx <= 0) || (tsizy <= 0)) 
+                return;
+            if ((uwal[x1] > Engine._device.ydimen) && (uwal[x2] > Engine._device.ydimen)) return;
 	        if ((dwal[x1] < 0) && (dwal[x2] < 0)) return;
 
             if (Engine.waloff[(int)globalpicnum] == null) Engine.loadtile((short)globalpicnum);
@@ -2520,9 +2566,9 @@ namespace build
 	        }
 
 	        odayscale = dayscale;
-	        daxscale = pragmas.mulscale16(daxscale,Engine.xyaspect);
-            daxscale = pragmas.scale(daxscale, Engine.xdimenscale, Engine.xdimen << 8);
-            dayscale = pragmas.scale(dayscale, pragmas.mulscale16(Engine.xdimenscale, Engine.viewingrangerecip), Engine.xdimen << 8);
+	        daxscale = pragmas.mulscale16(daxscale,Engine._device.xyaspect);
+            daxscale = pragmas.scale(daxscale, Engine._device.xdimenscale, Engine._device.xdimen << 8);
+            dayscale = pragmas.scale(dayscale, pragmas.mulscale16(Engine._device.xdimenscale, Engine._device.viewingrangerecip), Engine._device.xdimen << 8);
 
 	        daxscalerecip = (1<<30)/daxscale;
 	        dayscalerecip = (1<<30)/dayscale;
@@ -2622,12 +2668,12 @@ namespace build
 		        oand16 = oand+16;
 		        oand32 = oand+32;
 
-		        if (yi > 0) { dagxinc = gxinc; dagyinc = pragmas.mulscale16(gyinc,Engine.viewingrangerecip); }
-                else { dagxinc = -gxinc; dagyinc = -pragmas.mulscale16(gyinc, Engine.viewingrangerecip); }
+		        if (yi > 0) { dagxinc = gxinc; dagyinc = pragmas.mulscale16(gyinc,Engine._device.viewingrangerecip); }
+                else { dagxinc = -gxinc; dagyinc = -pragmas.mulscale16(gyinc, Engine._device.viewingrangerecip); }
 
 			        //Fix for non 90 degree viewing ranges
-                nxoff = pragmas.mulscale16(x2 - x1, Engine.viewingrangerecip);
-                x1 = pragmas.mulscale16(x1, Engine.viewingrangerecip);
+                nxoff = pragmas.mulscale16(x2 - x1, Engine._device.viewingrangerecip);
+                x1 = pragmas.mulscale16(x1, Engine._device.viewingrangerecip);
 
                 ggxstart = gxstart + Engine.ggyinc[ys];
                 ggystart = gystart - Engine.ggxinc[ys];
@@ -2640,7 +2686,7 @@ namespace build
                     slabxoffs = basepos + davoxptr.GetInt(x); // (int)&davoxptr[B_LITTLE32(intptr[x])];
                     shortptr = basepos + ((x * (daysiz + 1)) << 1) + xyvoxoffs;//(short *)&davoxptr[((x*(daysiz+1))<<1)+xyvoxoffs];
 
-                    nx = pragmas.mulscale16(ggxstart + Engine.ggxinc[x], Engine.viewingrangerecip) + x1;
+                    nx = pragmas.mulscale16(ggxstart + Engine.ggxinc[x], Engine._device.viewingrangerecip) + x1;
                     ny = ggystart + Engine.ggyinc[x];
 			        for(y=ys;y!=ye;y+=yi,nx+=dagyinc,ny-=dagxinc)
 			        {
@@ -2650,10 +2696,10 @@ namespace build
                         voxend = davoxptr.GetShort(y + 1) + slabxoffs;//(char *)(B_LITTLE16(shortptr[y+1])+slabxoffs);
 				        if (voxptr == voxend) continue;
 
-                        lx = pragmas.mulscale32(nx >> 3, (int)distrecip[(ny + y1) >> 14]) + Engine.halfxdimen;
+                        lx = pragmas.mulscale32(nx >> 3, (int)distrecip[(ny + y1) >> 14]) + Engine._device.halfxdimen;
 				        if (lx < 0) lx = 0;
-                        rx = pragmas.mulscale32((nx + nxoff) >> 3, (int)distrecip[(ny + y2) >> 14]) + Engine.halfxdimen;
-                        if (rx > Engine.xdimen) rx = Engine.xdimen;
+                        rx = pragmas.mulscale32((nx + nxoff) >> 3, (int)distrecip[(ny + y2) >> 14]) + Engine._device.halfxdimen;
+                        if (rx > Engine._device.xdimen) rx = Engine._device.xdimen;
 				        if (rx <= lx) continue;
 				        rx -= lx;
 
@@ -2730,7 +2776,7 @@ namespace build
 	        if (globalzd > 0) return;
 	        globalpicnum = sec.floorpicnum;
 	        if (globalpicnum >= MAXTILES) globalpicnum = 0;
-	        //setgotpic(globalpicnum);
+	        gotpic[globalpicnum] = true;
 	        if ((Engine.tilesizx[globalpicnum] <= 0) || (Engine.tilesizy[globalpicnum] <= 0)) return;
 	        if ((Engine.picanm[globalpicnum]&192) != 0) globalpicnum += Engine.animateoffs((short)globalpicnum,(short)sectnum);
 
@@ -2768,8 +2814,8 @@ namespace build
 		        globalxpanning = globalx1*ox - globaly1*oy;
 		        globalypanning = globaly2*ox + globalx2*oy;
 	        }
-	        globalx2 = pragmas.mulscale16( globalx2,Engine.viewingrangerecip);
-	        globaly1 = pragmas.mulscale16( globaly1,Engine.viewingrangerecip);
+	        globalx2 = pragmas.mulscale16( globalx2,Engine._device.viewingrangerecip);
+	        globaly1 = pragmas.mulscale16( globaly1,Engine._device.viewingrangerecip);
 	        globalxshift = (8-(Engine.picsiz[globalpicnum]&15));
 	        globalyshift = (8-(Engine.picsiz[globalpicnum]>>4));
 	        if ((globalorientation&8) != 0) { globalxshift++; globalyshift++; }
@@ -2787,8 +2833,8 @@ namespace build
 	        globalxpanning <<= (int)globalxshift; globalypanning <<= (int)globalyshift;
 	        globalxpanning += (((int)sec.floorxpanning)<<24);
 	        globalypanning += (((int)sec.floorypanning)<<24);
-	        globaly1 = (-globalx1-globaly1)*Engine.halfxdimen;
-	        globalx2 = (globalx2-globaly2)*Engine.halfxdimen;
+	        globaly1 = (-globalx1-globaly1)*Engine._device.halfxdimen;
+	        globalx2 = (globalx2-globaly2)*Engine._device.halfxdimen;
 
 	        A.sethlinesizes(Engine.picsiz[globalpicnum]&15,Engine.picsiz[globalpicnum]>>4,globalbuf, globalbufplc);
 
@@ -2940,8 +2986,8 @@ namespace build
 		        globalxpanning = globalx1*ox - globaly1*oy;
 		        globalypanning = globaly2*ox + globalx2*oy;
 	        }
-	        globalx2 = pragmas.mulscale16(globalx2,Engine.viewingrangerecip);
-	        globaly1 = pragmas.mulscale16(globaly1,Engine.viewingrangerecip);
+	        globalx2 = pragmas.mulscale16(globalx2,Engine._device.viewingrangerecip);
+	        globaly1 = pragmas.mulscale16(globaly1,Engine._device.viewingrangerecip);
 	        globalxshift = (8-(Engine.picsiz[globalpicnum]&15));
 	        globalyshift = (8-(Engine.picsiz[globalpicnum]>>4));
 	        if ((globalorientation&8) != 0) { globalxshift++; globalyshift++; }
@@ -2959,8 +3005,8 @@ namespace build
 	        globalxpanning <<= (int)globalxshift; globalypanning <<= (int)globalyshift;
 	        globalxpanning += (((int)sec.ceilingxpanning)<<24);
 	        globalypanning += (((int)sec.ceilingypanning)<<24);
-	        globaly1 = (-globalx1-globaly1)*Engine.halfxdimen;
-	        globalx2 = (globalx2-globaly2)*Engine.halfxdimen;
+	        globaly1 = (-globalx1-globaly1)*Engine._device.halfxdimen;
+	        globalx2 = (globalx2-globaly2)*Engine._device.halfxdimen;
 
 	        A.sethlinesizes(Engine.picsiz[globalpicnum]&15,Engine.picsiz[globalpicnum]>>4,globalbuf, globalbufplc);
 
@@ -3843,7 +3889,7 @@ namespace build
 
 	        globalhorizbak = globalhoriz;
 	        if (parallaxyscale != 65536)
-		        globalhoriz = pragmas.mulscale16(globalhoriz-(Engine.ydimen>>1),parallaxyscale) + ((Engine.ydimen>>1));
+		        globalhoriz = pragmas.mulscale16(globalhoriz-(Engine._device.ydimen>>1),parallaxyscale) + ((Engine._device.ydimen>>1));
 	        globvis = globalpisibility;
 	        //globalorientation = 0L;
 	        if (sec.visibility != 0) globvis = pragmas.mulscale4(globvis,(int)((byte)(sec.visibility+16)));
@@ -3896,9 +3942,9 @@ namespace build
 
 			        if (parallaxtype == 0)
 			        {
-				        n = pragmas.mulscale16( Engine.xdimenrecip,Engine.viewingrange);
+				        n = pragmas.mulscale16( Engine._device.xdimenrecip,Engine._device.viewingrange);
 				        for(j=xb1[z];j<=xb2[z];j++)
-					        lplc[j] = (((pragmas.mulscale23(j-Engine.halfxdimen,n)+globalang)&2047)>>(int)k);
+					        lplc[j] = (((pragmas.mulscale23(j-Engine._device.halfxdimen,n)+globalang)&2047)>>(int)k);
 			        }
 			        else
 			        {
@@ -3907,12 +3953,12 @@ namespace build
 			        }
 			        if (parallaxtype == 2)
 			        {
-				        n = pragmas.mulscale16(Engine.xdimscale,Engine.viewingrange);
+				        n = pragmas.mulscale16(Engine._device.xdimscale,Engine._device.viewingrange);
 				        for(j=xb1[z];j<=xb2[z];j++)
 					        swplc[j] = pragmas.mulscale14(Engine.table.sintable[((int)radarang2[j]+512)&2047],n);
 			        }
 			        else
-                        clearbuf(xb1[z], ref swplc, xb2[z] - xb1[z] + 1, pragmas.mulscale16( Engine.xdimscale, Engine.viewingrange));
+                        clearbuf(xb1[z], ref swplc, xb2[z] - xb1[z] + 1, pragmas.mulscale16( Engine._device.xdimscale, Engine._device.viewingrange));
 		        }
 		        else if (x >= 0)
 		        {
@@ -3983,14 +4029,14 @@ namespace build
             walxrepeat = (wal.xrepeat << 3);
 
             //lwall calculation
-            i = xb1[z] - Engine.halfxdimen;
+            i = xb1[z] - Engine._device.halfxdimen;
             topinc = -(ry1[z] >> 2);
             botinc = ((ry2[z] - ry1[z]) >> 8);
-            top = pragmas.mulscale5(rx1[z], Engine.xdimen) + pragmas.mulscale2( topinc, i);
-            bot = pragmas.mulscale11(rx1[z] - rx2[z], Engine.xdimen) + pragmas.mulscale2( botinc, i);
+            top = pragmas.mulscale5(rx1[z], Engine._device.xdimen) + pragmas.mulscale2( topinc, i);
+            bot = pragmas.mulscale11(rx1[z] - rx2[z], Engine._device.xdimen) + pragmas.mulscale2( botinc, i);
 
-            splc = pragmas.mulscale19(ry1[z], Engine.xdimscale);
-            sinc = pragmas.mulscale16( ry2[z] - ry1[z], Engine.xdimscale);
+            splc = pragmas.mulscale19(ry1[z], Engine._device.xdimscale);
+            sinc = pragmas.mulscale16( ry2[z] - ry1[z], Engine._device.xdimscale);
 
             x = xb1[z];
             if (bot != 0)
@@ -4075,7 +4121,7 @@ namespace build
 		        if (yp > (4<<8))
 		        {
 			        xp = pragmas.dmulscale6(ys,cosglobalang,-xs,singlobalang);
-                    vissprites[i].x = pragmas.scale(xp + yp, Engine.xdimen << 7, yp);
+                    vissprites[i].x = pragmas.scale(xp + yp, Engine._device.xdimen << 7, yp);
 		        }
 		        else if ((tsprite[i].cstat&48) == 0)
 		        {
@@ -4218,9 +4264,9 @@ namespace build
 
             tsizx = Engine.tilesizx[globalpicnum];
             tsizy = Engine.tilesizy[globalpicnum];
-            //setgotpic(globalpicnum);
+            gotpic[globalpicnum] = true;
             if ((tsizx <= 0) || (tsizy <= 0)) return;
-            if ((uwal[x1] > Engine.ydimen) && (uwal[x2] > Engine.ydimen)) return;
+            if ((uwal[x1] > Engine._device.ydimen) && (uwal[x2] > Engine._device.ydimen)) return;
             if ((dwal[x1] < 0) && (dwal[x2] < 0)) return;
 
             if (Engine.waloff[globalpicnum] == null) Engine.loadtile((short)globalpicnum);
@@ -4240,8 +4286,8 @@ namespace build
             for (x = startx; x < x2; x++, p++)
 // jv end
             {
-                y1ve[0] = Math.Max(uwal[x], Engine._device.startumost[x + Engine.windowx1] - Engine.windowy1);
-                y2ve[0] = Math.Min(dwal[x], Engine._device.startdmost[x + Engine.windowx1] - Engine.windowy1);
+                y1ve[0] = Math.Max(uwal[x], Engine._device.startumost[x + Engine._device.windowx1] - Engine._device.windowy1);
+                y2ve[0] = Math.Min(dwal[x], Engine._device.startdmost[x + Engine._device.windowx1] - Engine._device.windowy1);
                 if (y2ve[0] <= y1ve[0])
                 {
                     continue;
@@ -4273,10 +4319,10 @@ namespace build
             short y1v, y2v;
             byte[] bufplc;
 
-            if ((x < 0) || (x >= Engine.xdimen)) return;
+            if ((x < 0) || (x >= Engine._device.xdimen)) return;
 
-            y1v = (short)Math.Max(uwall[x], Engine._device.startumost[x + Engine.windowx1] - Engine.windowy1);
-            y2v = (short)Math.Min(dwall[x], Engine._device.startdmost[x + Engine.windowx1] - Engine.windowy1);
+            y1v = (short)Math.Max(uwall[x], Engine._device.startumost[x + Engine._device.windowx1] - Engine._device.windowy1);
+            y2v = (short)Math.Min(dwall[x], Engine._device.startdmost[x + Engine._device.windowx1] - Engine._device.windowy1);
             y2v--;
             if (y2v < y1v) return;
 
@@ -4310,7 +4356,7 @@ namespace build
 	        A.setuptvlineasm(globalshiftval);
 
 	        x = x1;
-            while ((Engine._device.startumost[x + Engine.windowx1] > Engine._device.startdmost[x + Engine.windowx1]) && (x <= x2)) x++;
+            while ((Engine._device.startumost[x + Engine._device.windowx1] > Engine._device.startdmost[x + Engine._device.windowx1]) && (x <= x2)) x++;
 
             while (x <= x2) { transmaskvline(x); x++; }
 	       // faketimerhandler();
@@ -4848,6 +4894,57 @@ namespace build
 	        for(i=b1f;xb2[i]<x1b2;i=p2[i]);
 	        return(wallfront(i,b2f));
         }
+
+        //
+        // preparemirror
+        //
+        public void preparemirror(int dax, int day, int daz, short daang, int dahoriz, short dawall, short dasector, ref int tposx, ref int tposy, ref short tang)
+        {
+	        int i, j, x, y, dx, dy;
+
+	        x = wall[dawall].x; dx = wall[wall[dawall].point2].x-x;
+	        y = wall[dawall].y; dy = wall[wall[dawall].point2].y-y;
+	        j = dx*dx + dy*dy; if (j == 0) return;
+	        i = (((dax-x)*dx + (day-y)*dy)<<1);
+	        tposx = (x<<1) + pragmas.scale(dx,i,j) - dax;
+            tposy = (y << 1) + pragmas.scale(dy, i, j) - day;
+            tang = (short)(((Engine.getangle(dx, dy) << 1) - daang) & 2047);
+
+	        inpreparemirror = true;
+        }
+        
+
+        //
+        // completemirror
+        //
+        public void completemirror()
+        {
+	        int i, dy, p;
+
+		    //Can't reverse with uninitialized data
+	        if (inpreparemirror) { inpreparemirror = false; return; }
+	        if (mirrorsx1 > 0) mirrorsx1--;
+            if (mirrorsx2 < Engine._device.windowx2 - Engine._device.windowx1 - 1) mirrorsx2++;
+	        if (mirrorsx2 < mirrorsx1) return;
+
+            if (mirrorsx2 > 128) return;
+
+	   //     Engine._device.BeginDrawing();
+            p = Engine.frameplace + Engine.ylookup[Engine._device.windowy1 + mirrorsy1] + Engine._device.windowx1 + mirrorsx1;
+            i = Engine._device.windowx2 - Engine._device.windowx1 - mirrorsx2 - mirrorsx1; mirrorsx2 -= mirrorsx1;
+	        for(dy=mirrorsy2-mirrorsy1;dy>=0;dy--)
+	        {
+// jv
+	//	        copybufbyte((void*)(p+1),tempbuf,mirrorsx2+1);
+                Array.Copy(Engine._device._screenbuffer.Pixels, p + 1, tempbufint, 0, mirrorsx2 + 1);
+// jv end
+                tempbufint[mirrorsx2] = tempbufint[mirrorsx2 - 1];
+                Engine.copybufreverse<int>(mirrorsx2, tempbufint, p + i, Engine._device._screenbuffer.Pixels, mirrorsx2 + 1);
+		        p += Engine.ylookup[1];
+		       // faketimerhandler();
+	        }
+       //     Engine._device.EndDrawing();
+        }
         
         //
         // drawrooms
@@ -4863,14 +4960,14 @@ namespace build
 	        globalposx = daposx; globalposy = daposy; globalposz = daposz;
 	        globalang = (short)(daang&2047);
 
-	        globalhoriz = pragmas.mulscale16( dahoriz-100,Engine.xdimenscale)+(Engine.ydimen>>1);
-	        globaluclip = (0-globalhoriz)*Engine.xdimscale;
-	        globaldclip = (Engine.ydimen-globalhoriz)*Engine.xdimscale;
+	        globalhoriz = pragmas.mulscale16( dahoriz-100,Engine._device.xdimenscale)+(Engine._device.ydimen>>1);
+	        globaluclip = (0-globalhoriz)*Engine._device.xdimscale;
+	        globaldclip = (Engine._device.ydimen-globalhoriz)*Engine._device.xdimscale;
 
-	        i = pragmas.mulscale16( Engine.xdimenscale,Engine.viewingrangerecip);
+	        i = pragmas.mulscale16( Engine._device.xdimenscale,Engine._device.viewingrangerecip);
 	        globalpisibility = pragmas.mulscale16( parallaxvisibility,i);
 	        globalvisibility = pragmas.mulscale16( visibility,i);
-	        globalhisibility = pragmas.mulscale16( globalvisibility,Engine.xyaspect);
+	        globalhisibility = pragmas.mulscale16( globalvisibility,Engine._device.xyaspect);
 	        globalcisibility = pragmas.mulscale8(globalhisibility,320);
 
 	        globalcursectnum = dacursectnum;
@@ -4878,32 +4975,32 @@ namespace build
 
 	        cosglobalang = Engine.table.sintable[(globalang+512)&2047];
 	        singlobalang = Engine.table.sintable[globalang&2047];
-	        cosviewingrangeglobalang = pragmas.mulscale16(cosglobalang,Engine.viewingrange);
-	        sinviewingrangeglobalang = pragmas.mulscale16(singlobalang,Engine.viewingrange);
+	        cosviewingrangeglobalang = pragmas.mulscale16(cosglobalang,Engine._device.viewingrange);
+	        sinviewingrangeglobalang = pragmas.mulscale16(singlobalang,Engine._device.viewingrange);
 
-	        if ((Engine.xyaspect != Engine.oxyaspect) || (Engine.xdimen != Engine.oxdimen) || (Engine.viewingrange != Engine.oviewingrange))
+	        if ((Engine._device.xyaspect != Engine.oxyaspect) || (Engine._device.xdimen != Engine.oxdimen) || (Engine._device.viewingrange != Engine.oviewingrange))
 		        dosetaspect();
 
 	        //clearbufbyte(&gotsector[0],(int)((numsectors+7)>>3),0L);
             //gotsector.memset( 0 );
             Array.Clear(gotsector, 0, gotsector.Length);
 
-            shortptr1 = Engine.windowx1;
-            shortptr2 = Engine.windowx1;
-	        i = Engine.xdimen-1;
+            shortptr1 = Engine._device.windowx1;
+            shortptr2 = Engine._device.windowx1;
+	        i = Engine._device.xdimen-1;
 	        do
 	        {
-                umost[i] = (short)(Engine._device.startumost[shortptr1 + i] - Engine.windowy1);
-                dmost[i] = (short)(Engine._device.startdmost[shortptr2 + i] - Engine.windowy1);
+                umost[i] = (short)(Engine._device.startumost[shortptr1 + i] - Engine._device.windowy1);
+                dmost[i] = (short)(Engine._device.startdmost[shortptr2 + i] - Engine._device.windowy1);
 		        i--;
 	        } while (i != 0);
-            umost[0] = (short)(Engine._device.startumost[shortptr1 + 0] - Engine.windowy1);
-            dmost[0] = (short)(Engine._device.startdmost[shortptr2 + 0] - Engine.windowy1);
+            umost[0] = (short)(Engine._device.startumost[shortptr1 + 0] - Engine._device.windowy1);
+            dmost[0] = (short)(Engine._device.startdmost[shortptr2 + 0] - Engine._device.windowy1);
 
 	        
 	
 	        //frameoffset = frameplace + viewoffset;
-	        frameoffset = Engine.frameplace + (Engine.windowy1*Engine.bytesperline + Engine.windowx1);
+	        frameoffset = Engine.frameplace + (Engine._device.windowy1*Engine._device.bytesperline + Engine._device.windowx1);
 
 	        //if (smostwallcnt < 0)
 	        //	if (getkensmessagecrc(FP_OFF(kensmessage)) != 0x56c764d4)
@@ -4911,7 +5008,7 @@ namespace build
 
             
 
-	        numhits = Engine.xdimen; numscans = 0; numbunches = 0;
+	        numhits = Engine._device.xdimen; numscans = 0; numbunches = 0;
 	        maskwallcnt = 0; smostwallcnt = 0; smostcnt = 0; spritesortcnt = 0;
 
 	        if (globalcursectnum >= MAXSECTORS)
@@ -4936,7 +5033,7 @@ namespace build
 	        if (inpreparemirror)
 	        {
 		        inpreparemirror = false;
-		        mirrorsx1 = Engine.xdimen-1; mirrorsx2 = 0;
+		        mirrorsx1 = Engine._device.xdimen-1; mirrorsx2 = 0;
 		        for(i=numscans-1;i>=0;i--)
 		        {
 			        if (wall[thewall[i]].nextsector < 0) continue;
@@ -4947,7 +5044,7 @@ namespace build
 		        for(i=0;i<mirrorsx1;i++)
 			        if (umost[i] <= dmost[i])
 				        { umost[i] = 1; dmost[i] = 0; numhits--; }
-		        for(i=mirrorsx2+1;i<Engine.xdimen;i++)
+		        for(i=mirrorsx2+1;i<Engine._device.xdimen;i++)
 			        if (umost[i] <= dmost[i])
 				        { umost[i] = 1; dmost[i] = 0; numhits--; }
 
@@ -5221,6 +5318,11 @@ namespace build
 // jv
         public object obj;
 // jv end
+
+        public spritetype()
+        {
+
+        }
 
         public spritetype(ref kFile file)
         {

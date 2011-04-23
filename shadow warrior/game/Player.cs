@@ -8,7 +8,7 @@ using mact;
 
 namespace sw
 {
-    class Player : Actor
+    class Player : ActorSprite
     {
         private Hud _hud;
         private int fvel = 0, svel = 0, angvel = 0;
@@ -19,15 +19,41 @@ namespace sw
         private bSoundEffect[] DIGI_SWORDGOTU1 = new bSoundEffect[3];
         private bSoundEffect DIGI_KUNGFU;
         private int jumping_counter = 0;
+        private int cameradist = 0;
+        private int cameraclock = 0;
 
         private bSoundEffect DIGI_SWORDSWOOSH;
         private bool playenterlevelsound = true;
         private bool usebloodysword = false;
 
-        public Player()
+        public Player() : base(null)
         {
             _hud = new Hud(this);
             health = 100;
+        }
+
+        private void UpdateSprite()
+        {
+            _sprite.x = daposx;
+            _sprite.y = daposy;
+            _sprite.z = daposz;
+            _sprite.ang = daang;
+            _sprite.picnum = 1094;
+            _sprite.sectnum = dacursectnum;
+        }
+
+        public override void Spawn()
+        {
+            _sprite = Engine.board.sprite[Engine.board.insertsprite(dacursectnum, 0)];
+            _sprite.cstat = 1 + 256;
+            _sprite.clipdist = 32;
+            _sprite.xrepeat = 64;
+            _sprite.yrepeat = 64;
+            _sprite.statnum = 8;
+
+            _sprite.cstat = MyTypes.SET(_sprite.cstat, Flags.CSTAT_SPRITE_INVISIBLE);
+
+            UpdateSprite();
         }
 
         //
@@ -106,6 +132,7 @@ namespace sw
             this.fvel += fvel;
             this.svel += svel;
             this.angvel += angvel;
+
         }
 
         //
@@ -208,6 +235,56 @@ namespace sw
             }
         }
 
+        private void view(ref int vx, ref int vy, ref int vz, ref short vsectnum, short ang, int horiz)
+        {
+	        int i, nx, ny, nz, hx, hy, hz, hitx = 0, hity = 0, hitz = 0;
+	        short bakcstat, hitwall = 0, hitsprite = 0, daang;
+            int hitsect = 0;
+
+	        nx = (Engine.table.sintable[(ang+1536)&2047]>>4);
+            ny = (Engine.table.sintable[(ang + 1024) & 2047] >> 4);
+            nz = 0;// (horiz - 100) * 128;
+
+            bakcstat = _sprite.cstat;
+	        _sprite.cstat &= (short)~0x101;
+
+	        Engine.board.updatesectorz(vx,vy,vz,ref vsectnum);
+            Engine.board.hitscan(vx, vy, vz, vsectnum, nx, ny, nz, ref hitsect, ref hitwall, ref hitsprite, ref hitx, ref hity, ref hitz, Engine.CLIPMASK1);
+	        hx = hitx-(vx); hy = hity-(vy);
+            if (pragmas.klabs(nx) + pragmas.klabs(ny) > pragmas.klabs(hx) + pragmas.klabs(hy))
+	        {
+		        vsectnum = (short)hitsect;
+		        if (hitwall >= 0)
+		        {
+                    daang = (short)Engine.getangle(Engine.board.wall[Engine.board.wall[hitwall].point2].x - Engine.board.wall[hitwall].x,
+                                          Engine.board.wall[Engine.board.wall[hitwall].point2].y - Engine.board.wall[hitwall].y);
+
+                    i = nx * Engine.table.sintable[daang] + ny * Engine.table.sintable[(daang + 1536) & 2047];
+                    if (pragmas.klabs(nx) > pragmas.klabs(ny)) hx -= pragmas.mulscale28(nx, i);
+                    else hy -= pragmas.mulscale28(ny, i);
+		        }
+		        else if (hitsprite < 0)
+		        {
+                    if (pragmas.klabs(nx) > pragmas.klabs(ny)) hx -= (nx >> 5);
+										         else hy -= (ny>>5);
+		        }
+                if (pragmas.klabs(nx) > pragmas.klabs(ny)) i = pragmas.divscale16(hx, nx);
+                                        else i = pragmas.divscale16(hy, ny);
+		        if (i < cameradist) 
+                    cameradist = i;
+	        }
+	        vx = (vx) + pragmas.mulscale16(nx, cameradist);
+            vy = (vy) - pragmas.mulscale16(ny, cameradist);
+            vz = (vz) + pragmas.mulscale16(nz, cameradist);
+
+	        Engine.board.updatesectorz(vx,vy,vz,ref vsectnum);
+
+            cameradist = Math.Min(cameradist + ((Game.totalclock - cameraclock) << 10), 65536);
+            cameraclock = Game.totalclock;
+
+            _sprite.cstat = bakcstat;
+        }
+
         //
         // Think
         // 
@@ -215,6 +292,19 @@ namespace sw
         {
             if (_hud.state == WEAPON_STATE.WEAPON_IDLE)
                 playervoicefire = true;
+
+            
+
+            Engine.board.drawrooms(daposx, daposy, daposz - (38 << 8), daang, 100, dacursectnum);
+           // Engine.board.drawmasks();
+
+            if (Mirrors.IsMirrorVisible())
+            {
+                int cposx = daposx, cposy = daposy, cposz = daposz - (38 << 8);
+                short sectornum = 0;
+                view(ref cposx, ref cposy, ref cposz, ref sectornum, daang, 100);
+                Mirrors.MirrorsThink(cposx, cposy + 400, cposz, daang, 100);
+            }
 
             Engine.board.drawrooms(daposx, daposy, daposz - (38 << 8), daang, 100, dacursectnum);
             Engine.board.drawmasks();
@@ -230,6 +320,8 @@ namespace sw
                 DIGI_ZILLAREGARDS.PlaySound();
                 playenterlevelsound = false;
             }
+
+            UpdateSprite();
         }       
     }
 }
