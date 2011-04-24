@@ -1,18 +1,10 @@
-﻿<xapCache source="c:\dev\shadow warrior\shadow warrior\Bin\Debug\shadow_warrior.xap" wasSigned="False" certificateThumbprint="" TimeStampUrl="" lastWriteTime="4/23/2011 6:16:14 PM">
-  <file source="c:\dev\shadow warrior\shadow warrior\Properties\WMAppManifest.xml" archivePath="WMAppManifest.xml" lastWriteTime="4/16/2011 2:58:39 PM" />
-  <file source="c:\dev\shadow warrior\shadow warrior\obj\Debug\shadow warrior.dll" archivePath="shadow warrior.dll" lastWriteTime="4/23/2011 6:16:04 PM" />
-  <file source="c:\dev\shadow warrior\build\Bin\Debug\build.dll" archivePath="build.dll" lastWriteTime="4/23/2011 5:16:42 PM" />
+﻿<xapCache source="c:\dev\shadow warrior\shadow warrior\..\swlite.Web\ClientBin\swlite.xap" wasSigned="False" certificateThumbprint="" TimeStampUrl="" lastWriteTime="4/24/2011 1:31:21 AM">
+  <file source="c:\dev\shadow warrior\shadow warrior\obj\Debug\swlite.dll" archivePath="swlite.dll" lastWriteTime="4/24/2011 1:31:12 AM" />
+  <file source="c:\dev\shadow warrior\build\Bin\Debug\build.dll" archivePath="build.dll" lastWriteTime="4/23/2011 8:09:29 PM" />
+  <file source="c:\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\System.Windows.Controls.Data.Input.dll" archivePath="System.Windows.Controls.Data.Input.dll" lastWriteTime="4/1/2011 1:58:00 AM" />
   <file source="c:\dev\shadow warrior\build\Bin\Debug\WriteableBitmapExWinPhone.dll" archivePath="WriteableBitmapExWinPhone.dll" lastWriteTime="2/15/2011 7:32:48 PM" />
+  <file source="c:\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\System.ComponentModel.DataAnnotations.dll" archivePath="System.ComponentModel.DataAnnotations.dll" lastWriteTime="4/1/2011 1:58:00 AM" />
+  <file source="c:\dev\shadow warrior\shadow warrior\base\music\track3.mp3" archivePath="base\music\track3.mp3" lastWriteTime="4/23/2011 8:59:23 PM" />
   <file source="c:\dev\shadow warrior\shadow warrior\base\SW.GRP" archivePath="base\SW.GRP" lastWriteTime="4/16/2011 7:52:58 AM" />
-  <file source="c:\dev\shadow warrior\shadow warrior\buildnative.dll" archivePath="buildnative.dll" lastWriteTime="4/22/2011 4:20:26 PM" />
-  <file source="c:\dev\shadow warrior\shadow warrior\Microsoft.Phone.InteropServices.dll" archivePath="Microsoft.Phone.InteropServices.dll" lastWriteTime="4/22/2011 12:09:34 AM" />
-  <file source="c:\dev\shadow warrior\shadow warrior\WPInteropManifest.xml" archivePath="WPInteropManifest.xml" lastWriteTime="4/22/2011 12:09:21 AM" />
-  <file source="c:\dev\shadow warrior\shadow warrior\ApplicationIcon.png" archivePath="ApplicationIcon.png" lastWriteTime="4/15/2011 12:26:27 PM" />
-  <file source="c:\dev\shadow warrior\shadow warrior\Background.png" archivePath="Background.png" lastWriteTime="4/15/2011 12:26:46 PM" />
-  <file source="c:\dev\shadow warrior\shadow warrior\base\music\track2.mp3" archivePath="base\music\track2.mp3" lastWriteTime="4/16/2011 7:52:57 AM" />
-  <file source="c:\dev\shadow warrior\shadow warrior\base\music\track3.mp3" archivePath="base\music\track3.mp3" lastWriteTime="4/16/2011 7:52:57 AM" />
-  <file source="c:\dev\shadow warrior\shadow warrior\base\music\track4.mp3" archivePath="base\music\track4.mp3" lastWriteTime="4/16/2011 7:52:58 AM" />
-  <file source="c:\dev\shadow warrior\shadow warrior\base\music\track5.mp3" archivePath="base\music\track5.mp3" lastWriteTime="4/16/2011 7:52:58 AM" />
-  <file source="c:\dev\shadow warrior\shadow warrior\SplashScreenImage.jpg" archivePath="SplashScreenImage.jpg" lastWriteTime="4/16/2011 11:10:04 AM" />
-  <file source="c:\dev\shadow warrior\shadow warrior\Bin\Debug\AppManifest.xaml" archivePath="AppManifest.xaml" lastWriteTime="4/22/2011 9:14:42 PM" />
+  <file source="c:\dev\shadow warrior\swlite.Web\ClientBin\AppManifest.xaml" archivePath="AppManifest.xaml" lastWriteTime="4/23/2011 10:45:49 PM" />
 </xapCache>

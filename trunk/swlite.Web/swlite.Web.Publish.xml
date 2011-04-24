@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<publishData>
+  <publishProfile publishUrl="ftp://jvsoftware.me.pn/jvsoftware.me.pn" deleteExistingFiles="False" ftpAnonymousLogin="False" ftpPassiveMode="True" msdeploySite="" msdeploySiteID="" msdeployRemoteSitePhysicalPath="" msdeployAllowUntrustedCertificate="False" msdeploySkipExtraFilesOnServer="True" msdeployMarkAsApp="False" profileName="Profile1" publishMethod="FTP" replaceMatchingFiles="True" userName="708374" savePWD="True" userPWD="AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAA8wqTyevDtkiI+QBnuU6RqwAAAAACAAAAAAAQZgAAAAEAACAAAAB64dpXEaAO3CV44oOZjCsXg/9lAbnjG7NzAW8X5MgdDQAAAAAOgAAAAAIAACAAAACwB9hGalZXsJYexBoapMuVsxUewLEF3JE54c07ZVBc+CAAAACg4S1QD4m6oNLLB9ESaWuIhKs/53lKHYvzOxJBqMoId0AAAABV5FPbCYP7jSH6pUn0lTXNjJb+mO4uLZ1dbFVqZLGPuye1acuZbyRGDjGLr0d8eGArgvd8y9ar06Lk4J9fBHlk" SelectedForPublish="True">
+    <file relUrl="Silverlight.js" publishTime="04/23/2011 18:28:06" />
+    <file relUrl="Web.config" publishTime="04/24/2011 01:57:39" />
+    <file relUrl="index.html" publishTime="04/24/2011 01:35:24" />
+    <file relUrl="swlite.aspx" publishTime="04/23/2011 21:21:39" />
+  </publishProfile>
+</publishData>
