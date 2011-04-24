@@ -62,12 +62,12 @@ namespace build
 
         public static void hlineasm4(int cnt, int skiploadincs, int paloffs, uint by, uint bx, int pbase)
         {
-	        if (skiploadincs == 0) 
-            { 
+	     //   if (skiploadincs == 0) 
+        //    { 
                 gbxinc = asm1; 
                 gbyinc = asm2; 
-            }
-
+         //   }
+        
 	        for(;cnt>=0;cnt--)
 	        {
                 //Engine._device.SetScreenPixel(pbase, Engine.palette.palookup[(ghlinepalpos + paloffs) + gbuf[gbufpos + ((bx >> (32 - glogx) << glogy) + (by >> (32 - glogy)))]]);

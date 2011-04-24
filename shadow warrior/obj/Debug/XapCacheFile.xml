@@ -1,7 +1,7 @@
-﻿<xapCache source="c:\dev\shadow warrior\shadow warrior\Bin\Debug\shadow_warrior.xap" wasSigned="False" certificateThumbprint="" TimeStampUrl="" lastWriteTime="4/23/2011 4:38:22 PM">
+﻿<xapCache source="c:\dev\shadow warrior\shadow warrior\Bin\Debug\shadow_warrior.xap" wasSigned="False" certificateThumbprint="" TimeStampUrl="" lastWriteTime="4/23/2011 5:50:52 PM">
   <file source="c:\dev\shadow warrior\shadow warrior\Properties\WMAppManifest.xml" archivePath="WMAppManifest.xml" lastWriteTime="4/16/2011 2:58:39 PM" />
-  <file source="c:\dev\shadow warrior\shadow warrior\obj\Debug\shadow warrior.dll" archivePath="shadow warrior.dll" lastWriteTime="4/23/2011 4:38:12 PM" />
-  <file source="c:\dev\shadow warrior\build\Bin\Debug\build.dll" archivePath="build.dll" lastWriteTime="4/23/2011 4:38:12 PM" />
+  <file source="c:\dev\shadow warrior\shadow warrior\obj\Debug\shadow warrior.dll" archivePath="shadow warrior.dll" lastWriteTime="4/23/2011 5:50:42 PM" />
+  <file source="c:\dev\shadow warrior\build\Bin\Debug\build.dll" archivePath="build.dll" lastWriteTime="4/23/2011 5:16:42 PM" />
   <file source="c:\dev\shadow warrior\build\Bin\Debug\WriteableBitmapExWinPhone.dll" archivePath="WriteableBitmapExWinPhone.dll" lastWriteTime="2/15/2011 7:32:48 PM" />
   <file source="c:\dev\shadow warrior\shadow warrior\base\SW.GRP" archivePath="base\SW.GRP" lastWriteTime="4/16/2011 7:52:58 AM" />
   <file source="c:\dev\shadow warrior\shadow warrior\buildnative.dll" archivePath="buildnative.dll" lastWriteTime="4/22/2011 4:20:26 PM" />
