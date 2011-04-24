@@ -111,6 +111,7 @@ namespace sw
                         {
                             usebloodysword = true;
                             _hud.state = WEAPON_STATE.WEAPON_IDLE;
+                            _hud.framenum += 2000;
                         }
                         DIGI_SWORDGOTU1[rnd.Next(3)].PlaySound();
                     }
