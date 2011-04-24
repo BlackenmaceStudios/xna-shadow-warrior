@@ -197,7 +197,7 @@ namespace sw
             Engine.LoadTables();
 
             // Init the device
-            Engine.setgamemode(0, 596, 394, 8, ref canvasimage);
+            Engine.setgamemode(0, 320, 200, 8, ref canvasimage);
 
             // Create the colormaps.
             ColorMapManager.InitPalette();
@@ -338,13 +338,16 @@ namespace sw
             {
                 case gamestate_t.GAMESTATE_LOGO:
                     StartGame(1);
+                    Engine.NextPage();
                     //LogoAnim();
                     break;
                 case gamestate_t.GAMESTATE_LOADING:
                     EnterGame(nextlevelnum);
+                    Engine.NextPage();
                     break;
                 case gamestate_t.GAMESTATE_INTRO:
                     LogoAnim();
+                    Engine.NextPage();
                     break;
                 case gamestate_t.GAMESTATE_INGAME:
                     GameFrame();
@@ -352,8 +355,6 @@ namespace sw
             }
 
             totalclock++;
-
-            Engine.NextPage();
         }
 
         public void printcentertext(string str)

@@ -288,30 +288,33 @@ namespace sw
         //
         // Think
         // 
+        private bool skipframe = false;
         public override void Think()
         {
             if (_hud.state == WEAPON_STATE.WEAPON_IDLE)
                 playervoicefire = true;
 
-            
+            skipframe = !skipframe;
 
-            Engine.board.drawrooms(daposx, daposy, daposz - (38 << 8), daang, 100, dacursectnum);
-           // Engine.board.drawmasks();
-
-            if (Mirrors.IsMirrorVisible())
+            if (!skipframe)
             {
-                int cposx = daposx, cposy = daposy, cposz = daposz - (38 << 8);
-                short sectornum = 0;
-                view(ref cposx, ref cposy, ref cposz, ref sectornum, daang, 100);
-                Mirrors.MirrorsThink(cposx, cposy + 400, cposz, daang, 100);
+                Engine.board.drawrooms(daposx, daposy, daposz - (38 << 8), daang, 100, dacursectnum);
+                Engine.board.drawmasks();
+/*
+                if (Mirrors.IsMirrorVisible())
+                {
+                    int cposx = daposx, cposy = daposy, cposz = daposz - (38 << 8);
+                    short sectornum = 0;
+                    view(ref cposx, ref cposy, ref cposz, ref sectornum, daang, 100);
+                    Mirrors.MirrorsThink(cposx, cposy + 400, cposz, daang, 100);
+                }
+*/
+                DrawWeapon();
+
+                _hud.DrawFullStatusBar();
+
+                Engine.NextPage();
             }
-
-            Engine.board.drawrooms(daposx, daposy, daposz - (38 << 8), daang, 100, dacursectnum);
-            Engine.board.drawmasks();
-
-            DrawWeapon();
-
-            _hud.DrawFullStatusBar();
 
             MovePlayer();
 

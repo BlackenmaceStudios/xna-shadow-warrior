@@ -1293,897 +1293,912 @@ namespace build
 	        xoff = (int)((sbyte)((Engine.picanm[tilenum]>>8)&255))+((int)tspr.xoffset);
 	        yoff = (int)((sbyte)((Engine.picanm[tilenum]>>16)&255))+((int)tspr.yoffset);
 
-	        if ((cstat&48) == 0)
-	        {
-		        if (yp <= (4<<8)) return;
+            int cstatval = (cstat & 48);
 
-		        siz = pragmas.divscale19(Engine._device.xdimenscale,yp);
+            switch (cstatval)
+            {
+                case 0:
+                    {
+                        // jv
+                        //		        if (yp <= (4<<8)) return;
+                        // jv end
+                        siz = pragmas.divscale19(Engine._device.xdimenscale, yp);
 
-		        xv = pragmas.mulscale16(((int)tspr.xrepeat)<<16,Engine._device.xyaspect);
+                        xv = pragmas.mulscale16(((int)tspr.xrepeat) << 16, Engine._device.xyaspect);
 
-		        xspan = Engine.tilesizx[tilenum];
-		        yspan = Engine.tilesizy[tilenum];
-		        xsiz = pragmas.mulscale30(siz,xv*xspan);
-		        ysiz = pragmas.mulscale14(siz,tspr.yrepeat*yspan);
-// jv - removed
-		//        if (((Engine.tilesizx[tilenum]>>11) >= xsiz) || (yspan >= (ysiz>>1)))
-		//	        return;  //Watch out for divscale overflow
-// jv end
-		        x1 = xb-(xsiz>>1);
-		        if ((xspan&1) != 0) x1 += pragmas.mulscale31(siz,xv);  //Odd xspans
-		        i =pragmas.mulscale30(siz,xv*xoff);
-		        if ((cstat&4) == 0) x1 -= i; else x1 += i;
+                        xspan = Engine.tilesizx[tilenum];
+                        yspan = Engine.tilesizy[tilenum];
+                        xsiz = pragmas.mulscale30(siz, xv * xspan);
+                        ysiz = pragmas.mulscale14(siz, tspr.yrepeat * yspan);
+                        // jv - removed
+                        //        if (((Engine.tilesizx[tilenum]>>11) >= xsiz) || (yspan >= (ysiz>>1)))
+                        //	        return;  //Watch out for divscale overflow
+                        // jv end
+                        x1 = xb - (xsiz >> 1);
+                        if ((xspan & 1) != 0) x1 += pragmas.mulscale31(siz, xv);  //Odd xspans
+                        i = pragmas.mulscale30(siz, xv * xoff);
+                        if ((cstat & 4) == 0) x1 -= i; else x1 += i;
 
-		        y1 = pragmas.mulscale16(tspr.z-globalposz,siz);
-		        y1 -= pragmas.mulscale14(siz,tspr.yrepeat*yoff);
-		        y1 += (globalhoriz<<8)-ysiz;
-		        if ((cstat&128) != 0)
-		        {
-			        y1 += (ysiz>>1);
-			        if ((yspan&1) != 0) y1 += pragmas.mulscale15(siz,tspr.yrepeat);  //Odd yspans
-		        }
+                        y1 = pragmas.mulscale16(tspr.z - globalposz, siz);
+                        y1 -= pragmas.mulscale14(siz, tspr.yrepeat * yoff);
+                        y1 += (globalhoriz << 8) - ysiz;
+                        if ((cstat & 128) != 0)
+                        {
+                            y1 += (ysiz >> 1);
+                            if ((yspan & 1) != 0) y1 += pragmas.mulscale15(siz, tspr.yrepeat);  //Odd yspans
+                        }
 
-		        x2 = x1+xsiz-1;
-		        y2 = y1+ysiz-1;
-		        if ((y1|255) >= (y2|255)) return;
+                        x2 = x1 + xsiz - 1;
+                        y2 = y1 + ysiz - 1;
+                        if ((y1 | 255) >= (y2 | 255)) return;
 
-		        lx = (x1>>8)+1; if (lx < 0) lx = 0;
-		        rx = (x2>>8); if (rx >= Engine._device.xdimen) rx = Engine._device.xdimen-1;
-		        if (lx > rx) return;
+                        lx = (x1 >> 8) + 1; if (lx < 0) lx = 0;
+                        rx = (x2 >> 8); if (rx >= Engine._device.xdimen) rx = Engine._device.xdimen - 1;
+                        if (lx > rx) return;
 
-		        yinc = pragmas.divscale32(yspan,ysiz);
+                        yinc = pragmas.divscale32(yspan, ysiz);
 
-		        if ((sec.ceilingstat&3) == 0)
-			        startum = globalhoriz+pragmas.mulscale24(siz,sec.ceilingz-globalposz)-1;
-		        else
-			        startum = 0;
-		        if ((sec.floorstat&3) == 0)
-			        startdm = globalhoriz+pragmas.mulscale24(siz,sec.floorz-globalposz)+1;
-		        else
-			        startdm = 0x7fffffff;
-		        if ((y1>>8) > startum) startum = (y1>>8);
-		        if ((y2>>8) < startdm) startdm = (y2>>8);
+                        if ((sec.ceilingstat & 3) == 0)
+                            startum = globalhoriz + pragmas.mulscale24(siz, sec.ceilingz - globalposz) - 1;
+                        else
+                            startum = 0;
+                        if ((sec.floorstat & 3) == 0)
+                            startdm = globalhoriz + pragmas.mulscale24(siz, sec.floorz - globalposz) + 1;
+                        else
+                            startdm = 0x7fffffff;
+                        if ((y1 >> 8) > startum) startum = (y1 >> 8);
+                        if ((y2 >> 8) < startdm) startdm = (y2 >> 8);
 
-		        if (startum < -32768) startum = -32768;
-		        if (startdm > 32767) startdm = 32767;
-		        if (startum >= startdm) return;
+                        if (startum < -32768) startum = -32768;
+                        if (startdm > 32767) startdm = 32767;
+                        if (startum >= startdm) return;
 
-		        if ((cstat&4) == 0)
-		        {
-			        linuminc = pragmas.divscale24(xspan,xsiz);
-			        linum = pragmas.mulscale8((lx<<8)-x1,linuminc);
-		        }
-		        else
-		        {
-			        linuminc = -pragmas.divscale24(xspan,xsiz);
-			        linum = pragmas.mulscale8((lx<<8)-x2,linuminc);
-		        }
-		        if ((cstat&8) > 0)
-		        {
-			        yinc = -yinc;
-			        i = y1; y1 = y2; y2 = i;
-		        }
+                        if ((cstat & 4) == 0)
+                        {
+                            linuminc = pragmas.divscale24(xspan, xsiz);
+                            linum = pragmas.mulscale8((lx << 8) - x1, linuminc);
+                        }
+                        else
+                        {
+                            linuminc = -pragmas.divscale24(xspan, xsiz);
+                            linum = pragmas.mulscale8((lx << 8) - x2, linuminc);
+                        }
+                        if ((cstat & 8) > 0)
+                        {
+                            yinc = -yinc;
+                            i = y1; y1 = y2; y2 = i;
+                        }
 
-		        for(x=lx;x<=rx;x++)
-		        {
-			        uwall[x] =(short)Math.Max(Engine._device.startumost[x+Engine._device.windowx1]-Engine._device.windowy1,(short)startum);
-                    dwall[x] = (short)Math.Min(Engine._device.startdmost[x + Engine._device.windowx1] - Engine._device.windowy1, (short)startdm);
-		        }
-		        daclip = 0;
-		        for(i=smostwallcnt-1;i>=0;i--)
-		        {
-			        if ((smostwalltype[i]&daclip) != 0) continue;
-			        j = smostwall[i];
-			        if ((xb1[j] > rx) || (xb2[j] < lx)) continue;
-			        if ((yp <= yb1[j]) && (yp <= yb2[j])) continue;
-			        if (spritewallfront(tspr,(int)thewall[j]) && ((yp <= yb1[j]) || (yp <= yb2[j]))) continue;
+                        for (x = lx; x <= rx; x++)
+                        {
+                            uwall[x] = (short)Math.Max(Engine._device.startumost[x + Engine._device.windowx1] - Engine._device.windowy1, (short)startum);
+                            dwall[x] = (short)Math.Min(Engine._device.startdmost[x + Engine._device.windowx1] - Engine._device.windowy1, (short)startdm);
+                        }
+                        daclip = 0;
+                        for (i = smostwallcnt - 1; i >= 0; i--)
+                        {
+                            if ((smostwalltype[i] & daclip) != 0) continue;
+                            j = smostwall[i];
+                            if ((xb1[j] > rx) || (xb2[j] < lx)) continue;
+                            if ((yp <= yb1[j]) && (yp <= yb2[j])) continue;
+                            if (spritewallfront(tspr, (int)thewall[j]) && ((yp <= yb1[j]) || (yp <= yb2[j]))) continue;
 
-			        dalx2 = Math.Max(xb1[j],lx); darx2 = Math.Min(xb2[j],rx);
+                            dalx2 = Math.Max(xb1[j], lx); darx2 = Math.Min(xb2[j], rx);
 
 
-			        switch(smostwalltype[i])
-			        {
-				        case 0:
-					        if (dalx2 <= darx2)
-					        {
-						        if ((dalx2 == lx) && (darx2 == rx)) return;
-						        //clearbufbyte(&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
-						        for (k=dalx2; k<=darx2; k++) dwall[k] = 0;
-					        }
-					        break;
-				        case 1:
-					        k = smoststart[i] - xb1[j];
-                            for (x = dalx2; x <= darx2; x++)
+                            switch (smostwalltype[i])
                             {
-                                if (smost[k + x] > uwall[x]) uwall[x] = smost[k + x];
-                            }
-					        if ((dalx2 == lx) && (darx2 == rx)) daclip |= 1;
-					        break;
-				        case 2:
-					        k = smoststart[i] - xb1[j];
-                            for (x = dalx2; x <= darx2; x++)
-                            {
-                                if (smost[k + x] < dwall[x]) dwall[x] = smost[k + x];
-                            }
-					        if ((dalx2 == lx) && (darx2 == rx)) daclip |= 2;
-					        break;
-			        }
-		        }
-
-		        if (uwall[rx] >= dwall[rx])
-		        {
-			        for(x=lx;x<rx;x++)
-				        if (uwall[x] < dwall[x]) break;
-			        if (x == rx) return;
-		        }
-
-			        //sprite
-		        if ((Engine.searchit >= 1) && (Engine.searchx >= lx) && (Engine.searchx <= rx))
-			        if ((Engine.searchy >= uwall[Engine.searchx]) && (Engine.searchy < dwall[Engine.searchx]))
-			        {
-				        Engine.searchsector = sectnum; Engine.searchwall = spritenum;
-				        Engine.searchstat = 3; Engine.searchit = 1;
-			        }
-
-		        z2 = tspr.z - ((yoff*tspr.yrepeat)<<2);
-		        if ((cstat&128) != 0)
-		        {
-			        z2 += ((yspan*tspr.yrepeat)<<1);
-			        if ((yspan&1) != 0) z2 += (tspr.yrepeat<<1);        //Odd yspans
-		        }
-		        z1 = z2 - ((yspan*tspr.yrepeat)<<2);
-
-		        globalorientation = 0;
-		        globalpicnum = tilenum;
-		        if (globalpicnum >= MAXTILES) globalpicnum = 0;
-		        globalxpanning = 0;
-		        globalypanning = 0;
-		        globvis = globalvisibility;
-		        if (sec.visibility != 0) globvis = pragmas.mulscale4(globvis,(int)((byte)(sec.visibility+16)));
-		        globalshiftval = (Engine.picsiz[globalpicnum]>>4);
-		        if (Engine.pow2long[globalshiftval] != Engine.tilesizy[globalpicnum]) globalshiftval++;
-		        globalshiftval = 32-globalshiftval;
-		        globalyscale = pragmas.divscale(512,tspr.yrepeat,globalshiftval-19);
-		        globalzd = (((globalposz-z1)*globalyscale)<<8);
-		        if ((cstat&8) > 0)
-		        {
-			        globalyscale = -globalyscale;
-			        globalzd = (((globalposz-z2)*globalyscale)<<8);
-		        }
-
-		        pragmas.qinterpolatedown16(lx, ref lwall,rx-lx+1,linum,linuminc);
-		        clearbuf(lx, ref swall,rx-lx+1,pragmas.mulscale19(yp,Engine._device.xdimscale));
-
-		        if ((cstat&2) == 0)
-			        maskwallscan(lx,rx,ref uwall,ref dwall,ref swall,ref lwall);
-		        else
-			        transmaskwallscan(lx,rx);
-	        }
-	        else if ((cstat&48) == 16) // wall sprite
-	        {
-		        if ((cstat&4) > 0) xoff = -xoff;
-		        if ((cstat&8) > 0) yoff = -yoff;
-
-		        xspan = Engine.tilesizx[tilenum]; yspan = Engine.tilesizy[tilenum];
-		        xv = tspr.xrepeat*Engine.table.sintable[(tspr.ang+2560+1536)&2047];
-		        yv = tspr.xrepeat*Engine.table.sintable[(tspr.ang+2048+1536)&2047];
-		        i = (xspan>>1)+xoff;
-		        x1 = tspr.x-globalposx-pragmas.mulscale16(xv,i); x2 = x1+pragmas.mulscale16(xv,xspan);
-		        y1 = tspr.y-globalposy-pragmas.mulscale16(yv,i); y2 = y1+pragmas.mulscale16(yv,xspan);
-
-		        yp1 = pragmas.dmulscale6(x1,cosviewingrangeglobalang,y1,sinviewingrangeglobalang);
-		        yp2 = pragmas.dmulscale6(x2,cosviewingrangeglobalang,y2,sinviewingrangeglobalang);
-		        if ((yp1 <= 0) && (yp2 <= 0)) 
-                    return;
-		        xp1 = pragmas.dmulscale6(y1,cosglobalang,-x1,singlobalang);
-		        xp2 = pragmas.dmulscale6(y2,cosglobalang,-x2,singlobalang);
-
-		        x1 += globalposx; y1 += globalposy;
-		        x2 += globalposx; y2 += globalposy;
-
-		        swapped = 0;
-		        if (pragmas.dmulscale32(xp1,yp2,-xp2,yp1) >= 0)  //If wall's NOT facing you
-		        {
-			        if ((cstat&64) != 0) return;
-			        i = xp1; xp1 = xp2; xp2 = i;
-			        i = yp1; yp1 = yp2; yp2 = i;
-			        i = x1; x1 = x2; x2 = i;
-			        i = y1; y1 = y2; y2 = i;
-			        swapped = 1;
-		        }
-
-		        if (xp1 >= -yp1)
-		        {
-			        if (xp1 > yp1) return;
-
-			        if (yp1 == 0) return;
-			        xb1[MAXWALLSB-1] = Engine._device.halfxdimen + pragmas.scale(xp1,Engine._device.halfxdimen,yp1);
-			        if (xp1 >= 0) xb1[MAXWALLSB-1]++;   //Fix for SIGNED divide
-			        if (xb1[MAXWALLSB-1] >= Engine._device.xdimen) xb1[MAXWALLSB-1] = Engine._device.xdimen-1;
-			        yb1[MAXWALLSB-1] = yp1;
-		        }
-		        else
-		        {
-			        if (xp2 < -yp2) return;
-			        xb1[MAXWALLSB-1] = 0;
-			        i = yp1-yp2+xp1-xp2;
-			        if (i == 0) return;
-			        yb1[MAXWALLSB-1] = yp1 + pragmas.scale(yp2-yp1,xp1+yp1,i);
-		        }
-		        if (xp2 <= yp2)
-		        {
-			        if (xp2 < -yp2) return;
-
-			        if (yp2 == 0) return;
-			        xb2[MAXWALLSB-1] = Engine._device.halfxdimen + pragmas.scale(xp2,Engine._device.halfxdimen,yp2) - 1;
-			        if (xp2 >= 0) xb2[MAXWALLSB-1]++;   //Fix for SIGNED divide
-			        if (xb2[MAXWALLSB-1] >= Engine._device.xdimen) xb2[MAXWALLSB-1] = Engine._device.xdimen-1;
-			        yb2[MAXWALLSB-1] = yp2;
-		        }
-		        else
-		        {
-			        if (xp1 > yp1) return;
-
-			        xb2[MAXWALLSB-1] = Engine._device.xdimen-1;
-			        i = xp2-xp1+yp1-yp2;
-			        if (i == 0) return;
-			        yb2[MAXWALLSB-1] = yp1 + pragmas.scale(yp2-yp1,yp1-xp1,i);
-		        }
-
-		        if ((yb1[MAXWALLSB-1] < 256) || (yb2[MAXWALLSB-1] < 256) || (xb1[MAXWALLSB-1] > xb2[MAXWALLSB-1]))
-			        return;
-
-		        topinc = -pragmas.mulscale10(yp1,xspan);
-		        top = (((pragmas.mulscale10(xp1,Engine._device.xdimen) -pragmas.mulscale9(xb1[MAXWALLSB-1]-Engine._device.halfxdimen,yp1))*xspan)>>3);
-		        botinc = ((yp2-yp1)>>8);
-		        bot = pragmas.mulscale11(xp1-xp2,Engine._device.xdimen) + pragmas.mulscale2(xb1[MAXWALLSB-1]-Engine._device.halfxdimen,botinc);
-
-		        j = xb2[MAXWALLSB-1]+3;
-                z = pragmas.mulscale20(top, pragmas.krecipasm(bot));
-		        lwall[xb1[MAXWALLSB-1]] = (z>>8);
-		        for(x=xb1[MAXWALLSB-1]+4;x<=j;x+=4)
-		        {
-			        top += topinc; bot += botinc;
-                    zz = z; z = pragmas.mulscale20(top, pragmas.krecipasm(bot));
-			        lwall[x] = (z>>8);
-			        i = ((z+zz)>>1);
-			        lwall[x-2] = (i>>8);
-			        lwall[x-3] = ((i+zz)>>9);
-			        lwall[x-1] = ((i+z)>>9);
-		        }
-
-		        if (lwall[xb1[MAXWALLSB-1]] < 0) lwall[xb1[MAXWALLSB-1]] = 0;
-		        if (lwall[xb2[MAXWALLSB-1]] >= xspan) lwall[xb2[MAXWALLSB-1]] = xspan-1;
-                // jv
-                int sval2 = 0;
-
-                if((cstat&4)>0)
-                    sval2 = 1;
-		        if ((swapped^(sval2)) > 0)
-                // jv end
-		        {
-			        j = xspan-1;
-			        for(x=xb1[MAXWALLSB-1];x<=xb2[MAXWALLSB-1];x++)
-				        lwall[x] = j-lwall[x];
-		        }
-
-		        rx1[MAXWALLSB-1] = xp1; ry1[MAXWALLSB-1] = yp1;
-		        rx2[MAXWALLSB-1] = xp2; ry2[MAXWALLSB-1] = yp2;
-
-		        hplc = pragmas.divscale19(Engine._device.xdimenscale,yb1[MAXWALLSB-1]);
-		        hinc = pragmas.divscale19(Engine._device.xdimenscale,yb2[MAXWALLSB-1]);
-		        hinc = (hinc-hplc)/(xb2[MAXWALLSB-1]-xb1[MAXWALLSB-1]+1);
-
-		        z2 = tspr.z - ((yoff*tspr.yrepeat)<<2);
-		        if ((cstat&128) != 0)
-		        {
-			        z2 += ((yspan*tspr.yrepeat)<<1);
-			        if ((yspan&1) != 0) z2 += (tspr.yrepeat<<1);        //Odd yspans
-		        }
-		        z1 = z2 - ((yspan*tspr.yrepeat)<<2);
-
-		        globalorientation = 0;
-		        globalpicnum = tilenum;
-		        if (globalpicnum >= MAXTILES) globalpicnum = 0;
-		        globalxpanning = 0;
-		        globalypanning = 0;
-		        globvis = globalvisibility;
-		        if (sec.visibility != 0) globvis = pragmas.mulscale4(globvis,(int)((byte)(sec.visibility+16)));
-		        globalshiftval = (Engine.picsiz[globalpicnum]>>4);
-		        if (Engine.pow2long[globalshiftval] != Engine.tilesizy[globalpicnum]) globalshiftval++;
-		        globalshiftval = 32-globalshiftval;
-		        globalyscale = pragmas.divscale(512,tspr.yrepeat,globalshiftval-19);
-		        globalzd = (((globalposz-z1)*globalyscale)<<8);
-		        if ((cstat&8) > 0)
-		        {
-			        globalyscale = -globalyscale;
-			        globalzd = (((globalposz-z2)*globalyscale)<<8);
-		        }
-
-		        if (((sec.ceilingstat&1) == 0) && (z1 < sec.ceilingz))
-			        z1 = sec.ceilingz;
-		        if (((sec.floorstat&1) == 0) && (z2 > sec.floorz))
-			        z2 = sec.floorz;
-
-		        owallmost(ref uwall,(int)(MAXWALLSB-1),z1-globalposz);
-		        owallmost(ref dwall,(int)(MAXWALLSB-1),z2-globalposz);
-		        for(i=xb1[MAXWALLSB-1];i<=xb2[MAXWALLSB-1];i++)
-                { swall[i] = (pragmas.krecipasm(hplc) << 2); hplc += hinc; }
-
-		        for(i=smostwallcnt-1;i>=0;i--)
-		        {
-			        j = smostwall[i];
-
-			        if ((xb1[j] > xb2[MAXWALLSB-1]) || (xb2[j] < xb1[MAXWALLSB-1])) continue;
-
-			        dalx2 = xb1[j]; darx2 = xb2[j];
-			        if (Math.Max(yb1[MAXWALLSB-1],yb2[MAXWALLSB-1]) > Math.Min(yb1[j],yb2[j]))
-			        {
-				        if (Math.Min(yb1[MAXWALLSB-1],yb2[MAXWALLSB-1]) > Math.Max(yb1[j],yb2[j]))
-				        {
-// jv
-                            x = -2147483648; // 0x80000000;
-// jv end
-				        }
-				        else
-				        {
-					        x = thewall[j]; xp1 = wall[x].x; yp1 = wall[x].y;
-					        x = wall[x].point2; xp2 = wall[x].x; yp2 = wall[x].y;
-
-					        z1 = (xp2-xp1)*(y1-yp1) - (yp2-yp1)*(x1-xp1);
-					        z2 = (xp2-xp1)*(y2-yp1) - (yp2-yp1)*(x2-xp1);
-					        if ((z1^z2) >= 0)
-						        x = (z1+z2);
-					        else
-					        {
-						        z1 = (x2-x1)*(yp1-y1) - (y2-y1)*(xp1-x1);
-						        z2 = (x2-x1)*(yp2-y1) - (y2-y1)*(xp2-x1);
-
-						        if ((z1^z2) >= 0)
-							        x = -(z1+z2);
-						        else
-						        {
-							        if ((xp2-xp1)*(tspr.y-yp1) == (tspr.x-xp1)*(yp2-yp1))
-							        {
-                                        if (wall[thewall[j]].nextsector == tspr.sectnum)
-                                        {
-// jv
-                                            x = -2147483648; // 0x80000000;
-// jv end
-                                        }
-                                        else
-                                        {
-// jv
-                                            x = 2147483647; // 0x7fffffff;
-// jv end
-                                        }
-							        }
-							        else
-							        {     //INTERSECTION!
-								        x = (xp1-globalposx) + pragmas.scale(xp2-xp1,z1,z1-z2);
-								        y = (yp1-globalposy) + pragmas.scale(yp2-yp1,z1,z1-z2);
-
-                                        yp1 = pragmas.dmulscale14(x, cosglobalang, y, singlobalang);
-                                        if (yp1 > 0)
-                                        {
-                                            xp1 = pragmas.dmulscale14(y, cosglobalang, (int)-x, singlobalang);
-
-                                            x = Engine._device.halfxdimen + pragmas.scale(xp1, Engine._device.halfxdimen, yp1);
-                                            if (xp1 >= 0) x++;   //Fix for SIGNED divide
-
-                                            if (z1 < 0)
-                                            { if (dalx2 < x) dalx2 = x; }
-                                            else
-                                            { if (darx2 > x) darx2 = x; }
-
-                                            // jv
-                                            x = -2147483647; // 0x80000001;
-                                            // jv end
-                                        }
-                                        else
-                                        {
-                                            // jv
-                                            //x = 0x7fffffff;
-                                            x = 2147483647;
-                                            // jv end
-                                        }
-							        }
-						        }
-					        }
-				        }
-                       
-
-				        if (x < 0)
-				        {
-					        if (dalx2 < xb1[MAXWALLSB-1]) dalx2 = xb1[MAXWALLSB-1];
-					        if (darx2 > xb2[MAXWALLSB-1]) darx2 = xb2[MAXWALLSB-1];
-					        switch(smostwalltype[i])
-					        {
-						        case 0:
-							        if (dalx2 <= darx2)
-							        {
-								        if ((dalx2 == xb1[MAXWALLSB-1]) && (darx2 == xb2[MAXWALLSB-1])) return;
-								        //clearbufbyte(&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
-								        for (k=dalx2; k<=darx2; k++) dwall[k] = 0;
-							        }
-							        break;
-						        case 1:
-                                    
-							        k = smoststart[i] - xb1[j];
+                                case 0:
+                                    if (dalx2 <= darx2)
+                                    {
+                                        if ((dalx2 == lx) && (darx2 == rx)) return;
+                                        //clearbufbyte(&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
+                                        for (k = dalx2; k <= darx2; k++) dwall[k] = 0;
+                                    }
+                                    break;
+                                case 1:
+                                    k = smoststart[i] - xb1[j];
                                     for (x = dalx2; x <= darx2; x++)
                                     {
                                         if (smost[k + x] > uwall[x]) uwall[x] = smost[k + x];
                                     }
-							        break;
-						        case 2:
-							        k = smoststart[i] - xb1[j];
+                                    if ((dalx2 == lx) && (darx2 == rx)) daclip |= 1;
+                                    break;
+                                case 2:
+                                    k = smoststart[i] - xb1[j];
                                     for (x = dalx2; x <= darx2; x++)
                                     {
                                         if (smost[k + x] < dwall[x]) dwall[x] = smost[k + x];
                                     }
-							        break;
-					        }
-				        }
-			        }
-		        }
-
-			        //sprite
-		        if ((Engine.searchit >= 1) && (Engine.searchx >= xb1[MAXWALLSB-1]) && (Engine.searchx <= xb2[MAXWALLSB-1]))
-			        if ((Engine.searchy >= uwall[Engine.searchx]) && (Engine.searchy <= dwall[Engine.searchx]))
-			        {
-				        Engine.searchsector = sectnum; Engine.searchwall = spritenum;
-				        Engine.searchstat = 3; Engine.searchit = 1;
-			        }
-
-		        if ((cstat&2) == 0) {
-			        maskwallscan(xb1[MAXWALLSB-1],xb2[MAXWALLSB-1],ref uwall,ref dwall,ref swall,ref lwall);
-		        } else {
-			        transmaskwallscan(xb1[MAXWALLSB-1],xb2[MAXWALLSB-1]);
-		        }
-	        }
-	        else if ((cstat&48) == 32 && false) // floorsprite
-	        {
-		        if ((cstat&64) != 0)
-			        if ((globalposz > tspr.z) == ((cstat&8)==0))
-				        return;
-
-		        if ((cstat&4) > 0) xoff = -xoff;
-		        if ((cstat&8) > 0) yoff = -yoff;
-		        xspan = Engine.tilesizx[tilenum];
-		        yspan = Engine.tilesizy[tilenum];
-
-			        //Rotate center point
-		        dax = tspr.x-globalposx;
-		        day = tspr.y-globalposy;
-		        rzi[0] = pragmas.dmulscale10(cosglobalang,dax,singlobalang,day);
-		        rxi[0] = pragmas.dmulscale10(cosglobalang,day,-singlobalang,dax);
-
-			        //Get top-left corner
-		        i = ((tspr.ang+2048-globalang)&2047);
-		        cosang = Engine.table.sintable[(i+512)&2047]; sinang = Engine.table.sintable[i];
-		        dax = ((xspan>>1)+xoff)*tspr.xrepeat;
-		        day = ((yspan>>1)+yoff)*tspr.yrepeat;
-		        rzi[0] += pragmas.dmulscale12(sinang,dax,cosang,day);
-		        rxi[0] += pragmas.dmulscale12(sinang,day,-cosang,dax);
-
-			        //Get other 3 corners
-		        dax = xspan*tspr.xrepeat;
-		        day = yspan*tspr.yrepeat;
-		        rzi[1] = rzi[0]-pragmas.mulscale12(sinang,dax);
-		        rxi[1] = rxi[0]+pragmas.mulscale12(cosang,dax);
-		        dax = -pragmas.mulscale12(cosang,day);
-		        day = -pragmas.mulscale12(sinang,day);
-		        rzi[2] = rzi[1]+dax; rxi[2] = rxi[1]+day;
-		        rzi[3] = rzi[0]+dax; rxi[3] = rxi[0]+day;
-
-			        //Put all points on same z
-		        ryi[0] = pragmas.scale((tspr.z-globalposz),Engine._device.yxaspect,320<<8);
-		        if (ryi[0] == 0) return;
-		        ryi[1] = ryi[2] = ryi[3] = ryi[0];
-
-		        if ((cstat&4) == 0)
-			        { z = 0; z1 = 1; z2 = 3; }
-		        else
-			        { z = 1; z1 = 0; z2 = 2; }
-
-		        dax = rzi[z1]-rzi[z]; day = rxi[z1]-rxi[z];
-		        bot = pragmas.dmulscale8(dax,dax,day,day);
-		        if (((pragmas.klabs(dax)>>13) >= bot) || ((pragmas.klabs(day)>>13) >= bot)) return;
-		        globalx1 = pragmas.divscale18(dax,bot);
-		        globalx2 = pragmas.divscale18(day,bot);
-
-		        dax = rzi[z2]-rzi[z]; day = rxi[z2]-rxi[z];
-		        bot = pragmas.dmulscale8(dax,dax,day,day);
-		        if (((pragmas.klabs(dax)>>13) >= bot) || ((pragmas.klabs(day)>>13) >= bot)) return;
-		        globaly1 = pragmas.divscale18(dax,bot);
-		        globaly2 = pragmas.divscale18(day,bot);
-
-			        //Calculate globals for hline texture mapping function
-		        globalxpanning = (rxi[z]<<12);
-		        globalypanning = (rzi[z]<<12);
-		        globalzd = (ryi[z]<<12);
-
-		        rzi[0] = pragmas.mulscale16(rzi[0],Engine._device.viewingrange);
-		        rzi[1] = pragmas.mulscale16(rzi[1],Engine._device.viewingrange);
-		        rzi[2] = pragmas.mulscale16(rzi[2],Engine._device.viewingrange);
-		        rzi[3] = pragmas.mulscale16(rzi[3],Engine._device.viewingrange);
-
-		        if (ryi[0] < 0)   //If ceilsprite is above you, reverse order of points
-		        {
-			        i = rxi[1]; rxi[1] = rxi[3]; rxi[3] = i;
-			        i = rzi[1]; rzi[1] = rzi[3]; rzi[3] = i;
-		        }
-
-
-			        //Clip polygon in 3-space
-		        npoints = 4;
-
-			        //Clip edge 1
-		        npoints2 = 0;
-		        zzsgn = rxi[0]+rzi[0];
-		        for(z=0;z<npoints;z++)
-		        {
-			        zz = z+1; if (zz == npoints) zz = 0;
-			        zsgn = zzsgn; zzsgn = rxi[zz]+rzi[zz];
-			        if (zsgn >= 0)
-			        {
-				        rxi2[npoints2] = rxi[z]; ryi2[npoints2] = ryi[z]; rzi2[npoints2] = rzi[z];
-				        npoints2++;
-			        }
-			        if ((zsgn^zzsgn) < 0)
-			        {
-				        t = pragmas.divscale30(zsgn,zsgn-zzsgn);
-				        rxi2[npoints2] = rxi[z] + pragmas.mulscale30(t,rxi[zz]-rxi[z]);
-				        ryi2[npoints2] = ryi[z] + pragmas.mulscale30(t,ryi[zz]-ryi[z]);
-				        rzi2[npoints2] = rzi[z] + pragmas.mulscale30(t,rzi[zz]-rzi[z]);
-				        npoints2++;
-			        }
-		        }
-		        if (npoints2 <= 2) return;
-
-			        //Clip edge 2
-		        npoints = 0;
-		        zzsgn = rxi2[0]-rzi2[0];
-		        for(z=0;z<npoints2;z++)
-		        {
-			        zz = z+1; if (zz == npoints2) zz = 0;
-			        zsgn = zzsgn; zzsgn = rxi2[zz]-rzi2[zz];
-			        if (zsgn <= 0)
-			        {
-				        rxi[npoints] = rxi2[z]; ryi[npoints] = ryi2[z]; rzi[npoints] = rzi2[z];
-				        npoints++;
-			        }
-			        if ((zsgn^zzsgn) < 0)
-			        {
-				        t = pragmas.divscale30(zsgn,zsgn-zzsgn);
-				        rxi[npoints] = rxi2[z] + pragmas.mulscale30(t,rxi2[zz]-rxi2[z]);
-				        ryi[npoints] = ryi2[z] + pragmas.mulscale30(t,ryi2[zz]-ryi2[z]);
-				        rzi[npoints] = rzi2[z] + pragmas.mulscale30(t,rzi2[zz]-rzi2[z]);
-				        npoints++;
-			        }
-		        }
-		        if (npoints <= 2) return;
-
-			        //Clip edge 3
-		        npoints2 = 0;
-		        zzsgn = ryi[0]*Engine._device.halfxdimen + (rzi[0]*(globalhoriz-0));
-		        for(z=0;z<npoints;z++)
-		        {
-			        zz = z+1; if (zz == npoints) zz = 0;
-			        zsgn = zzsgn; zzsgn = ryi[zz]*Engine._device.halfxdimen + (rzi[zz]*(globalhoriz-0));
-			        if (zsgn >= 0)
-			        {
-				        rxi2[npoints2] = rxi[z];
-				        ryi2[npoints2] = ryi[z];
-				        rzi2[npoints2] = rzi[z];
-				        npoints2++;
-			        }
-			        if ((zsgn^zzsgn) < 0)
-			        {
-				        t = pragmas.divscale30(zsgn,zsgn-zzsgn);
-				        rxi2[npoints2] = rxi[z] + pragmas.mulscale30(t,rxi[zz]-rxi[z]);
-				        ryi2[npoints2] = ryi[z] + pragmas.mulscale30(t,ryi[zz]-ryi[z]);
-				        rzi2[npoints2] = rzi[z] + pragmas.mulscale30(t,rzi[zz]-rzi[z]);
-				        npoints2++;
-			        }
-		        }
-		        if (npoints2 <= 2) return;
-
-			        //Clip edge 4
-		        npoints = 0;
-                zzsgn = ryi2[0] * Engine._device.halfxdimen + (rzi2[0] * (globalhoriz - Engine._device.ydimen));
-		        for(z=0;z<npoints2;z++)
-		        {
-			        zz = z+1; if (zz == npoints2) zz = 0;
-			        zsgn = zzsgn; zzsgn = ryi2[zz]*Engine._device.halfxdimen + (rzi2[zz]*(globalhoriz-Engine._device.ydimen));
-			        if (zsgn <= 0)
-			        {
-				        rxi[npoints] = rxi2[z];
-				        ryi[npoints] = ryi2[z];
-				        rzi[npoints] = rzi2[z];
-				        npoints++;
-			        }
-			        if ((zsgn^zzsgn) < 0)
-			        {
-				        t = pragmas.divscale30(zsgn,zsgn-zzsgn);
-				        rxi[npoints] = rxi2[z] + pragmas.mulscale30(t,rxi2[zz]-rxi2[z]);
-				        ryi[npoints] = ryi2[z] + pragmas.mulscale30(t,ryi2[zz]-ryi2[z]);
-				        rzi[npoints] = rzi2[z] + pragmas.mulscale30(t,rzi2[zz]-rzi2[z]);
-				        npoints++;
-			        }
-		        }
-		        if (npoints <= 2) return;
-
-			        //Project onto screen
-		        lpoint = -1; lmax = 0x7fffffff;
-                rpoint = -1; 
-// jv
-                rmax = -2147483648;//0x80000000;
-// jv end
-		        for(z=0;z<npoints;z++)
-		        {
-                    xsi[z] = pragmas.scale(rxi[z], Engine._device.xdimen << 15, rzi[z]) + (Engine._device.xdimen << 15);
-                    ysi[z] = pragmas.scale(ryi[z], Engine._device.xdimen << 15, rzi[z]) + (globalhoriz << 16);
-			        if (xsi[z] < 0) xsi[z] = 0;
-                    if (xsi[z] > (Engine._device.xdimen << 16)) xsi[z] = (Engine._device.xdimen << 16);
-			        if (ysi[z] < ((int)0<<16)) ysi[z] = ((int)0<<16);
-                    if (ysi[z] > ((int)Engine._device.ydimen << 16)) ysi[z] = ((int)Engine._device.ydimen << 16);
-			        if (xsi[z] < lmax) { lmax = xsi[z]; lpoint = z;}
-                    if (xsi[z] > rmax) { rmax = xsi[z]; rpoint = z; }
-		        }
-
-			        //Get uwall arrays
-		        for(z=lpoint;z!=rpoint;z=zz)
-		        {
-			        zz = z+1; if (zz == npoints) zz = 0;
-
-			        dax1 = ((xsi[z]+65535)>>16);
-			        dax2 = ((xsi[zz]+65535)>>16);
-			        if (dax2 > dax1)
-			        {
-				        yinc = pragmas.divscale16(ysi[zz]-ysi[z],xsi[zz]-xsi[z]);
-				        y = ysi[z] + pragmas.mulscale16((dax1<<16)-xsi[z],yinc);
-				        pragmas.qinterpolatedown16short(dax1, ref uwall,dax2-dax1,y,yinc);
-			        }
-		        }
-
-			        //Get dwall arrays
-		        for(;z!=lpoint;z=zz)
-		        {
-			        zz = z+1; if (zz == npoints) zz = 0;
-
-			        dax1 = ((xsi[zz]+65535)>>16);
-			        dax2 = ((xsi[z]+65535)>>16);
-			        if (dax2 > dax1)
-			        {
-				        yinc = pragmas.divscale16(ysi[zz]-ysi[z],xsi[zz]-xsi[z]);
-				        y = ysi[zz] + pragmas.mulscale16((dax1<<16)-xsi[zz],yinc);
-				        pragmas.qinterpolatedown16short(dax1, ref dwall,dax2-dax1,y,yinc);
-			        }
-		        }
-
-
-		        lx = ((lmax+65535)>>16);
-		        rx = (int)((rmax+65535)>>16);
-		        for(x=lx;x<=rx;x++)
-		        {
-                    uwall[x] = (short)Math.Max((int)uwall[x], Engine._device.startumost[x + Engine._device.windowx1] - Engine._device.windowy1);
-                    dwall[x] = (short)Math.Min((int)dwall[x], Engine._device.startdmost[x + Engine._device.windowx1] - Engine._device.windowy1);
-		        }
-
-			        //Additional uwall/dwall clipping goes here
-		        for(i=smostwallcnt-1;i>=0;i--)
-		        {
-			        j = smostwall[i];
-			        if ((xb1[j] > rx) || (xb2[j] < lx)) continue;
-			        if ((yp <= yb1[j]) && (yp <= yb2[j])) continue;
-
-				        //if (spritewallfront(tspr,thewall[j]) == 0)
-			        x = thewall[j]; xp1 = wall[x].x; yp1 = wall[x].y;
-			        x = wall[x].point2; xp2 = wall[x].x; yp2 = wall[x].y;
-			        x = (xp2-xp1)*(tspr.y-yp1)-(tspr.x-xp1)*(yp2-yp1);
-			        if ((yp > yb1[j]) && (yp > yb2[j])) x = -1;
-			        if ((x >= 0) && ((x != 0) || (wall[thewall[j]].nextsector != tspr.sectnum))) continue;
-
-			        dalx2 = Math.Max(xb1[j],lx); darx2 = Math.Min(xb2[j],rx);
-
-			        switch(smostwalltype[i])
-			        {
-				        case 0:
-					        if (dalx2 <= darx2)
-					        {
-						        if ((dalx2 == lx) && (darx2 == rx)) return;
-						        //clearbufbyte(&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
-						        for (x=dalx2; x<=darx2; x++) dwall[x] = 0;
-					        }
-					        break;
-				        case 1:
-					        k = smoststart[i] - xb1[j];
-					        for(x=dalx2;x<=darx2;x++)
-						        if (smost[k+x] > uwall[x]) uwall[x] = smost[k+x];
-					        break;
-				        case 2:
-					        k = smoststart[i] - xb1[j];
-					        for(x=dalx2;x<=darx2;x++)
-						        if (smost[k+x] < dwall[x]) dwall[x] = smost[k+x];
-					        break;
-			        }
-		        }
-
-			        //sprite
-		        if ((Engine.searchit >= 1) && (Engine.searchx >= lx) && (Engine.searchx <= rx))
-			        if ((Engine.searchy >= uwall[Engine.searchx]) && (Engine.searchy <= dwall[Engine.searchx]))
-			        {
-				        Engine.searchsector = sectnum; Engine.searchwall = spritenum;
-				        Engine.searchstat = 3; Engine.searchit = 1;
-			        }
-
-		        globalorientation = cstat;
-		        globalpicnum = tilenum;
-		        if (globalpicnum >= MAXTILES) globalpicnum = 0;
-		        //if (picanm[globalpicnum]&192) globalpicnum += animateoffs((short)globalpicnum,spritenum+32768);
-
-		        if (Engine.waloff[(int)globalpicnum] == null) Engine.loadtile((short)globalpicnum);
-		       // Engine.setgotpic(globalpicnum);
-                globalbuf = Engine.waloff[(int)globalpicnum].memory;
-                globalbufplc = 0;
-
-		        globvis = pragmas.mulscale16(globalhisibility,Engine._device.viewingrange);
-		        if (sec.visibility != 0) globvis = pragmas.mulscale4(globvis,(int)((byte)(sec.visibility+16)));
-
-		        x = Engine.picsiz[globalpicnum]; y = (((int)x>>4)&15); x &= 15;
-		        if (Engine.pow2long[x] != xspan)
-		        {
-			        x++;
-                    globalx1 = pragmas.mulscale(globalx1, xspan, (int)x);
-                    globalx2 = pragmas.mulscale(globalx2, xspan, (int)x);
-		        }
-
-		        dax = globalxpanning; day = globalypanning;
-		        globalxpanning = -pragmas.dmulscale6(globalx1,day,globalx2,dax);
-		        globalypanning = -pragmas.dmulscale6(globaly1,day,globaly2,dax);
-
-		        globalx2 = pragmas.mulscale16(globalx2,Engine._device.viewingrange);
-		        globaly2 = pragmas.mulscale16(globaly2,Engine._device.viewingrange);
-		        globalzd = pragmas.mulscale16(globalzd,Engine._device.viewingrangerecip);
-
-		        globalx1 = (globalx1-globalx2)*Engine._device.halfxdimen;
-		        globaly1 = (globaly1-globaly2)*Engine._device.halfxdimen;
-
-		        if ((cstat&2) == 0)
-                    A.msethlineshift((int)x, y);
-		        else
-                    A.tsethlineshift((int)x, y);
-
-			        //Draw it!
-		        ceilspritescan(lx,rx-1);
-	        }
-	        else if ((cstat&48) == 48)
-	        {
-		        int nxrepeat, nyrepeat;
-                int tspritez = tspr.z;
-
-		        lx = 0; rx = Engine._device.xdim-1;
-		        for(x=lx;x<=rx;x++)
-		        {
-			        lwall[x] = (int)Engine._device.startumost[x+Engine._device.windowx1]-Engine._device.windowy1;
-			        swall[x] = (int)Engine._device.startdmost[x+Engine._device.windowx1]-Engine._device.windowy1;
-		        }
-		        for(i=smostwallcnt-1;i>=0;i--)
-		        {
-			        j = smostwall[i];
-			        if ((xb1[j] > rx) || (xb2[j] < lx)) continue;
-			        if ((yp <= yb1[j]) && (yp <= yb2[j])) continue;
-			        if (spritewallfront(tspr,(int)thewall[j]) && ((yp <= yb1[j]) || (yp <= yb2[j]))) continue;
-
-			        dalx2 = Math.Max(xb1[j],lx); darx2 = Math.Min(xb2[j],rx);
-
-			        switch(smostwalltype[i])
-			        {
-				        case 0:
-					        if (dalx2 <= darx2)
-					        {
-						        if ((dalx2 == lx) && (darx2 == rx)) return;
-							        //clearbufbyte(&swall[dalx2],(darx2-dalx2+1)*sizeof(swall[0]),0L);
-						        for (x=dalx2; x<=darx2; x++) swall[x] = 0;
-					        }
-					        break;
-				        case 1:
-					        k = smoststart[i] - xb1[j];
-					        for(x=dalx2;x<=darx2;x++)
-						        if (smost[k+x] > lwall[x]) lwall[x] = smost[k+x];
-					        break;
-				        case 2:
-					        k = smoststart[i] - xb1[j];
-					        for(x=dalx2;x<=darx2;x++)
-						        if (smost[k+x] < swall[x]) swall[x] = smost[k+x];
-					        break;
-			        }
-		        }
-
-		        if (lwall[rx] >= swall[rx])
-		        {
-			        for(x=lx;x<rx;x++)
-				        if (lwall[x] < swall[x]) break;
-			        if (x == rx) return;
-		        }
-
-		        Engine.bVoxelMipmap intptr = Engine.voxoff[vtilenum][0];
-                intptr._reader.BaseStream.Position = 0;
-		        if (Engine.voxscale[vtilenum] == 65536)
-		        {
-			        nxrepeat = (((int)tspr.xrepeat)<<16);
-			        nyrepeat = (((int)tspr.yrepeat)<<16);
-		        }
-		        else
-		        {
-			        nxrepeat = ((int)tspr.xrepeat)*Engine.voxscale[vtilenum];
-			        nyrepeat = ((int)tspr.yrepeat)*Engine.voxscale[vtilenum];
-		        }
-
-                if ((cstat & 128) == 0) tspritez -= pragmas.mulscale22(B_LITTLE32(intptr.GetInt(5)), nyrepeat);
-		        yoff = (int)((sbyte)((Engine.picanm[sprite[tspr.owner].picnum]>>16)&255))+((int)tspr.yoffset);
-		        tspritez -= pragmas.mulscale14(yoff,nyrepeat);
-
-		        globvis = globalvisibility;
-		        if (sec.visibility != 0) globvis = pragmas.mulscale4(globvis,(int)((sbyte)(sec.visibility+16)));
-
-                if ((Engine.searchit >= 1) && (yp > (4 << 8)) && (Engine.searchy >= lwall[Engine.searchx]) && (Engine.searchy < swall[Engine.searchx]))
-		        {
-                    siz = pragmas.divscale19(Engine._device.xdimenscale, yp);
-
-                    xv = pragmas.mulscale16(nxrepeat, Engine._device.xyaspect);
-
-			        xspan = ((B_LITTLE32(intptr.GetInt(0))+B_LITTLE32(intptr.GetInt(1)))>>1);
-			        yspan = B_LITTLE32(intptr.GetInt(2));
-                    xsiz = pragmas.mulscale30(siz, xv * xspan);
-                    ysiz = pragmas.mulscale30(siz, nyrepeat * yspan);
-
-				        //Watch out for divscale overflow
-			        if (((xspan>>11) < xsiz) && (yspan < (ysiz>>1)))
-			        {
-				        x1 = xb-(xsiz>>1);
-                        if ((xspan & 1) != 0) x1 += pragmas.mulscale31(siz, xv);  //Odd xspans
-                        i = pragmas.mulscale30(siz, xv * xoff);
-				        if ((cstat&4) == 0) x1 -= i; else x1 += i;
-
-                        y1 = pragmas.mulscale16(tspritez - globalposz, siz);
-				        //y1 -= mulscale30(siz,nyrepeat*yoff);
-				        y1 += (globalhoriz<<8)-ysiz;
-				        //if (cstat&128)  //Already fixed up above
-				        y1 += (ysiz>>1);
-
-				        x2 = x1+xsiz-1;
-				        y2 = y1+ysiz-1;
-                        if (((y1 | 255) < (y2 | 255)) && (Engine.searchx >= (x1 >> 8) + 1) && (Engine.searchx <= (x2 >> 8)))
-				        {
-					        if ((sec.ceilingstat&3) == 0)
-                                startum = globalhoriz + pragmas.mulscale24(siz, sec.ceilingz - globalposz) - 1;
-					        else
-						        startum = 0;
-                            if ((sec.floorstat & 3) == 0)
-                                startdm = globalhoriz + pragmas.mulscale24(siz, sec.floorz - globalposz) + 1;
-                            else
-                            {
-                                // jv
-                                startdm = 2147483647; // startdm = 0x7fffffff;
+                                    if ((dalx2 == lx) && (darx2 == rx)) daclip |= 2;
+                                    break;
                             }
-// jv end
-						        //sprite
-                            if ((Engine.searchy >= Math.Max(startum, (y1 >> 8))) && (Engine.searchy < Math.Min(startdm, (y2 >> 8))))
-					        {
+                        }
+
+                        if (uwall[rx] >= dwall[rx])
+                        {
+                            for (x = lx; x < rx; x++)
+                                if (uwall[x] < dwall[x]) break;
+                            if (x == rx) return;
+                        }
+
+                        //sprite
+                        if ((Engine.searchit >= 1) && (Engine.searchx >= lx) && (Engine.searchx <= rx))
+                            if ((Engine.searchy >= uwall[Engine.searchx]) && (Engine.searchy < dwall[Engine.searchx]))
+                            {
                                 Engine.searchsector = sectnum; Engine.searchwall = spritenum;
                                 Engine.searchstat = 3; Engine.searchit = 1;
-					        }
-				        }
-			        }
-		        }
+                            }
+
+                        z2 = tspr.z - ((yoff * tspr.yrepeat) << 2);
+                        if ((cstat & 128) != 0)
+                        {
+                            z2 += ((yspan * tspr.yrepeat) << 1);
+                            if ((yspan & 1) != 0) z2 += (tspr.yrepeat << 1);        //Odd yspans
+                        }
+                        z1 = z2 - ((yspan * tspr.yrepeat) << 2);
+
+                        globalorientation = 0;
+                        globalpicnum = tilenum;
+                        if (globalpicnum >= MAXTILES) globalpicnum = 0;
+                        globalxpanning = 0;
+                        globalypanning = 0;
+                        globvis = globalvisibility;
+                        if (sec.visibility != 0) globvis = pragmas.mulscale4(globvis, (int)((byte)(sec.visibility + 16)));
+                        globalshiftval = (Engine.picsiz[globalpicnum] >> 4);
+                        if (Engine.pow2long[globalshiftval] != Engine.tilesizy[globalpicnum]) globalshiftval++;
+                        globalshiftval = 32 - globalshiftval;
+                        globalyscale = pragmas.divscale(512, tspr.yrepeat, globalshiftval - 19);
+                        globalzd = (((globalposz - z1) * globalyscale) << 8);
+                        if ((cstat & 8) > 0)
+                        {
+                            globalyscale = -globalyscale;
+                            globalzd = (((globalposz - z2) * globalyscale) << 8);
+                        }
+
+                        pragmas.qinterpolatedown16(lx, ref lwall, rx - lx + 1, linum, linuminc);
+                        clearbuf(lx, ref swall, rx - lx + 1, pragmas.mulscale19(yp, Engine._device.xdimscale));
+
+                        if ((cstat & 2) == 0)
+                            maskwallscan(lx, rx, ref uwall, ref dwall, ref swall, ref lwall);
+                        else
+                            transmaskwallscan(lx, rx);
+                    }
+                    break;
+                //else if ((cstat&48) == 16) // wall sprite
+                case 16:
+                    {
+                        if ((cstat & 4) > 0) xoff = -xoff;
+                        if ((cstat & 8) > 0) yoff = -yoff;
+
+                        xspan = Engine.tilesizx[tilenum]; yspan = Engine.tilesizy[tilenum];
+                        xv = tspr.xrepeat * Engine.table.sintable[(tspr.ang + 2560 + 1536) & 2047];
+                        yv = tspr.xrepeat * Engine.table.sintable[(tspr.ang + 2048 + 1536) & 2047];
+                        i = (xspan >> 1) + xoff;
+                        x1 = tspr.x - globalposx - pragmas.mulscale16(xv, i); x2 = x1 + pragmas.mulscale16(xv, xspan);
+                        y1 = tspr.y - globalposy - pragmas.mulscale16(yv, i); y2 = y1 + pragmas.mulscale16(yv, xspan);
+
+                        yp1 = pragmas.dmulscale6(x1, cosviewingrangeglobalang, y1, sinviewingrangeglobalang);
+                        yp2 = pragmas.dmulscale6(x2, cosviewingrangeglobalang, y2, sinviewingrangeglobalang);
+                        if ((yp1 <= 0) && (yp2 <= 0))
+                            return;
+                        xp1 = pragmas.dmulscale6(y1, cosglobalang, -x1, singlobalang);
+                        xp2 = pragmas.dmulscale6(y2, cosglobalang, -x2, singlobalang);
+
+                        x1 += globalposx; y1 += globalposy;
+                        x2 += globalposx; y2 += globalposy;
+
+                        swapped = 0;
+                        if (pragmas.dmulscale32(xp1, yp2, -xp2, yp1) >= 0)  //If wall's NOT facing you
+                        {
+                            if ((cstat & 64) != 0) return;
+                            i = xp1; xp1 = xp2; xp2 = i;
+                            i = yp1; yp1 = yp2; yp2 = i;
+                            i = x1; x1 = x2; x2 = i;
+                            i = y1; y1 = y2; y2 = i;
+                            swapped = 1;
+                        }
+
+                        if (xp1 >= -yp1)
+                        {
+                            if (xp1 > yp1) return;
+
+                            if (yp1 == 0) return;
+                            xb1[MAXWALLSB - 1] = Engine._device.halfxdimen + pragmas.scale(xp1, Engine._device.halfxdimen, yp1);
+                            if (xp1 >= 0) xb1[MAXWALLSB - 1]++;   //Fix for SIGNED divide
+                            if (xb1[MAXWALLSB - 1] >= Engine._device.xdimen) xb1[MAXWALLSB - 1] = Engine._device.xdimen - 1;
+                            yb1[MAXWALLSB - 1] = yp1;
+                        }
+                        else
+                        {
+                            if (xp2 < -yp2) return;
+                            xb1[MAXWALLSB - 1] = 0;
+                            i = yp1 - yp2 + xp1 - xp2;
+                            if (i == 0) return;
+                            yb1[MAXWALLSB - 1] = yp1 + pragmas.scale(yp2 - yp1, xp1 + yp1, i);
+                        }
+                        if (xp2 <= yp2)
+                        {
+                            if (xp2 < -yp2) return;
+
+                            if (yp2 == 0) return;
+                            xb2[MAXWALLSB - 1] = Engine._device.halfxdimen + pragmas.scale(xp2, Engine._device.halfxdimen, yp2) - 1;
+                            if (xp2 >= 0) xb2[MAXWALLSB - 1]++;   //Fix for SIGNED divide
+                            if (xb2[MAXWALLSB - 1] >= Engine._device.xdimen) xb2[MAXWALLSB - 1] = Engine._device.xdimen - 1;
+                            yb2[MAXWALLSB - 1] = yp2;
+                        }
+                        else
+                        {
+                            if (xp1 > yp1) return;
+
+                            xb2[MAXWALLSB - 1] = Engine._device.xdimen - 1;
+                            i = xp2 - xp1 + yp1 - yp2;
+                            if (i == 0) return;
+                            yb2[MAXWALLSB - 1] = yp1 + pragmas.scale(yp2 - yp1, yp1 - xp1, i);
+                        }
+
+                        if ((yb1[MAXWALLSB - 1] < 256) || (yb2[MAXWALLSB - 1] < 256) || (xb1[MAXWALLSB - 1] > xb2[MAXWALLSB - 1]))
+                            return;
+
+                        topinc = -pragmas.mulscale10(yp1, xspan);
+                        top = (((pragmas.mulscale10(xp1, Engine._device.xdimen) - pragmas.mulscale9(xb1[MAXWALLSB - 1] - Engine._device.halfxdimen, yp1)) * xspan) >> 3);
+                        botinc = ((yp2 - yp1) >> 8);
+                        bot = pragmas.mulscale11(xp1 - xp2, Engine._device.xdimen) + pragmas.mulscale2(xb1[MAXWALLSB - 1] - Engine._device.halfxdimen, botinc);
+
+                        j = xb2[MAXWALLSB - 1] + 3;
+                        z = pragmas.mulscale20(top, pragmas.krecipasm(bot));
+                        lwall[xb1[MAXWALLSB - 1]] = (z >> 8);
+                        for (x = xb1[MAXWALLSB - 1] + 4; x <= j; x += 4)
+                        {
+                            top += topinc; bot += botinc;
+                            zz = z; z = pragmas.mulscale20(top, pragmas.krecipasm(bot));
+                            lwall[x] = (z >> 8);
+                            i = ((z + zz) >> 1);
+                            lwall[x - 2] = (i >> 8);
+                            lwall[x - 3] = ((i + zz) >> 9);
+                            lwall[x - 1] = ((i + z) >> 9);
+                        }
+
+                        if (lwall[xb1[MAXWALLSB - 1]] < 0) lwall[xb1[MAXWALLSB - 1]] = 0;
+                        if (lwall[xb2[MAXWALLSB - 1]] >= xspan) lwall[xb2[MAXWALLSB - 1]] = xspan - 1;
+                        // jv
+                        int sval2 = 0;
+
+                        if ((cstat & 4) > 0)
+                            sval2 = 1;
+                        if ((swapped ^ (sval2)) > 0)
+                        // jv end
+                        {
+                            j = xspan - 1;
+                            for (x = xb1[MAXWALLSB - 1]; x <= xb2[MAXWALLSB - 1]; x++)
+                                lwall[x] = j - lwall[x];
+                        }
+
+                        rx1[MAXWALLSB - 1] = xp1; ry1[MAXWALLSB - 1] = yp1;
+                        rx2[MAXWALLSB - 1] = xp2; ry2[MAXWALLSB - 1] = yp2;
+
+                        hplc = pragmas.divscale19(Engine._device.xdimenscale, yb1[MAXWALLSB - 1]);
+                        hinc = pragmas.divscale19(Engine._device.xdimenscale, yb2[MAXWALLSB - 1]);
+                        hinc = (hinc - hplc) / (xb2[MAXWALLSB - 1] - xb1[MAXWALLSB - 1] + 1);
+
+                        z2 = tspr.z - ((yoff * tspr.yrepeat) << 2);
+                        if ((cstat & 128) != 0)
+                        {
+                            z2 += ((yspan * tspr.yrepeat) << 1);
+                            if ((yspan & 1) != 0) z2 += (tspr.yrepeat << 1);        //Odd yspans
+                        }
+                        z1 = z2 - ((yspan * tspr.yrepeat) << 2);
+
+                        globalorientation = 0;
+                        globalpicnum = tilenum;
+                        if (globalpicnum >= MAXTILES) globalpicnum = 0;
+                        globalxpanning = 0;
+                        globalypanning = 0;
+                        globvis = globalvisibility;
+                        if (sec.visibility != 0) globvis = pragmas.mulscale4(globvis, (int)((byte)(sec.visibility + 16)));
+                        globalshiftval = (Engine.picsiz[globalpicnum] >> 4);
+                        if (Engine.pow2long[globalshiftval] != Engine.tilesizy[globalpicnum]) globalshiftval++;
+                        globalshiftval = 32 - globalshiftval;
+                        globalyscale = pragmas.divscale(512, tspr.yrepeat, globalshiftval - 19);
+                        globalzd = (((globalposz - z1) * globalyscale) << 8);
+                        if ((cstat & 8) > 0)
+                        {
+                            globalyscale = -globalyscale;
+                            globalzd = (((globalposz - z2) * globalyscale) << 8);
+                        }
+
+                        if (((sec.ceilingstat & 1) == 0) && (z1 < sec.ceilingz))
+                            z1 = sec.ceilingz;
+                        if (((sec.floorstat & 1) == 0) && (z2 > sec.floorz))
+                            z2 = sec.floorz;
+
+                        owallmost(ref uwall, (int)(MAXWALLSB - 1), z1 - globalposz);
+                        owallmost(ref dwall, (int)(MAXWALLSB - 1), z2 - globalposz);
+                        for (i = xb1[MAXWALLSB - 1]; i <= xb2[MAXWALLSB - 1]; i++)
+                        { swall[i] = (pragmas.krecipasm(hplc) << 2); hplc += hinc; }
+
+                        for (i = smostwallcnt - 1; i >= 0; i--)
+                        {
+                            j = smostwall[i];
+
+                            if ((xb1[j] > xb2[MAXWALLSB - 1]) || (xb2[j] < xb1[MAXWALLSB - 1])) continue;
+
+                            dalx2 = xb1[j]; darx2 = xb2[j];
+                            if (Math.Max(yb1[MAXWALLSB - 1], yb2[MAXWALLSB - 1]) > Math.Min(yb1[j], yb2[j]))
+                            {
+                                if (Math.Min(yb1[MAXWALLSB - 1], yb2[MAXWALLSB - 1]) > Math.Max(yb1[j], yb2[j]))
+                                {
+                                    // jv
+                                    x = -2147483648; // 0x80000000;
+                                    // jv end
+                                }
+                                else
+                                {
+                                    x = thewall[j]; xp1 = wall[x].x; yp1 = wall[x].y;
+                                    x = wall[x].point2; xp2 = wall[x].x; yp2 = wall[x].y;
+
+                                    z1 = (xp2 - xp1) * (y1 - yp1) - (yp2 - yp1) * (x1 - xp1);
+                                    z2 = (xp2 - xp1) * (y2 - yp1) - (yp2 - yp1) * (x2 - xp1);
+                                    if ((z1 ^ z2) >= 0)
+                                        x = (z1 + z2);
+                                    else
+                                    {
+                                        z1 = (x2 - x1) * (yp1 - y1) - (y2 - y1) * (xp1 - x1);
+                                        z2 = (x2 - x1) * (yp2 - y1) - (y2 - y1) * (xp2 - x1);
+
+                                        if ((z1 ^ z2) >= 0)
+                                            x = -(z1 + z2);
+                                        else
+                                        {
+                                            if ((xp2 - xp1) * (tspr.y - yp1) == (tspr.x - xp1) * (yp2 - yp1))
+                                            {
+                                                if (wall[thewall[j]].nextsector == tspr.sectnum)
+                                                {
+                                                    // jv
+                                                    x = -2147483648; // 0x80000000;
+                                                    // jv end
+                                                }
+                                                else
+                                                {
+                                                    // jv
+                                                    x = 2147483647; // 0x7fffffff;
+                                                    // jv end
+                                                }
+                                            }
+                                            else
+                                            {     //INTERSECTION!
+                                                x = (xp1 - globalposx) + pragmas.scale(xp2 - xp1, z1, z1 - z2);
+                                                y = (yp1 - globalposy) + pragmas.scale(yp2 - yp1, z1, z1 - z2);
+
+                                                yp1 = pragmas.dmulscale14(x, cosglobalang, y, singlobalang);
+                                                if (yp1 > 0)
+                                                {
+                                                    xp1 = pragmas.dmulscale14(y, cosglobalang, (int)-x, singlobalang);
+
+                                                    x = Engine._device.halfxdimen + pragmas.scale(xp1, Engine._device.halfxdimen, yp1);
+                                                    if (xp1 >= 0) x++;   //Fix for SIGNED divide
+
+                                                    if (z1 < 0)
+                                                    { if (dalx2 < x) dalx2 = x; }
+                                                    else
+                                                    { if (darx2 > x) darx2 = x; }
+
+                                                    // jv
+                                                    x = -2147483647; // 0x80000001;
+                                                    // jv end
+                                                }
+                                                else
+                                                {
+                                                    // jv
+                                                    //x = 0x7fffffff;
+                                                    x = 2147483647;
+                                                    // jv end
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
 
 
-		        i = (int)tspr.ang+1536;
+                                if (x < 0)
+                                {
+                                    if (dalx2 < xb1[MAXWALLSB - 1]) dalx2 = xb1[MAXWALLSB - 1];
+                                    if (darx2 > xb2[MAXWALLSB - 1]) darx2 = xb2[MAXWALLSB - 1];
+                                    switch (smostwalltype[i])
+                                    {
+                                        case 0:
+                                            if (dalx2 <= darx2)
+                                            {
+                                                if ((dalx2 == xb1[MAXWALLSB - 1]) && (darx2 == xb2[MAXWALLSB - 1])) return;
+                                                //clearbufbyte(&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
+                                                for (k = dalx2; k <= darx2; k++) dwall[k] = 0;
+                                            }
+                                            break;
+                                        case 1:
 
-                drawvox(tspr.x, tspr.y, tspritez, i, (int)tspr.xrepeat, (int)tspr.yrepeat, vtilenum, tspr.shade, tspr.pal, ref lwall, ref swall);
-	        }
+                                            k = smoststart[i] - xb1[j];
+                                            for (x = dalx2; x <= darx2; x++)
+                                            {
+                                                if (smost[k + x] > uwall[x]) uwall[x] = smost[k + x];
+                                            }
+                                            break;
+                                        case 2:
+                                            k = smoststart[i] - xb1[j];
+                                            for (x = dalx2; x <= darx2; x++)
+                                            {
+                                                if (smost[k + x] < dwall[x]) dwall[x] = smost[k + x];
+                                            }
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+
+                        //sprite
+                        if ((Engine.searchit >= 1) && (Engine.searchx >= xb1[MAXWALLSB - 1]) && (Engine.searchx <= xb2[MAXWALLSB - 1]))
+                            if ((Engine.searchy >= uwall[Engine.searchx]) && (Engine.searchy <= dwall[Engine.searchx]))
+                            {
+                                Engine.searchsector = sectnum; Engine.searchwall = spritenum;
+                                Engine.searchstat = 3; Engine.searchit = 1;
+                            }
+
+                        if ((cstat & 2) == 0)
+                        {
+                            maskwallscan(xb1[MAXWALLSB - 1], xb2[MAXWALLSB - 1], ref uwall, ref dwall, ref swall, ref lwall);
+                        }
+                        else
+                        {
+                            transmaskwallscan(xb1[MAXWALLSB - 1], xb2[MAXWALLSB - 1]);
+                        }
+                    }
+                    break;
+                case 32: // floorsprite
+                    {
+                        if ((cstat & 64) != 0)
+                            if ((globalposz > tspr.z) == ((cstat & 8) == 0))
+                                return;
+
+                        if ((cstat & 4) > 0) xoff = -xoff;
+                        if ((cstat & 8) > 0) yoff = -yoff;
+                        xspan = Engine.tilesizx[tilenum];
+                        yspan = Engine.tilesizy[tilenum];
+
+                        //Rotate center point
+                        dax = tspr.x - globalposx;
+                        day = tspr.y - globalposy;
+                        rzi[0] = pragmas.dmulscale10(cosglobalang, dax, singlobalang, day);
+                        rxi[0] = pragmas.dmulscale10(cosglobalang, day, -singlobalang, dax);
+
+                        //Get top-left corner
+                        i = ((tspr.ang + 2048 - globalang) & 2047);
+                        cosang = Engine.table.sintable[(i + 512) & 2047]; sinang = Engine.table.sintable[i];
+                        dax = ((xspan >> 1) + xoff) * tspr.xrepeat;
+                        day = ((yspan >> 1) + yoff) * tspr.yrepeat;
+                        rzi[0] += pragmas.dmulscale12(sinang, dax, cosang, day);
+                        rxi[0] += pragmas.dmulscale12(sinang, day, -cosang, dax);
+
+                        //Get other 3 corners
+                        dax = xspan * tspr.xrepeat;
+                        day = yspan * tspr.yrepeat;
+                        rzi[1] = rzi[0] - pragmas.mulscale12(sinang, dax);
+                        rxi[1] = rxi[0] + pragmas.mulscale12(cosang, dax);
+                        dax = -pragmas.mulscale12(cosang, day);
+                        day = -pragmas.mulscale12(sinang, day);
+                        rzi[2] = rzi[1] + dax; rxi[2] = rxi[1] + day;
+                        rzi[3] = rzi[0] + dax; rxi[3] = rxi[0] + day;
+
+                        //Put all points on same z
+                        ryi[0] = pragmas.scale((tspr.z - globalposz), Engine._device.yxaspect, 320 << 8);
+                        if (ryi[0] == 0) return;
+                        ryi[1] = ryi[2] = ryi[3] = ryi[0];
+
+                        if ((cstat & 4) == 0)
+                        { z = 0; z1 = 1; z2 = 3; }
+                        else
+                        { z = 1; z1 = 0; z2 = 2; }
+
+                        dax = rzi[z1] - rzi[z]; day = rxi[z1] - rxi[z];
+                        bot = pragmas.dmulscale8(dax, dax, day, day);
+                        if (((pragmas.klabs(dax) >> 13) >= bot) || ((pragmas.klabs(day) >> 13) >= bot)) return;
+                        globalx1 = pragmas.divscale18(dax, bot);
+                        globalx2 = pragmas.divscale18(day, bot);
+
+                        dax = rzi[z2] - rzi[z]; day = rxi[z2] - rxi[z];
+                        bot = pragmas.dmulscale8(dax, dax, day, day);
+                        if (((pragmas.klabs(dax) >> 13) >= bot) || ((pragmas.klabs(day) >> 13) >= bot)) return;
+                        globaly1 = pragmas.divscale18(dax, bot);
+                        globaly2 = pragmas.divscale18(day, bot);
+
+                        //Calculate globals for hline texture mapping function
+                        globalxpanning = (rxi[z] << 12);
+                        globalypanning = (rzi[z] << 12);
+                        globalzd = (ryi[z] << 12);
+
+                        rzi[0] = pragmas.mulscale16(rzi[0], Engine._device.viewingrange);
+                        rzi[1] = pragmas.mulscale16(rzi[1], Engine._device.viewingrange);
+                        rzi[2] = pragmas.mulscale16(rzi[2], Engine._device.viewingrange);
+                        rzi[3] = pragmas.mulscale16(rzi[3], Engine._device.viewingrange);
+
+                        if (ryi[0] < 0)   //If ceilsprite is above you, reverse order of points
+                        {
+                            i = rxi[1]; rxi[1] = rxi[3]; rxi[3] = i;
+                            i = rzi[1]; rzi[1] = rzi[3]; rzi[3] = i;
+                        }
+
+
+                        //Clip polygon in 3-space
+                        npoints = 4;
+
+                        //Clip edge 1
+                        npoints2 = 0;
+                        zzsgn = rxi[0] + rzi[0];
+                        for (z = 0; z < npoints; z++)
+                        {
+                            zz = z + 1; if (zz == npoints) zz = 0;
+                            zsgn = zzsgn; zzsgn = rxi[zz] + rzi[zz];
+                            if (zsgn >= 0)
+                            {
+                                rxi2[npoints2] = rxi[z]; ryi2[npoints2] = ryi[z]; rzi2[npoints2] = rzi[z];
+                                npoints2++;
+                            }
+                            if ((zsgn ^ zzsgn) < 0)
+                            {
+                                t = pragmas.divscale30(zsgn, zsgn - zzsgn);
+                                rxi2[npoints2] = rxi[z] + pragmas.mulscale30(t, rxi[zz] - rxi[z]);
+                                ryi2[npoints2] = ryi[z] + pragmas.mulscale30(t, ryi[zz] - ryi[z]);
+                                rzi2[npoints2] = rzi[z] + pragmas.mulscale30(t, rzi[zz] - rzi[z]);
+                                npoints2++;
+                            }
+                        }
+                        if (npoints2 <= 2) return;
+
+                        //Clip edge 2
+                        npoints = 0;
+                        zzsgn = rxi2[0] - rzi2[0];
+                        for (z = 0; z < npoints2; z++)
+                        {
+                            zz = z + 1; if (zz == npoints2) zz = 0;
+                            zsgn = zzsgn; zzsgn = rxi2[zz] - rzi2[zz];
+                            if (zsgn <= 0)
+                            {
+                                rxi[npoints] = rxi2[z]; ryi[npoints] = ryi2[z]; rzi[npoints] = rzi2[z];
+                                npoints++;
+                            }
+                            if ((zsgn ^ zzsgn) < 0)
+                            {
+                                t = pragmas.divscale30(zsgn, zsgn - zzsgn);
+                                rxi[npoints] = rxi2[z] + pragmas.mulscale30(t, rxi2[zz] - rxi2[z]);
+                                ryi[npoints] = ryi2[z] + pragmas.mulscale30(t, ryi2[zz] - ryi2[z]);
+                                rzi[npoints] = rzi2[z] + pragmas.mulscale30(t, rzi2[zz] - rzi2[z]);
+                                npoints++;
+                            }
+                        }
+                        if (npoints <= 2) return;
+
+                        //Clip edge 3
+                        npoints2 = 0;
+                        zzsgn = ryi[0] * Engine._device.halfxdimen + (rzi[0] * (globalhoriz - 0));
+                        for (z = 0; z < npoints; z++)
+                        {
+                            zz = z + 1; if (zz == npoints) zz = 0;
+                            zsgn = zzsgn; zzsgn = ryi[zz] * Engine._device.halfxdimen + (rzi[zz] * (globalhoriz - 0));
+                            if (zsgn >= 0)
+                            {
+                                rxi2[npoints2] = rxi[z];
+                                ryi2[npoints2] = ryi[z];
+                                rzi2[npoints2] = rzi[z];
+                                npoints2++;
+                            }
+                            if ((zsgn ^ zzsgn) < 0)
+                            {
+                                t = pragmas.divscale30(zsgn, zsgn - zzsgn);
+                                rxi2[npoints2] = rxi[z] + pragmas.mulscale30(t, rxi[zz] - rxi[z]);
+                                ryi2[npoints2] = ryi[z] + pragmas.mulscale30(t, ryi[zz] - ryi[z]);
+                                rzi2[npoints2] = rzi[z] + pragmas.mulscale30(t, rzi[zz] - rzi[z]);
+                                npoints2++;
+                            }
+                        }
+                        if (npoints2 <= 2) return;
+
+                        //Clip edge 4
+                        npoints = 0;
+                        zzsgn = ryi2[0] * Engine._device.halfxdimen + (rzi2[0] * (globalhoriz - Engine._device.ydimen));
+                        for (z = 0; z < npoints2; z++)
+                        {
+                            zz = z + 1; if (zz == npoints2) zz = 0;
+                            zsgn = zzsgn; zzsgn = ryi2[zz] * Engine._device.halfxdimen + (rzi2[zz] * (globalhoriz - Engine._device.ydimen));
+                            if (zsgn <= 0)
+                            {
+                                rxi[npoints] = rxi2[z];
+                                ryi[npoints] = ryi2[z];
+                                rzi[npoints] = rzi2[z];
+                                npoints++;
+                            }
+                            if ((zsgn ^ zzsgn) < 0)
+                            {
+                                t = pragmas.divscale30(zsgn, zsgn - zzsgn);
+                                rxi[npoints] = rxi2[z] + pragmas.mulscale30(t, rxi2[zz] - rxi2[z]);
+                                ryi[npoints] = ryi2[z] + pragmas.mulscale30(t, ryi2[zz] - ryi2[z]);
+                                rzi[npoints] = rzi2[z] + pragmas.mulscale30(t, rzi2[zz] - rzi2[z]);
+                                npoints++;
+                            }
+                        }
+                        if (npoints <= 2) return;
+
+                        //Project onto screen
+                        lpoint = -1; lmax = 0x7fffffff;
+                        rpoint = -1;
+                        // jv
+                        rmax = -2147483648;//0x80000000;
+                        // jv end
+                        for (z = 0; z < npoints; z++)
+                        {
+                            xsi[z] = pragmas.scale(rxi[z], Engine._device.xdimen << 15, rzi[z]) + (Engine._device.xdimen << 15);
+                            ysi[z] = pragmas.scale(ryi[z], Engine._device.xdimen << 15, rzi[z]) + (globalhoriz << 16);
+                            if (xsi[z] < 0) xsi[z] = 0;
+                            if (xsi[z] > (Engine._device.xdimen << 16)) xsi[z] = (Engine._device.xdimen << 16);
+                            if (ysi[z] < ((int)0 << 16)) ysi[z] = ((int)0 << 16);
+                            if (ysi[z] > ((int)Engine._device.ydimen << 16)) ysi[z] = ((int)Engine._device.ydimen << 16);
+                            if (xsi[z] < lmax) { lmax = xsi[z]; lpoint = z; }
+                            if (xsi[z] > rmax) { rmax = xsi[z]; rpoint = z; }
+                        }
+
+                        //Get uwall arrays
+                        for (z = lpoint; z != rpoint; z = zz)
+                        {
+                            zz = z + 1; if (zz == npoints) zz = 0;
+
+                            dax1 = ((xsi[z] + 65535) >> 16);
+                            dax2 = ((xsi[zz] + 65535) >> 16);
+                            if (dax2 > dax1)
+                            {
+                                yinc = pragmas.divscale16(ysi[zz] - ysi[z], xsi[zz] - xsi[z]);
+                                y = ysi[z] + pragmas.mulscale16((dax1 << 16) - xsi[z], yinc);
+                                pragmas.qinterpolatedown16short(dax1, ref uwall, dax2 - dax1, y, yinc);
+                            }
+                        }
+
+                        //Get dwall arrays
+                        for (; z != lpoint; z = zz)
+                        {
+                            zz = z + 1; if (zz == npoints) zz = 0;
+
+                            dax1 = ((xsi[zz] + 65535) >> 16);
+                            dax2 = ((xsi[z] + 65535) >> 16);
+                            if (dax2 > dax1)
+                            {
+                                yinc = pragmas.divscale16(ysi[zz] - ysi[z], xsi[zz] - xsi[z]);
+                                y = ysi[zz] + pragmas.mulscale16((dax1 << 16) - xsi[zz], yinc);
+                                pragmas.qinterpolatedown16short(dax1, ref dwall, dax2 - dax1, y, yinc);
+                            }
+                        }
+
+
+                        lx = ((lmax + 65535) >> 16);
+                        rx = (int)((rmax + 65535) >> 16);
+                        for (x = lx; x <= rx; x++)
+                        {
+                            uwall[x] = (short)Math.Max((int)uwall[x], Engine._device.startumost[x + Engine._device.windowx1] - Engine._device.windowy1);
+                            dwall[x] = (short)Math.Min((int)dwall[x], Engine._device.startdmost[x + Engine._device.windowx1] - Engine._device.windowy1);
+                        }
+
+                        //Additional uwall/dwall clipping goes here
+                        for (i = smostwallcnt - 1; i >= 0; i--)
+                        {
+                            j = smostwall[i];
+                            if ((xb1[j] > rx) || (xb2[j] < lx)) continue;
+                            if ((yp <= yb1[j]) && (yp <= yb2[j])) continue;
+
+                            //if (spritewallfront(tspr,thewall[j]) == 0)
+                            x = thewall[j]; xp1 = wall[x].x; yp1 = wall[x].y;
+                            x = wall[x].point2; xp2 = wall[x].x; yp2 = wall[x].y;
+                            x = (xp2 - xp1) * (tspr.y - yp1) - (tspr.x - xp1) * (yp2 - yp1);
+                            if ((yp > yb1[j]) && (yp > yb2[j])) x = -1;
+                            if ((x >= 0) && ((x != 0) || (wall[thewall[j]].nextsector != tspr.sectnum))) continue;
+
+                            dalx2 = Math.Max(xb1[j], lx); darx2 = Math.Min(xb2[j], rx);
+
+                            switch (smostwalltype[i])
+                            {
+                                case 0:
+                                    if (dalx2 <= darx2)
+                                    {
+                                        if ((dalx2 == lx) && (darx2 == rx)) return;
+                                        //clearbufbyte(&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
+                                        for (x = dalx2; x <= darx2; x++) dwall[x] = 0;
+                                    }
+                                    break;
+                                case 1:
+                                    k = smoststart[i] - xb1[j];
+                                    for (x = dalx2; x <= darx2; x++)
+                                        if (smost[k + x] > uwall[x]) uwall[x] = smost[k + x];
+                                    break;
+                                case 2:
+                                    k = smoststart[i] - xb1[j];
+                                    for (x = dalx2; x <= darx2; x++)
+                                        if (smost[k + x] < dwall[x]) dwall[x] = smost[k + x];
+                                    break;
+                            }
+                        }
+
+                        //sprite
+                        if ((Engine.searchit >= 1) && (Engine.searchx >= lx) && (Engine.searchx <= rx))
+                            if ((Engine.searchy >= uwall[Engine.searchx]) && (Engine.searchy <= dwall[Engine.searchx]))
+                            {
+                                Engine.searchsector = sectnum; Engine.searchwall = spritenum;
+                                Engine.searchstat = 3; Engine.searchit = 1;
+                            }
+
+                        globalorientation = cstat;
+                        globalpicnum = tilenum;
+                        if (globalpicnum >= MAXTILES) globalpicnum = 0;
+                        //if (picanm[globalpicnum]&192) globalpicnum += animateoffs((short)globalpicnum,spritenum+32768);
+
+                        if (Engine.waloff[(int)globalpicnum] == null) Engine.loadtile((short)globalpicnum);
+                        // Engine.setgotpic(globalpicnum);
+                        globalbuf = Engine.waloff[(int)globalpicnum].memory;
+                        globalbufplc = 0;
+
+                        globvis = pragmas.mulscale16(globalhisibility, Engine._device.viewingrange);
+                        if (sec.visibility != 0) globvis = pragmas.mulscale4(globvis, (int)((byte)(sec.visibility + 16)));
+
+                        x = Engine.picsiz[globalpicnum]; y = (((int)x >> 4) & 15); x &= 15;
+                        if (Engine.pow2long[x] != xspan)
+                        {
+                            x++;
+                            globalx1 = pragmas.mulscale(globalx1, xspan, (int)x);
+                            globalx2 = pragmas.mulscale(globalx2, xspan, (int)x);
+                        }
+
+                        dax = globalxpanning; day = globalypanning;
+                        globalxpanning = -pragmas.dmulscale6(globalx1, day, globalx2, dax);
+                        globalypanning = -pragmas.dmulscale6(globaly1, day, globaly2, dax);
+
+                        globalx2 = pragmas.mulscale16(globalx2, Engine._device.viewingrange);
+                        globaly2 = pragmas.mulscale16(globaly2, Engine._device.viewingrange);
+                        globalzd = pragmas.mulscale16(globalzd, Engine._device.viewingrangerecip);
+
+                        globalx1 = (globalx1 - globalx2) * Engine._device.halfxdimen;
+                        globaly1 = (globaly1 - globaly2) * Engine._device.halfxdimen;
+
+                        if ((cstat & 2) == 0)
+                            A.msethlineshift((int)x, y);
+                        else
+                            A.tsethlineshift((int)x, y);
+
+                        //Draw it!
+                        ceilspritescan(lx, rx - 1);
+                    }
+                    break;
+                case 48:
+                    //else if ((cstat&48) == 48)
+                    {
+                        int nxrepeat, nyrepeat;
+                        int tspritez = tspr.z;
+
+                        lx = 0; rx = Engine._device.xdim - 1;
+                        for (x = lx; x <= rx; x++)
+                        {
+                            lwall[x] = (int)Engine._device.startumost[x + Engine._device.windowx1] - Engine._device.windowy1;
+                            swall[x] = (int)Engine._device.startdmost[x + Engine._device.windowx1] - Engine._device.windowy1;
+                        }
+                        for (i = smostwallcnt - 1; i >= 0; i--)
+                        {
+                            j = smostwall[i];
+                            if ((xb1[j] > rx) || (xb2[j] < lx)) continue;
+                            if ((yp <= yb1[j]) && (yp <= yb2[j])) continue;
+                            if (spritewallfront(tspr, (int)thewall[j]) && ((yp <= yb1[j]) || (yp <= yb2[j]))) continue;
+
+                            dalx2 = Math.Max(xb1[j], lx); darx2 = Math.Min(xb2[j], rx);
+
+                            switch (smostwalltype[i])
+                            {
+                                case 0:
+                                    if (dalx2 <= darx2)
+                                    {
+                                        if ((dalx2 == lx) && (darx2 == rx)) return;
+                                        //clearbufbyte(&swall[dalx2],(darx2-dalx2+1)*sizeof(swall[0]),0L);
+                                        for (x = dalx2; x <= darx2; x++) swall[x] = 0;
+                                    }
+                                    break;
+                                case 1:
+                                    k = smoststart[i] - xb1[j];
+                                    for (x = dalx2; x <= darx2; x++)
+                                        if (smost[k + x] > lwall[x]) lwall[x] = smost[k + x];
+                                    break;
+                                case 2:
+                                    k = smoststart[i] - xb1[j];
+                                    for (x = dalx2; x <= darx2; x++)
+                                        if (smost[k + x] < swall[x]) swall[x] = smost[k + x];
+                                    break;
+                            }
+                        }
+
+                        if (lwall[rx] >= swall[rx])
+                        {
+                            for (x = lx; x < rx; x++)
+                                if (lwall[x] < swall[x]) break;
+                            if (x == rx) return;
+                        }
+
+                        Engine.bVoxelMipmap intptr = Engine.voxoff[vtilenum][0];
+                        intptr._reader.BaseStream.Position = 0;
+                        if (Engine.voxscale[vtilenum] == 65536)
+                        {
+                            nxrepeat = (((int)tspr.xrepeat) << 16);
+                            nyrepeat = (((int)tspr.yrepeat) << 16);
+                        }
+                        else
+                        {
+                            nxrepeat = ((int)tspr.xrepeat) * Engine.voxscale[vtilenum];
+                            nyrepeat = ((int)tspr.yrepeat) * Engine.voxscale[vtilenum];
+                        }
+
+                        if ((cstat & 128) == 0) tspritez -= pragmas.mulscale22(B_LITTLE32(intptr.GetInt(5)), nyrepeat);
+                        yoff = (int)((sbyte)((Engine.picanm[sprite[tspr.owner].picnum] >> 16) & 255)) + ((int)tspr.yoffset);
+                        tspritez -= pragmas.mulscale14(yoff, nyrepeat);
+
+                        globvis = globalvisibility;
+                        if (sec.visibility != 0) globvis = pragmas.mulscale4(globvis, (int)((sbyte)(sec.visibility + 16)));
+
+                        if ((Engine.searchit >= 1) && (yp > (4 << 8)) && (Engine.searchy >= lwall[Engine.searchx]) && (Engine.searchy < swall[Engine.searchx]))
+                        {
+                            siz = pragmas.divscale19(Engine._device.xdimenscale, yp);
+
+                            xv = pragmas.mulscale16(nxrepeat, Engine._device.xyaspect);
+
+                            xspan = ((B_LITTLE32(intptr.GetInt(0)) + B_LITTLE32(intptr.GetInt(1))) >> 1);
+                            yspan = B_LITTLE32(intptr.GetInt(2));
+                            xsiz = pragmas.mulscale30(siz, xv * xspan);
+                            ysiz = pragmas.mulscale30(siz, nyrepeat * yspan);
+
+                            //Watch out for divscale overflow
+                            if (((xspan >> 11) < xsiz) && (yspan < (ysiz >> 1)))
+                            {
+                                x1 = xb - (xsiz >> 1);
+                                if ((xspan & 1) != 0) x1 += pragmas.mulscale31(siz, xv);  //Odd xspans
+                                i = pragmas.mulscale30(siz, xv * xoff);
+                                if ((cstat & 4) == 0) x1 -= i; else x1 += i;
+
+                                y1 = pragmas.mulscale16(tspritez - globalposz, siz);
+                                //y1 -= mulscale30(siz,nyrepeat*yoff);
+                                y1 += (globalhoriz << 8) - ysiz;
+                                //if (cstat&128)  //Already fixed up above
+                                y1 += (ysiz >> 1);
+
+                                x2 = x1 + xsiz - 1;
+                                y2 = y1 + ysiz - 1;
+                                if (((y1 | 255) < (y2 | 255)) && (Engine.searchx >= (x1 >> 8) + 1) && (Engine.searchx <= (x2 >> 8)))
+                                {
+                                    if ((sec.ceilingstat & 3) == 0)
+                                        startum = globalhoriz + pragmas.mulscale24(siz, sec.ceilingz - globalposz) - 1;
+                                    else
+                                        startum = 0;
+                                    if ((sec.floorstat & 3) == 0)
+                                        startdm = globalhoriz + pragmas.mulscale24(siz, sec.floorz - globalposz) + 1;
+                                    else
+                                    {
+                                        // jv
+                                        startdm = 2147483647; // startdm = 0x7fffffff;
+                                    }
+                                    // jv end
+                                    //sprite
+                                    if ((Engine.searchy >= Math.Max(startum, (y1 >> 8))) && (Engine.searchy < Math.Min(startdm, (y2 >> 8))))
+                                    {
+                                        Engine.searchsector = sectnum; Engine.searchwall = spritenum;
+                                        Engine.searchstat = 3; Engine.searchit = 1;
+                                    }
+                                }
+                            }
+                        }
+
+
+                        i = (int)tspr.ang + 1536;
+
+                        drawvox(tspr.x, tspr.y, tspritez, i, (int)tspr.xrepeat, (int)tspr.yrepeat, vtilenum, tspr.shade, tspr.pal, ref lwall, ref swall);
+                    }
+                    break;
+            }
 	      //  if (automapping == 1) show2dsprite[spritenum>>3] |= pow2char[spritenum&7];
 
         }
