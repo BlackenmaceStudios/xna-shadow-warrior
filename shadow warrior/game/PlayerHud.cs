@@ -16,7 +16,7 @@ namespace sw
     {
         public WEAPON_STATE state = WEAPON_STATE.WEAPON_IDLE;
 
-        private float framenum = 0;
+        public int framenum = 0;
         private Player _player;
         private const short STATUS_BAR = 2434;
         private readonly int HUD_ROT_FLAGS = (Flags.ROTATE_SPRITE_SCREEN_CLIP | Flags.ROTATE_SPRITE_NON_MASK);
@@ -68,7 +68,7 @@ namespace sw
             }
             else if(state == WEAPON_STATE.WEAPON_FIRING)
             {
-                framenum+=0.5f;
+                framenum+=1;
 
                 if (framenum >= 2084)
                 {
@@ -77,7 +77,7 @@ namespace sw
                 }
             }
 
-            DrawFullscreenSprite(320, 210, (short)framenum);
+            DrawFullscreenSprite(320, 200, (short)framenum);
         }
 
         //
@@ -91,7 +91,7 @@ namespace sw
             }
             else if (state == WEAPON_STATE.WEAPON_FIRING)
             {
-                framenum += 0.5f;
+                framenum += 1;
 
                 if (framenum >= 4094)
                 {

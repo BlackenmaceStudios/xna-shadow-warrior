@@ -311,7 +311,7 @@ namespace sw
 
             Mirrors.SetupMirrors();
 
-            PlayMusic(3);
+            PlayMusic(2);
 
             gamestate = gamestate_t.GAMESTATE_INGAME;
         }
