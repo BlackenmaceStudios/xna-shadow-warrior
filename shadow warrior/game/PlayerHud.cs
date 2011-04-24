@@ -121,7 +121,7 @@ namespace sw
         //
         public void DrawFullStatusBar()
         {
-            DrawFullscreenSprite((short)(Engine.tilesizx[STATUS_BAR] / 2), (short)(Engine.ydim - (Engine.tilesizy[STATUS_BAR] * 0.3f)), STATUS_BAR);
+            DrawFullscreenSprite((short)(Engine.tilesizx[STATUS_BAR] / 2), (short)(200 - (Engine.tilesizy[STATUS_BAR] * 0.3f)), STATUS_BAR);
             UpdatePlayerHealth();
         }
     }

@@ -108,14 +108,10 @@
     <Content Include="Background.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="base\music\track2.mp3" />
     <Content Include="base\music\track3.mp3" />
-    <Content Include="base\music\track4.mp3" />
-    <Content Include="base\music\track5.mp3" />
     <Resource Include="base\ui\lowang.png" />
     <Resource Include="base\ui\wp7movement.png" />
     <Resource Include="base\ui\yingyangblur.png" />
-    <Resource Include="base\ui\backscreen.png" />
     <Content Include="SplashScreenImage.jpg" />
   </ItemGroup>
   <ItemGroup>

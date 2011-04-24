@@ -3,11 +3,13 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows.Media;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Media;
 using Microsoft.Xna.Framework.Graphics;
 using build;
 using System.Windows.Controls;
+using System.Windows.Resources;
+using System.Windows;
 using mact;
 
 namespace sw
@@ -141,12 +143,20 @@ namespace sw
         //
         // PlayMusic
         //
+#if SILVERLIGHT
+        private readonly StreamResourceInfo _musicFile = Application.GetResourceStream(new Uri("base/music/track3.mp3", UriKind.Relative));
+#endif
         private void PlayMusic(int tracknum)
         {
+#if SILVERLIGHT
+            _music.AutoPlay = true; 
+            _music.SetSource(_musicFile.Stream);
+#else
             _music.Stop();
-            _music.Source = new Uri("base/music/track" + (tracknum + 2) + ".mp3", UriKind.RelativeOrAbsolute);
-            _music.Position = TimeSpan.Zero;
+            _music.Source = new Uri("base/music/track" + (tracknum + 2) + ".mp3", UriKind.Relative);
+            _music.Position = System.TimeSpan.FromSeconds(0); 
             _music.Play();
+#endif
         }
 
         //
@@ -197,7 +207,7 @@ namespace sw
             Engine.LoadTables();
 
             // Init the device
-            Engine.setgamemode(0, 320, 200, 8, ref canvasimage);
+            Engine.setgamemode(0, 640, 480, 8, ref canvasimage);
 
             // Create the colormaps.
             ColorMapManager.InitPalette();
@@ -311,7 +321,7 @@ namespace sw
 
             Mirrors.SetupMirrors();
 
-            PlayMusic(2);
+            PlayMusic(1);
 
             gamestate = gamestate_t.GAMESTATE_INGAME;
         }
