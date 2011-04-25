@@ -12,7 +12,7 @@ namespace build
         public const int CLIPMASK1 = (((256) << 16) + 64);
 
         public const int MAXTILES = 9216;
-
+        public const int STATUS2DSIZ = 144;
         public static byte[] pow2char = new byte[]{1,2,4,8,16,32,64,128};
         public static int[] pow2long = new int[]
         {
@@ -33,6 +33,7 @@ namespace build
 
         private static int randomseed = 17;
 
+        
         public static short[] tilesizx = new short[MAXTILES];
         public static short[] tilesizy = new short[MAXTILES];
         public static int[] picanm = new int[MAXTILES];
@@ -58,7 +59,7 @@ namespace build
 
         public static int horizycent, oxyaspect, oxdimen, oviewingrange;
 
-        internal static VgaDevice _device = new VgaDevice();
+        public static VgaDevice _device = new VgaDevice();
 
         public static kFileSystem filesystem;
         public static bTable table;
@@ -69,6 +70,9 @@ namespace build
         public static int qsetmode = 0;
         public static int pageoffset = 0;
         public static int ydim16 = 0;
+
+        public static int xdim2d = 0;
+        public static int ydim2d = 0;
 
         public static int[] ylookup = new int[VgaDevice.MAXYDIM+1];
         public static int[] tiletovox = new int[MAXTILES];
@@ -86,6 +90,14 @@ namespace build
         private static int curbrightness = 0;
 
         public const int MAXVOXMIPS = 5;
+
+        public static void copybufint(int[] S, int base_s, int max, int val)
+        {
+            for( int i = base_s; i < max; i++ )
+            {
+                S[i] = val;
+            }
+        }
 
         public static void copybufreverse<T>(int base_s, T[] S, int base_d, T[] D, long c)
         {
@@ -401,6 +413,17 @@ palette:
         }
 
         //
+        // plotpixel
+        //
+        public static void plotpixel(int x, int y, byte col)
+        {
+            Engine.BeginDrawing();
+	        pragmas.drawpixel(ylookup[y]+x+frameplace,col);
+            Engine.EndDrawing();
+        }
+
+
+        //
         // krand
         //
         public static uint krand()
@@ -533,6 +556,330 @@ palette:
             //faketimerhandler();
             artfilplc = tilefileoffs[tilenume] + dasiz;
         }
+
+        //
+        // printext16
+        //
+        public static void printext16(int xpos, int ypos, short col, short backcol, string name, byte fontsize)
+        {
+	        int stx, i, x, y, charxsiz;
+	        byte[] fontptr;
+            int letptr, ptr;
+
+	        stx = xpos;
+
+            if (fontsize != 0) { fontptr = table.smalltextfont; charxsiz = 4; }
+	        else { fontptr = table.textfont; charxsiz = 8; }
+
+            Engine.BeginDrawing();
+	        for(i=0;i < name.Length;i++)
+	        {
+		        letptr = name[i]<<3;
+		        ptr = _device.bytesperline*(ypos+7)+(stx-fontsize)+frameplace;
+		        for(y=7;y>=0;y--)
+		        {
+			        for(x=charxsiz-1;x>=0;x--)
+			        {
+                        if ((fontptr[letptr + y] & pow2char[7 - fontsize - x]) != 0)
+                            pragmas.drawpixel( x + ptr, col );
+				        else if (backcol >= 0)
+                            pragmas.drawpixel(x + ptr, backcol);
+			        }
+			        ptr -= _device.bytesperline;
+		        }
+		        stx += charxsiz;
+	        }
+            _device.EndDrawing();
+        }
+
+        //
+        // clear2dscreen
+        //
+        public static void clear2dscreen()
+        {
+	        int clearsz;
+
+            _device.BeginDrawing();
+	        if (qsetmode == 350) clearsz = 350;
+	        else {
+		        if (ydim16 <= _device.yres-STATUS2DSIZ)
+                    clearsz = _device.yres - STATUS2DSIZ;
+		        else
+                    clearsz = _device.yres;
+	        }
+	        //clearbuf((char *)frameplace, (bytesperline*clearsz) >> 2, 0);
+            Array.Clear(_device._screenbuffer.Pixels, frameplace, (_device.bytesperline * clearsz) >> 2);
+
+            _device.EndDrawing();
+        }
+
+
+        //
+        // draw2dgrid
+        //
+        public static void draw2dgrid(int posxe, int posye, short ange, int zoome, short gride)
+        {
+            int i, xp1, yp1, xp2 = 0, yp2, tempy;
+
+            if (gride > 0)
+            {
+                Engine._device.BeginDrawing();
+
+                yp1 = Engine._device.midydim16 - pragmas.mulscale14(posye + 131072, zoome);
+                if (yp1 < 0) yp1 = 0;
+                yp2 = Engine._device.midydim16 - pragmas.mulscale14(posye - 131072, zoome);
+                if (yp2 >= ydim16) yp2 = ydim16 - 1;
+
+                if ((yp1 < ydim16) && (yp2 >= 0) && (yp2 >= yp1))
+                {
+                    xp1 = Engine._device.halfxdim16 - pragmas.mulscale14(posxe + 131072, zoome);
+
+                    for (i = -131072; i <= 131072; i += (2048 >> gride))
+                    {
+                        xp2 = xp1;
+                        xp1 = Engine._device.halfxdim16 - pragmas.mulscale14(posxe - i, zoome);
+
+                        if (xp1 >= xdim) break;
+                        if (xp1 >= 0)
+                        {
+                            if (xp1 != xp2)
+                            {
+                                drawline16(xp1, yp1, xp1, yp2, 8);
+                            }
+                        }
+                    }
+                    if ((i >= 131072) && (xp1 < xdim))
+                        xp2 = xp1;
+                    if ((xp2 >= 0) && (xp2 < xdim))
+                    {
+                        drawline16(xp2, yp1, xp2, yp2, 8);
+                    }
+                }
+
+                xp1 = pragmas.mulscale14(posxe + 131072, zoome);
+                xp2 = pragmas.mulscale14(posxe - 131072, zoome);
+                tempy = -2147483648; //0x80000000;
+                for (i = -131072; i <= 131072; i += (2048 >> gride))
+                {
+                    yp1 = (((posye - i) * zoome) >> 14);
+                    if (yp1 != tempy)
+                    {
+                        if ((yp1 > Engine._device.midydim16 - ydim16) && (yp1 <= Engine._device.midydim16))
+                        {
+                            drawline16(Engine._device.halfxdim16 - xp1, Engine._device.midydim16 - yp1, Engine._device.halfxdim16 - xp2, Engine._device.midydim16 - yp1, 8);
+                            tempy = yp1;
+                        }
+                    }
+                }
+
+                Engine._device.EndDrawing();	//}}}
+            }
+        }
+
+
+        //
+        // drawline16
+        //
+        // JBF: Had to add extra tests to make sure x-coordinates weren't winding up -'ve
+        //   after clipping or crashes would ensue
+        private static uint drawlinepat = 0xffffffff;
+
+        public static void drawline16(int x1, int y1, int x2, int y2, byte col)
+        {
+	        int i, dx, dy, p, pinc, d;
+	        uint patc=0;
+
+	        dx = x2-x1; dy = y2-y1;
+	        if (dx >= 0)
+	        {
+		        if ((x1 >= _device.xres) || (x2 < 0)) return;
+                if (x1 < 0) { if (dy != 0) y1 += pragmas.scale(0 - x1, dy, dx); x1 = 0; }
+                if (x2 >= _device.xres) { if (dy != 0) y2 += pragmas.scale(_device.xres - 1 - x2, dy, dx); x2 = _device.xres - 1; }
+	        }
+	        else
+	        {
+		        if ((x2 >= _device.xres) || (x1 < 0)) return;
+		        if (x2 < 0) { if (dy != 0) y2 += pragmas.scale(0-x2,dy,dx); x2 = 0; }
+                if (x1 >= _device.xres) { if (dy != 0) y1 += pragmas.scale(_device.xres - 1 - x1, dy, dx); x1 = _device.xres - 1; }
+	        }
+	        if (dy >= 0)
+	        {
+		        if ((y1 >= ydim16) || (y2 < 0)) return;
+		        if (y1 < 0) { if (dx != 0) x1 += pragmas.scale(0-y1,dx,dy); y1 = 0; if (x1 < 0) x1 = 0; }
+                if (y2 >= ydim16) { if (dx != 0) x2 += pragmas.scale(ydim16 - 1 - y2, dx, dy); y2 = ydim16 - 1; if (x2 < 0) x2 = 0; }
+	        }
+	        else
+	        {
+		        if ((y2 >= ydim16) || (y1 < 0)) return;
+                if (y2 < 0) { if (dx != 0) x2 += pragmas.scale(0 - y2, dx, dy); y2 = 0; if (x2 < 0) x2 = 0; }
+                if (y1 >= ydim16) { if (dx != 0) x1 += pragmas.scale(ydim16 - 1 - y1, dx, dy); y1 = ydim16 - 1; if (x1 < 0) x1 = 0; }
+	        }
+
+            dx = pragmas.klabs(x2 - x1) + 1; dy = pragmas.klabs(y2 - y1) + 1;
+	        if (dx >= dy)
+	        {
+		        if (x2 < x1)
+		        {
+			        i = x1; x1 = x2; x2 = i;
+			        i = y1; y1 = y2; y2 = i;
+		        }
+		        d = 0;
+                if (y2 > y1) pinc = _device.bytesperline; else pinc = -_device.bytesperline;
+
+                _device.BeginDrawing();
+		        p = (y1*_device.bytesperline)+x1+frameplace;
+		        if (dy == 0 && drawlinepat == 0xffffffff) {
+			        i = ((int)col<<24)|((int)col<<16)|((int)col<<8)|col;
+			        //clearbufbyte((void *)p, dx, i);
+                    Array.Clear(_device._screenbuffer.Pixels, dx, i);
+		        } else
+		        for(i=dx;i>0;i--)
+		        {
+			        if ((drawlinepat & pow2long[(patc++)&31]) != 0)
+                        pragmas.drawpixel(p, col);
+			        d += dy;
+			        if (d >= dx) { d -= dx; p += pinc; }
+			        p++;
+		        }
+                _device.EndDrawing();
+		        return;
+	        }
+
+	        if (y2 < y1)
+	        {
+		        i = x1; x1 = x2; x2 = i;
+		        i = y1; y1 = y2; y2 = i;
+	        }
+	        d = 0;
+	        if (x2 > x1) pinc = 1; else pinc = -1;
+
+            _device.BeginDrawing();
+	        p = (y1*_device.bytesperline)+x1+frameplace;
+	        for(i=dy;i>0;i--)
+	        {
+		        if ((drawlinepat & pow2long[(patc++)&31]) != 0)
+                    pragmas.drawpixel(p, col);
+		        d += dx;
+		        if (d >= dy) { d -= dy; p += pinc; }
+		        p += _device.bytesperline;
+	        }
+            _device.EndDrawing();
+        }
+
+
+        //
+        // drawline256
+        //
+        public static void drawline256(int x1, int y1, int x2, int y2, byte colbyte)
+        {
+	        int dx, dy, i, j, p, inc, plc, daend;
+
+	        int col = Engine._device._palette._palettebuffer[colbyte];
+
+	        dx = x2-x1; dy = y2-y1;
+	        if (dx >= 0)
+	        {
+		        if ((x1 >= _device.wx2) || (x2 < _device.wx1)) 
+                    return;
+		        if (x1 < _device.wx1) {
+                    y1 += pragmas.scale(_device.wx1-x1,dy,dx);
+                    x1 = _device.wx1;
+                }
+		        if (x2 > _device.wx2) 
+                {
+                    y2 += pragmas.scale(_device.wx2-x2,dy,dx);
+                    x2 = _device.wx2;
+                }
+	        }
+	        else
+	        {
+		        if ((x2 >= _device.wx2) || (x1 < _device.wx1)) return;
+		        if (x2 < _device.wx1) {
+                    y2 += pragmas.scale(_device.wx1-x2,dy,dx);
+                    x2 = _device.wx1;
+                }
+		        if (x1 > _device.wx2) {
+                    y1 += pragmas.scale(_device.wx2-x1,dy,dx);
+                    x1 = _device.wx2;
+                }
+	        }
+	        if (dy >= 0)
+	        {
+		        if ((y1 >= _device.wy2) || (y2 < _device.wy1)) return;
+		        if (y1 < _device.wy1) 
+                {
+                    x1 += pragmas.scale(_device.wy1-y1,dx,dy);
+                    y1 = _device.wy1;
+                }
+		        if (y2 > _device.wy2) {
+                    x2 += pragmas.scale(_device.wy2-y2,dx,dy);
+                    y2 = _device.wy2;
+                }
+	        }
+	        else
+	        {
+		        if ((y2 >= _device.wy2) || (y1 < _device.wy1)) 
+                    return;
+		        if (y2 < _device.wy1) {
+                    x2 += pragmas.scale(_device.wy1-y2,dx,dy);
+                    y2 = _device.wy1;
+                }
+		        if (y1 > _device.wy2)
+                {
+                    x1 += pragmas.scale(_device.wy2-y1,dx,dy);
+                    y1 = _device.wy2;
+                }
+	        }
+
+            if (pragmas.klabs(dx) >= pragmas.klabs(dy))
+            {
+                if (dx == 0) return;
+                if (dx < 0)
+                {
+                    i = x1; x1 = x2; x2 = i;
+                    i = y1; y1 = y2; y2 = i;
+                }
+
+                inc = pragmas.divscale12(dy, dx);
+                plc = y1 + pragmas.mulscale12((2047 - x1) & 4095, inc);
+                i = ((x1 + 2048) >> 12); daend = ((x2 + 2048) >> 12);
+
+                _device.BeginDrawing();
+                for (; i < daend; i++)
+                {
+                    j = (plc >> 12);
+                    if ((j >= _device.startumost[i]) && (j < _device.startdmost[i]))
+                        pragmas.drawpixel(frameplace + ylookup[j] + i, col);
+                    plc += inc;
+                }
+                _device.EndDrawing();
+            }
+            else
+            {
+                if (dy < 0)
+                {
+                    i = x1; x1 = x2; x2 = i;
+                    i = y1; y1 = y2; y2 = i;
+                }
+
+                inc = pragmas.divscale12(dx, dy);
+                plc = x1 + pragmas.mulscale12((2047 - y1) & 4095, inc);
+                i = ((y1 + 2048) >> 12); daend = ((y2 + 2048) >> 12);
+
+                _device.BeginDrawing();
+                p = ylookup[i] + frameplace;
+                for (; i < daend; i++)
+                {
+                    j = (plc >> 12);
+                    if ((i >= _device.startumost[j]) && (i < _device.startdmost[j]))
+                        pragmas.drawpixel(j + p, col);
+                    plc += inc; p += ylookup[1];
+                }
+                _device.EndDrawing();
+            }
+	    }
+
+
         private static int clippoly4(int cx1, int cy1, int cx2, int cy2)
         {
 	        int n, nn, z, zz, x, x1, x2, y, y1, y2, t;

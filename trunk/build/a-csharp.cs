@@ -15,7 +15,6 @@ namespace build
 {
     public static class A
     {
-
         public const int BITSOFPRECISION = 3;
         public const int BITSOFPRECISIONPOW = 8;
 
@@ -78,6 +77,7 @@ namespace build
 	        }
         }
 
+        
 
 	        //Sloped ceiling/floor vertical line functions
         public static void setupslopevlin(int logylogx, byte[] bufplc, int bufplcpos, int pinc)

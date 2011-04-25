@@ -63,6 +63,8 @@ namespace shadow_warrior
 
             //gameviewpanelbackground.Visibility = System.Windows.Visibility.Collapsed;
 
+            viewportimg.Cursor = Cursors.None;
+
             // Game loop.
             CompositionTarget.Rendering += new EventHandler(Page_CompositionTarget_Rendering);
         }

@@ -18,7 +18,7 @@ namespace build
     //
     // VgaDevice
     //
-    unsafe class VgaDevice
+    public class VgaDevice
     {
         public int xdim;
         public int ydim;
@@ -35,7 +35,7 @@ namespace build
 
         public const int MAXXDIM = 1600;
         public const int MAXYDIM = 1200;
-
+        public int halfxdim16, midydim16;
         public int viewingrange, viewingrangerecip, yxaspect, xyaspect, xdimenscale, xdimscale;
         public int xdimen, ydimen;
         public short[] startumost = new short[MAXXDIM];
@@ -98,7 +98,7 @@ namespace build
 
 	        bytesperline = xres;
 
-            _screenbuffer.Clear();
+           // _screenbuffer.Clear();
             canvasimage.Source = _screenbuffer;
 
           //  _tempscreenbuffer = new int[_screenbuffer.Pixels.Length];
@@ -123,6 +123,7 @@ namespace build
         //
         // setview
         //
+        
         public void setview(int x1, int y1, int x2, int y2)
         {
 	        int i;
@@ -135,6 +136,9 @@ namespace build
 	        xdimen = (x2-x1)+1; halfxdimen = (xdimen>>1);
 	        xdimenrecip = pragmas.divscale32( 1,xdimen);
 	        ydimen = (y2-y1)+1;
+
+            halfxdim16 = xres >> 1;
+            midydim16 = pragmas.scale(200, yres, 480);
 
 	        setaspect(65536,(int)pragmas.divscale16( ydim*320,xdim*200));
 

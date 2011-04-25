@@ -2,6 +2,5 @@
   <Deployment.Parts>
     <AssemblyPart x:Name="shadow warrior" Source="shadow warrior.dll" />
     <AssemblyPart x:Name="build" Source="build.dll" />
-    <AssemblyPart x:Name="WriteableBitmapExWinPhone" Source="WriteableBitmapExWinPhone.dll" />
   </Deployment.Parts>
 </Deployment>

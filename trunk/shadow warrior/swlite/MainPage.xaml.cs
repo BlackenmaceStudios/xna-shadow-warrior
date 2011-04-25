@@ -26,6 +26,7 @@ namespace swlite
             InitializeComponent();
             this.KeyDown += keyHandler;
             this.KeyUp += keyUpHandler;
+            
 
             System.Windows.Browser.HtmlPage.Plugin.Focus();
             this.Focus();
