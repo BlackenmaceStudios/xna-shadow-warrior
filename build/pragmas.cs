@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
-
+using System.Windows.Media;
 namespace build
 {
     [StructLayout(LayoutKind.Explicit)]
@@ -26,10 +26,16 @@ namespace build
         private static ushort[] shlookup = new ushort[4096 + 256];
         private static int dmvallocal = 0;
         private static int[] reciptable = new int[2048];
+        private static int[] doscolors = new int[13];
 
         #if BUILD_INTEROPSERVICES
         private static object recriptablegchandle;
         #endif
+
+        public static void drawpixel(int pbase, int a)
+        {
+            Engine._device._screenbuffer.Pixels[pbase] = doscolors[a];
+        }
 
         public static int dmval
         {
@@ -60,6 +66,31 @@ namespace build
 
             for (int i = 0; i < 2048; i++) 
                 reciptable[i] = (int)divscale30( 2048, i + 2048);
+
+            for (int i = 0; i < 13; i++)
+            {
+                System.Windows.Media.Color color = Color.FromArgb(0, 0, 0, 0);
+                switch (i)
+                {
+                    case 0: color = Colors.Black; break;
+                    case 1: color = Colors.Blue; break;
+                    case 2: color = Colors.Green; break;
+                    case 3: color = Color.FromArgb(0xFF, 0, 0xFF, 0xFF); break;
+                    case 4: color = Colors.Red; break;
+                    case 5: color = Colors.Purple; break;
+                    case 6: color = Color.FromArgb(0xFF, 168, 84, 0 ); break;
+                    case 7: color = Colors.White; break;
+                    case 8: color = Colors.Gray; break;
+                    case 9: color = Color.FromArgb(0xFF,00, 0xFF, 0xFF); break;
+                    case 10: color = Color.FromArgb(0xFF, 0x00, 0xFF, 0x00); break;
+                    case 11: color = Color.FromArgb(0xFF, 0x00, 0xFF, 0xFF); break;
+                    case 12: color = Color.FromArgb(0xFF, 252, 82, 82); break;
+                    default:
+                         throw new Exception("dos color not implemented");
+                }
+
+                doscolors[i] = (255 << 24) | ((byte)(color.R) << 16) | (byte)(color.G) << 8 | (byte)(color.B);
+            }
 
 #if BUILD_INTEROPSERVICES
             recriptablegchandle = GCServices.Alloc(reciptable, GCHandleType.Pinned);
