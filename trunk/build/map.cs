@@ -64,7 +64,7 @@ namespace build
         private const int MAXCLIPNUM = 512;
 
         private int clipsectnum;
-
+        private byte[] show2dsprite = new byte[(MAXSPRITES+7)>>3];
         private int[] rxi = new int[8];
         private int[] ryi = new int[8];
         private int[] rzi = new int[8];
@@ -141,6 +141,8 @@ namespace build
         private int[] vplce = new int[4];
         private int[] vince = new int[4];
         private int[] bufplce = new int[4];
+
+        public int linehighlight = -1;
 
         private int mirrorsx1, mirrorsx2, mirrorsy1, mirrorsy2;
 
@@ -317,7 +319,7 @@ namespace build
 	        return(blanktouse);
         }
 
-        private void initspritelists()
+        public void initspritelists()
         {
             int i;
 
@@ -727,6 +729,232 @@ namespace build
 		        nytoofar = 16384*16384-1048576;
 	        }
         }
+
+        //
+        // draw2dscreen
+        //
+        public void draw2dscreen(int posxe, int posye, short ange, int zoome, short gride)
+        {
+            walltype wal;
+            int i, j, k, xp1, yp1, xp2, yp2, tempy, templong;
+            byte col, mask;
+
+            //if (qsetmode == 200) return;
+
+            Engine.BeginDrawing();
+
+          //  faketimerhandler();
+            for (i = numwalls - 1; i >= 0; i--)
+            {
+                wal = wall[i];
+              //  if (editstatus == 0)
+            //    {
+              //      if ((show2dwall[i >> 3] & pow2char[i & 7]) == 0) continue;
+                //    j = wal.nextwall;
+                  //  if ((j >= 0) && (i > j))
+                    //    if ((show2dwall[j >> 3] & pow2char[j & 7]) > 0) continue;
+                //}
+                //else
+                //{
+                    j = wal.nextwall;
+                    if ((j >= 0) && (i > j)) continue;
+                //}
+
+                if (j < 0)
+                {
+                    col = 7;
+                 //   if (i == linehighlight) if (totalclock & 8) col += (2 << 2);
+                }
+                else
+                {
+                    col = 4;
+                    if ((wal.cstat & 1) != 0) col = 5;
+                  //  if ((i == linehighlight) || ((linehighlight >= 0) && (i == wall[linehighlight].nextwall)))
+                      //  if (totalclock & 8) col += (2 << 2);
+                }
+
+                xp1 = pragmas.mulscale14(wal.x - posxe, zoome);
+                yp1 = pragmas.mulscale14(wal.y - posye, zoome);
+                xp2 = pragmas.mulscale14(wall[wal.point2].x - posxe, zoome);
+                yp2 = pragmas.mulscale14(wall[wal.point2].y - posye, zoome);
+
+                if ((wal.cstat & 64) > 0)
+                {
+                    if (pragmas.klabs(xp2 - xp1) >= pragmas.klabs(yp2 - yp1))
+                    {
+                        Engine.drawline16(Engine._device.halfxdim16 + xp1, Engine._device.midydim16 + yp1 + 1, Engine._device.halfxdim16 + xp2, Engine._device.midydim16 + yp2 + 1, col);
+                        Engine.drawline16(Engine._device.halfxdim16 + xp1, Engine._device.midydim16 + yp1 - 1, Engine._device.halfxdim16 + xp2, Engine._device.midydim16 + yp2 - 1, col);
+                    }
+                    else
+                    {
+                        Engine.drawline16(Engine._device.halfxdim16 + xp1 + 1, Engine._device.midydim16 + yp1, Engine._device.halfxdim16 + xp2 + 1, Engine._device.midydim16 + yp2, col);
+                        Engine.drawline16(Engine._device.halfxdim16 + xp1 - 1, Engine._device.midydim16 + yp1, Engine._device.halfxdim16 + xp2 - 1, Engine._device.midydim16 + yp2, col);
+                    }
+                    col += 8;
+                }
+                Engine.drawline16(Engine._device.halfxdim16 + xp1, Engine._device.midydim16 + yp1, Engine._device.halfxdim16 + xp2, Engine._device.midydim16 + yp2, col);
+
+                if ((zoome >= 256) && (Engine.editstatus == true))
+                    if (((Engine._device.halfxdim16 + xp1) >= 2) && ((Engine._device.halfxdim16 + xp1) <= Engine._device.xdim - 3))
+                        if (((Engine._device.midydim16 + yp1) >= 2) && ((Engine._device.midydim16 + yp1) <= Engine.ydim16 - 3))
+                        {
+                            col = 2;
+                            //if (i == pointhighlight)
+                           // {
+                               // if (totalclock & 8) col += (2 << 2);	// JBF 20040116: two braces is all this needed. man I'm a fool sometimes.
+                           // }
+                           // else if ((highlightcnt > 0) && (editstatus == 1))
+                          //  {
+                          //      if (show2dwall[i >> 3] & pow2char[i & 7])
+                          //          if (totalclock & 8) col += (2 << 2);
+                          //  }
+
+                            templong = ((Engine._device.midydim16 + yp1) * Engine._device.bytesperline) + (Engine._device.halfxdim16 + xp1) + Engine.frameplace;
+                            pragmas.drawpixel(templong - 2 - (Engine._device.bytesperline << 1), col);
+                            pragmas.drawpixel(templong - 1 - (Engine._device.bytesperline << 1), col);
+                            pragmas.drawpixel(templong + 0 - (Engine._device.bytesperline << 1), col);
+                            pragmas.drawpixel(templong + 1 - (Engine._device.bytesperline << 1), col);
+                            pragmas.drawpixel(templong + 2 - (Engine._device.bytesperline << 1), col);
+
+                            pragmas.drawpixel(templong - 2 + (Engine._device.bytesperline << 1), col);
+                            pragmas.drawpixel(templong - 1 + (Engine._device.bytesperline << 1), col);
+                            pragmas.drawpixel(templong + 0 + (Engine._device.bytesperline << 1), col);
+                            pragmas.drawpixel(templong + 1 + (Engine._device.bytesperline << 1), col);
+                            pragmas.drawpixel(templong + 2 + (Engine._device.bytesperline << 1), col);
+
+                            pragmas.drawpixel(templong - 2 - Engine._device.bytesperline, col);
+                            pragmas.drawpixel(templong - 2 + 0, col);
+                            pragmas.drawpixel(templong - 2 + Engine._device.bytesperline, col);
+
+                            pragmas.drawpixel(templong + 2 - Engine._device.bytesperline, col);
+                            pragmas.drawpixel(templong + 2 + 0, col);
+                            pragmas.drawpixel(templong + 2 + Engine._device.bytesperline, col);
+                        }
+            }
+          //  faketimerhandler();
+
+            if ((zoome >= 256) || (Engine.editstatus == false))
+                for (i = 0; i < numsectors; i++)
+                    for (j = headspritesect[i]; j >= 0; j = nextspritesect[j])
+                        if ((Engine.editstatus == true) || (show2dsprite[j >> 3] & Engine.pow2char[j & 7]) != 0)
+                        {
+                            col = 3;
+                            if ((sprite[j].cstat & 1) > 0) col = 5;
+                            if (Engine.editstatus == true)
+                            {
+                                /*
+                                if (j + 16384 == pointhighlight)
+                                {
+                                    if (totalclock & 8) col += (2 << 2);
+                                }
+                                else if ((highlightcnt > 0) && (editstatus == 1))
+                                {
+                                    if (show2dsprite[j >> 3] & pow2char[j & 7])
+                                        if (totalclock & 8) col += (2 << 2);
+                                }
+                                 * */
+                            }
+
+                            xp1 = pragmas.mulscale14(sprite[j].x - posxe, zoome);
+                            yp1 = pragmas.mulscale14(sprite[j].y - posye, zoome);
+                            if (((Engine._device.halfxdim16 + xp1) >= 2) && ((Engine._device.halfxdim16 + xp1) <= Engine._device.xdim - 3))
+                                if (((Engine._device.midydim16 + yp1) >= 2) && ((Engine._device.midydim16 + yp1) <= Engine.ydim16 - 3))
+                                {
+                                    templong = ((Engine._device.midydim16 + yp1) * Engine._device.bytesperline) + (Engine._device.halfxdim16 + xp1) + Engine.frameplace;
+                                    pragmas.drawpixel(templong - 1 - (Engine._device.bytesperline << 1), col);
+                                    pragmas.drawpixel(templong + 0 - (Engine._device.bytesperline << 1), col);
+                                    pragmas.drawpixel(templong + 1 - (Engine._device.bytesperline << 1), col);
+
+                                    pragmas.drawpixel(templong - 1 + (Engine._device.bytesperline << 1), col);
+                                    pragmas.drawpixel(templong + 0 + (Engine._device.bytesperline << 1), col);
+                                    pragmas.drawpixel(templong + 1 + (Engine._device.bytesperline << 1), col);
+
+                                    pragmas.drawpixel(templong - 2 - Engine._device.bytesperline, col);
+                                    pragmas.drawpixel(templong - 2 + 0, col);
+                                    pragmas.drawpixel(templong - 2 + Engine._device.bytesperline, col);
+
+                                    pragmas.drawpixel(templong + 2 - Engine._device.bytesperline, col);
+                                    pragmas.drawpixel(templong + 2 + 0, col);
+                                    pragmas.drawpixel(templong + 2 + Engine._device.bytesperline, col);
+
+                                    pragmas.drawpixel(templong + 1 + Engine._device.bytesperline, col);
+                                    pragmas.drawpixel(templong - 1 + Engine._device.bytesperline, col);
+                                    pragmas.drawpixel(templong + 1 - Engine._device.bytesperline, col);
+                                    pragmas.drawpixel(templong - 1 - Engine._device.bytesperline, col);
+
+                                    /*
+                                     * JBF 20050103: A little something intended for TerminX. It draws a box
+                                     * indicating the extents of a floor-aligned sprite in the 2D view of the editor.
+                                     *
+                                    if ((sprite[j].cstat&32) > 0) {
+                                        long fx = mulscale6(tilesizx[sprite[j].picnum], sprite[j].xrepeat);
+                                        long fy = mulscale6(tilesizy[sprite[j].picnum], sprite[j].yrepeat);
+                                        long co[4][2], ii;
+                                        long sinang = sintable[(sprite[j].ang+512+1024)&2047];
+                                        long cosang = sintable[(sprite[j].ang+1024)&2047];
+                                        long r,s;
+
+                                        fx = mulscale10(fx,zoome) >> 1;
+                                        fy = mulscale10(fy,zoome) >> 1;
+
+                                        co[0][0] = -fx;
+                                        co[0][1] = -fy;
+                                        co[1][0] =  fx;
+                                        co[1][1] = -fy;
+                                        co[2][0] =  fx;
+                                        co[2][1] =  fy;
+                                        co[3][0] = -fx;
+                                        co[3][1] =  fy;
+
+                                        for (ii=0;ii<4;ii++) {
+                                            r = mulscale14(cosang,co[ii][0]) - mulscale14(sinang,co[ii][1]);
+                                            s = mulscale14(sinang,co[ii][0]) + mulscale14(cosang,co[ii][1]);
+                                            co[ii][0] = r;
+                                            co[ii][1] = s;
+                                        }
+
+                                        drawlinepat = 0xcccccccc;
+                                        for (ii=0;ii<4;ii++) {
+                                            drawline16(halfxdim16 + xp1 + co[ii][0], midydim16 + yp1 - co[ii][1],
+                                                halfxdim16 + xp1 + co[(ii+1)&3][0], midydim16 + yp1 - co[(ii+1)&3][1],
+                                                col);
+                                        }
+                                        drawlinepat = 0xffffffff;
+                                    }
+                                    */
+
+                                    xp2 = pragmas.mulscale11(Engine.table.sintable[(sprite[j].ang + 2560) & 2047], zoome) / 768;
+                                    yp2 = pragmas.mulscale11(Engine.table.sintable[(sprite[j].ang + 2048) & 2047], zoome) / 768;
+
+                                    if ((sprite[j].cstat & 256) > 0)
+                                    {
+                                        if (((sprite[j].ang + 256) & 512) == 0)
+                                        {
+                                            Engine.drawline16(Engine._device.halfxdim16 + xp1, Engine._device.midydim16 + yp1 - 1, Engine._device.halfxdim16 + xp1 + xp2, Engine._device.midydim16 + yp1 + yp2 - 1, col);
+                                            Engine.drawline16(Engine._device.halfxdim16 + xp1, Engine._device.midydim16 + yp1 + 1, Engine._device.halfxdim16 + xp1 + xp2, Engine._device.midydim16 + yp1 + yp2 + 1, col);
+                                        }
+                                        else
+                                        {
+                                            Engine.drawline16(Engine._device.halfxdim16 + xp1 - 1, Engine._device.midydim16 + yp1, Engine._device.halfxdim16 + xp1 + xp2 - 1, Engine._device.midydim16 + yp1 + yp2, col);
+                                            Engine.drawline16(Engine._device.halfxdim16 + xp1 + 1, Engine._device.midydim16 + yp1, Engine._device.halfxdim16 + xp1 + xp2 + 1, Engine._device.midydim16 + yp1 + yp2, col);
+                                        }
+                                        col += 8;
+                                    }
+                                    Engine.drawline16(Engine._device.halfxdim16 + xp1, Engine._device.midydim16 + yp1, Engine._device.halfxdim16 + xp1 + xp2, Engine._device.midydim16 + yp1 + yp2, col);
+                                }
+                        }
+
+            //faketimerhandler();
+            xp1 = pragmas.mulscale11(Engine.table.sintable[(ange + 2560) & 2047], zoome) / 768; //Draw white arrow
+            yp1 = pragmas.mulscale11(Engine.table.sintable[(ange + 2048) & 2047], zoome) / 768;
+            Engine.drawline16(Engine._device.halfxdim16 + xp1, Engine._device.midydim16 + yp1, Engine._device.halfxdim16 - xp1, Engine._device.midydim16 - yp1, 15);
+            Engine.drawline16(Engine._device.halfxdim16 + xp1, Engine._device.midydim16 + yp1, Engine._device.halfxdim16 + yp1, Engine._device.midydim16 - xp1, 15);
+            Engine.drawline16(Engine._device.halfxdim16 + xp1, Engine._device.midydim16 + yp1, Engine._device.halfxdim16 - yp1, Engine._device.midydim16 + xp1, 15);
+
+            //enddrawing();	//}}}
+            Engine._device.EndDrawing();
+        }
+
 
 
         public int getceilzofslope(short sectnum, int dax, int day)
@@ -3184,7 +3412,7 @@ namespace build
 
 			        clipyou = 0;
 			        if ((wal.nextsector < 0) || (wal.cstat&dawalclipmask) != 0) clipyou = 1;
-			        else if (Engine.EditStatus == false)
+			        else if (Engine.editstatus == false)
 			        {
                         daz = 0;
 				        if (Engine.rintersect((int)x,(int)y,0,gx,gy,0,x1,y1,x2,y2,ref dax,ref day,ref daz) == 0)
