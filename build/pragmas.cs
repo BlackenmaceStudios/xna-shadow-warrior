@@ -26,7 +26,7 @@ namespace build
         private static ushort[] shlookup = new ushort[4096 + 256];
         private static int dmvallocal = 0;
         private static int[] reciptable = new int[2048];
-        private static int[] doscolors = new int[13];
+        private static int[] doscolors = new int[16];
 
         #if BUILD_INTEROPSERVICES
         private static object recriptablegchandle;
@@ -67,7 +67,7 @@ namespace build
             for (int i = 0; i < 2048; i++) 
                 reciptable[i] = (int)divscale30( 2048, i + 2048);
 
-            for (int i = 0; i < 13; i++)
+            for (int i = 0; i < 16; i++)
             {
                 System.Windows.Media.Color color = Color.FromArgb(0, 0, 0, 0);
                 switch (i)
@@ -85,6 +85,9 @@ namespace build
                     case 10: color = Color.FromArgb(0xFF, 0x00, 0xFF, 0x00); break;
                     case 11: color = Color.FromArgb(0xFF, 0x00, 0xFF, 0xFF); break;
                     case 12: color = Color.FromArgb(0xFF, 252, 82, 82); break;
+                    case 13: color = Color.FromArgb(0xFF, 255, 0, 255); break;
+                    case 14: color = Colors.Yellow; break;
+                    case 15: color = Colors.White; break;
                     default:
                          throw new Exception("dos color not implemented");
                 }

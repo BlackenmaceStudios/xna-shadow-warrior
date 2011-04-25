@@ -11,6 +11,8 @@ namespace build
         public const int CLIPMASK0 = (((1) << 16) + 1);
         public const int CLIPMASK1 = (((256) << 16) + 64);
 
+        public static bool editstatus = false;
+
         public const int MAXTILES = 9216;
         public const int STATUS2DSIZ = 144;
         public static byte[] pow2char = new byte[]{1,2,4,8,16,32,64,128};
@@ -287,16 +289,6 @@ palette:
             }
         }
         internal static bVoxel[] voxoff = new bVoxel[MAXTILES];
-
-        public static bool EditStatus
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-
 
         public static int[] ggxinc = new int[256+1];
         public static int[] ggyinc = new int[256 + 1];
