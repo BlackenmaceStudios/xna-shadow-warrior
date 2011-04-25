@@ -29,9 +29,14 @@ namespace buildlite
         short cursectnum = -1;
         short grid = 3, gridlock = 1, showtags = 1;
         int zoom = 768, gettilezoom = 1;
+        bool draw2dview = true;
 
         int mousx2 = 8;
         int mousy2 = 8;
+        int fvel = 0;
+        int svel = 0;
+        int zvel = 0;
+        int angvel = 0;
 
         public const int STATUS2DSIZ = 144;
         private readonly string kensig = "BUILD by Ken Silverman";
@@ -205,15 +210,101 @@ namespace buildlite
             if (y >= 131072) y = 131072;
         }
 
+        public void editinputkeyup(bool mouserightdown, bool mouseleftdown, Key key)
+        {
+            switch (key)
+            {
+                case Key.A:
+                    //svel += 400;
+                    angvel = 0;
+                    break;
+                case Key.W:
+                    fvel = 0;
+                    break;
+                case Key.D:
+                    //svel -= 400;
+                    angvel = 0;
+                    break;
+                case Key.S:
+                    fvel = 0;
+                    break;
+                case Key.Q:
+                    svel = 0;
+                    break;
+                case Key.E:
+                    svel = 0;
+                    break;
+                case Key.Space:
+                    zvel = 0;
+                    break;
+                case Key.C:
+                    zvel = 0;
+                    break;
+                default:
+                    return;
+            }
+        }
 
         public void editinputkey(bool mouserightdown, bool mouseleftdown, Key key)
         {
             if (mouseleftdown)
             {
-                getpoint(mousx2, mousy2, ref posx, ref posy);
-                Engine.board.updatesector( posx, posy, ref cursectnum );
-                posz = Engine.board.sector[cursectnum].floorz;
+                if (draw2dview)
+                {
+                    getpoint(mousx2, mousy2, ref posx, ref posy);
+                    Engine.board.updatesector(posx, posy, ref cursectnum);
+
+                    if (cursectnum >= 0)
+                    {
+                        posz = Engine.board.sector[cursectnum].floorz;
+                    }
+                }
+
+                return;
             }
+
+            switch (key)
+            {
+                case Key.A:
+                    //svel += 400;
+                    angvel = -30;
+                    break;
+                case Key.W:
+                    fvel = 400;
+                    break;
+                case Key.D:
+                    //svel -= 400;
+                    angvel = 30;
+                    break;
+                case Key.S:
+                    fvel = -400;
+                    break;
+                case Key.Q:
+                    svel = 400;
+                    break;
+                case Key.E:
+                    svel = -200;
+                    break;
+                case Key.Space:
+                    zvel = -300;
+                    break;
+                case Key.C:
+                    zvel = 300;
+                    break;
+                case Key.Enter:
+                    if (cursectnum >= 0)
+                        draw2dview = !draw2dview;
+                    break;
+                default:
+                    return;
+            }
+
+                /*
+            else if (key == Key.Enter)
+            {
+                
+            }
+                 */
         }
 
         public void editinputmouse(double mousx, double mousy)
@@ -280,17 +371,83 @@ namespace buildlite
 
             Engine.board.draw2dscreen(posx, posy, ang, zoom, grid);
 
-            showmouse();
+            
         }
 
+        //
+        // ProcessMovement
+        //
+        private void ProcessMovement(int xvect, int yvect)
+        {
+            int i = 40;
+            int fz = 0, cz = 0, hz = 0, lz = 0;
+            int k;
+
+            Engine.board.updatesector(posx, posy, ref cursectnum);
+            Engine.board.getzrange(posx, posy, posz, cursectnum, ref cz, ref hz, ref fz, ref lz, 163, Engine.CLIPMASK0);
+
+            posz += zvel;
+
+            if (posz > fz)
+            {
+                posz = fz;
+            }
+            else if (posz < cz)
+            {
+                posz = cz;
+            }
+
+            Engine.board.clipmove(ref posx, ref posy, ref posz, ref cursectnum, xvect, yvect, 164, (4 << 8), (4 << 8), Engine.CLIPMASK0);
+        }
+
+        private void MoveViewer()
+        {
+            int xvect = 0, yvect = 0;
+
+            ang += (short)angvel;
+
+            int doubvel = 3;
+
+            xvect = 0; yvect = 0;
+            if (fvel != 0)
+            {
+                xvect += ((((int)fvel) * doubvel * (int)Engine.table.sintable[(ang + 512) & 2047]) >> 3);
+                yvect += ((((int)fvel) * doubvel * (int)Engine.table.sintable[ang & 2047]) >> 3);
+            }
+            if (svel != 0)
+            {
+                xvect += ((((int)svel) * doubvel * (int)Engine.table.sintable[ang & 2047]) >> 3);
+                yvect += ((((int)svel) * doubvel * (int)Engine.table.sintable[(ang + 1536) & 2047]) >> 3);
+            }
+
+            ProcessMovement(xvect, yvect);
+
+            svel = 0;
+            fvel = 0;
+            angvel = 0;
+        }
+
+        private void draw3dview()
+        {
+            Engine.board.drawrooms(posx, posy, posz  - 768, ang, 100, cursectnum);
+            Engine.board.drawmasks();
+        }
 
         public void Frame()
         {
-            
+            if(cursectnum >= 0)
+                MoveViewer();
 
-            overheadeditor();
+            if (draw2dview)
+            {
+                overheadeditor();
+            }
+            else
+            {
+                draw3dview();
+            }
 
-            
+            showmouse();
 
             Engine.NextPage();
         }
