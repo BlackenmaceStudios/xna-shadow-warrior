@@ -32,9 +32,9 @@ namespace build
         public const int MAXWALLSB = 2048;
         private const int MAXSPRITESONSCREEN = 1024;
 
-        private int numsectors = 0;
-        private int numwalls = 0;
-        private int numsprites = 0;
+        public int numsectors = 0;
+        public int numwalls = 0;
+        public int numsprites = 0;
 
         private bool showinvisibility = false;
 
@@ -530,7 +530,7 @@ namespace build
 		        {
 			        spr = sprite[z];
 			        cstat = spr.cstat;
-			        if ((cstat&dasprclipmask) == 0) continue;
+			        if ((cstat&dasprclipmask) == 0 && Engine.editstatus == false) continue;
 
 			        x1 = spr.x; y1 = spr.y; z1 = spr.z;
 			        switch(cstat&48)
