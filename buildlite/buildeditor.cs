@@ -523,13 +523,14 @@ namespace buildlite
         {
             if (hitsprite >= 0)
             {
+                int picnum = Engine.board.sprite[hitsprite].picnum;
                 Engine.printext16(0, ypos + 0, 15, -1, "Sprite: " + hitsprite + " Stats", 0);
                 Engine.printext16(0, ypos + 15, 15, -1, "Hitag: " + Engine.board.sprite[hitsprite].hitag, 0);
                 Engine.printext16(0, ypos + 25, 15, -1, "Lotag: " + Engine.board.sprite[hitsprite].lotag, 0);
                 Engine.printext16(0, ypos + 35, 15, -1, "Picnum: " + Engine.board.sprite[hitsprite].picnum, 0);
                 Engine.printext16(0, ypos + 45, 15, -1, "Pal: " + Engine.board.sprite[hitsprite].pal, 0);
                 Engine.printext16(0, ypos + 55, 15, -1, "Shade: " + Engine.board.sprite[hitsprite].pal, 0);
-                Engine.rotatesprite(125 << 16, (ypos + 20) << 16, 65536, 0, Engine.board.sprite[hitsprite].picnum, Engine.board.sprite[hitsprite].shade, Engine.board.sprite[hitsprite].pal, 8 | 16, 0, 0, Engine._device.xdim - 1, Engine._device.ydim - 1);
+                Engine.rotatesprite(125 << 16, (ypos + 20) << 16, 65536, 0, Engine.board.sprite[hitsprite].picnum, Engine.board.sprite[hitsprite].shade, Engine.board.sprite[hitsprite].pal, 8 | 16, 0, 0, Engine._device.xdim - 1, Engine._device.ydim - 30);
             }
         }
 
