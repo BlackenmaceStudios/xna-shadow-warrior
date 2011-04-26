@@ -415,6 +415,21 @@ palette:
         }
 
 
+        // return vertical screen coordinate displacement for BUILD z coord
+        public static Int32 getscreenvdisp(Int32 bz, Int32 zoome)
+        {
+            return pragmas.mulscale32(bz,zoome*table.sintable[(256+512)&2047]);
+        }
+
+        public static void screencoords(ref Int32 xres, ref Int32 yres, Int32 x, Int32 y, Int32 zoome)
+        {
+          //  if (m32_sideview)
+            //    rotatepoint(0, 0, x, y, m32_sideang, &x, &y);
+
+            xres = pragmas.mulscale14(x, zoome);
+            yres = pragmas.mulscale14(y, zoome);
+        }
+
         //
         // krand
         //
@@ -548,6 +563,23 @@ palette:
             //faketimerhandler();
             artfilplc = tilefileoffs[tilenume] + dasiz;
         }
+
+
+        //
+        // rotatepoint
+        //
+        public static void rotatepoint(Int32 xpivot, Int32 ypivot, Int32 x, Int32 y, short daang, ref Int32 x2, ref Int32 y2)
+        {
+            Int32 dacos, dasin;
+
+            dacos = table.sintable[(daang + 2560) & 2047];
+            dasin = table.sintable[(daang + 2048) & 2047];
+            x -= xpivot;
+            y -= ypivot;
+            x2 = pragmas.dmulscale14(x, dacos, -y, dasin) + xpivot;
+            y2 = pragmas.dmulscale14(y, dacos, x, dasin) + ypivot;
+        }
+
 
         //
         // printext16

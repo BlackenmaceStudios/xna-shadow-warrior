@@ -30,6 +30,7 @@ namespace buildlite
         short grid = 3, gridlock = 1, showtags = 1;
         int zoom = 768, gettilezoom = 1;
         bool draw2dview = true;
+        int pointhighlight = 0;
 
         int mousx2 = 8;
         int mousy2 = 8;
@@ -377,7 +378,15 @@ namespace buildlite
 
             Engine.board.draw2dscreen(posx, posy, ang, zoom, grid);
 
-            
+            int mousxplc = 0, mousyplc = 0;
+            getpoint(mousx2, mousy2, ref mousxplc, ref mousyplc);
+            pointhighlight = getpointhighlight(mousxplc, mousyplc, pointhighlight);
+
+
+            if ((pointhighlight & 0xc000) == 16384)
+            {
+                drawspriteinfo((pointhighlight & 16383), (Engine._device.ydim - STATUS2DSIZ) + 30);
+            }     
         }
 
         //
@@ -433,42 +442,125 @@ namespace buildlite
             angvel = 0;
         }
 
-        private void raytracecursor(ref int sectnum, ref short wallnum, ref short spritenum)
+        Int32 getpointhighlight(Int32 xplc, Int32 yplc, Int32 point)
         {
-            int posx2d = 0, posy2d = 0;
-            short daang = ang;
+            Int32 i, j, dst, dist = 512, closest = -1;
+            Int32 dax=0,day=0;
+
+            if (Engine.board.numwalls == 0)
+                return -1;
+
+            if (grid < 1)
+                dist = 0;
+
+   
+
+            for (i = 0; i < Engine.board.numsectors; i++)
+            {
+                for (j=Engine.board.sector[i].wallptr; j<Engine.board.sector[i].wallptr+Engine.board.sector[i].wallnum; j++)
+                {
+                    Engine.screencoords(ref dax, ref day, Engine.board.wall[j].x - posx, Engine.board.wall[j].y - posy, zoom);
+                    day += Engine.getscreenvdisp(Engine.board.getflorzofslope((short)i, Engine.board.wall[j].x, Engine.board.wall[j].y) - posz, zoom);
+
+                    if (Engine._device.halfxdim16+dax < 0 || Engine._device.halfxdim16+dax >= Engine._device.xdim || Engine._device.midydim16+day < 0 || Engine._device.midydim16+day >= Engine._device.ydim)
+                         continue;
+
+                    dst = pragmas.klabs(Engine._device.halfxdim16+dax-Engine.searchx) + pragmas.klabs(Engine._device.midydim16+day-Engine.searchy);
+
+                    if (dst <= dist)
+                    {
+                        // prefer white walls
+                        if (dst<dist || closest==-1 || (!(Engine.board.wall[j].nextwall>=0) || !(Engine.board.wall[closest].nextwall>=0)))
+                        {
+                            dist = dst;
+                            closest = j;
+                        }
+                    }
+                }
+            }
+
+            if (zoom >= 256)
+                for (i = 0; i < bMap.MAXSPRITES; i++)
+                {
+                    if (Engine.board.sprite[i] == null)
+                        continue;
+
+                    if (Engine.board.sprite[i].statnum < bMap.MAXSTATUS)
+                    {
+                        //   if (!m32_sideview && Engine.board.sprite[i].sectnum >= 0)
+                        //      YAX_SKIPSECTOR(sprite[i].sectnum);
+
+                        if (true /*!m32_sideview*/)
+                        {
+                            
+                            dst = pragmas.klabs(xplc - Engine.board.sprite[i].x) + pragmas.klabs(yplc - Engine.board.sprite[i].y)-150;
+                        }
+                        else
+                        {
+                            Engine.screencoords(ref dax, ref day, Engine.board.sprite[i].x - posx, Engine.board.sprite[i].y - posy, zoom);
+                            day += Engine.getscreenvdisp(Engine.board.sprite[i].z - posz, zoom);
+
+                            if (Engine._device.halfxdim16 + dax < 0 || Engine._device.halfxdim16 + dax >= Engine._device.xdim || Engine._device.midydim16 + day < 0 || Engine._device.midydim16 + day >= Engine._device.ydim)
+                                continue;
+
+                            dst = pragmas.klabs(Engine._device.halfxdim16 + dax - Engine.searchx) + pragmas.klabs(Engine._device.midydim16 + day - Engine.searchy);
+                        }
+
+                        // was (dst <= dist), but this way, when duplicating sprites,
+                        // the selected ones are dragged first
+                        if (dst < dist || (dst == dist /*&& (show2dsprite[i>>3]&(1<<(i&7)))*/))
+                        {
+                            dist = dst;
+                            closest = i + 16384;
+                        }
+                    }
+                }
+
+            return closest;
+        }
+
+        private void drawspriteinfo(int hitsprite, int ypos)
+        {
+            if (hitsprite >= 0)
+            {
+                Engine.printext16(0, ypos + 0, 15, -1, "Sprite: " + hitsprite + " Stats", 0);
+                Engine.printext16(0, ypos + 15, 15, -1, "Hitag: " + Engine.board.sprite[hitsprite].hitag, 0);
+                Engine.printext16(0, ypos + 25, 15, -1, "Lotag: " + Engine.board.sprite[hitsprite].lotag, 0);
+                Engine.printext16(0, ypos + 35, 15, -1, "Picnum: " + Engine.board.sprite[hitsprite].picnum, 0);
+                Engine.printext16(0, ypos + 45, 15, -1, "Pal: " + Engine.board.sprite[hitsprite].pal, 0);
+                Engine.printext16(0, ypos + 55, 15, -1, "Shade: " + Engine.board.sprite[hitsprite].pal, 0);
+                Engine.rotatesprite(125 << 16, (ypos + 20) << 16, 65536, 0, Engine.board.sprite[hitsprite].picnum, Engine.board.sprite[hitsprite].shade, Engine.board.sprite[hitsprite].pal, 8 | 16, 0, 0, Engine._device.xdim - 1, Engine._device.ydim - 1);
+            }
+        }
+
+        private void draw3dcursorinfo()
+        {
+            short hitsprite = 0, hitwall = 0;
+            int hitsector = 0;
             int hitx = 0, hity = 0, hitz = 0;
+            int dax = 16384;
+            int day = pragmas.divscale14(mousx2 - (Engine._device.xdim >> 1), Engine._device.xdim >> 1);
+            Engine.rotatepoint(0, 0, dax, day, ang, ref dax, ref day);
 
-            int centerx = Engine._device.xdim / 2;
-            int centery = Engine._device.ydim / 2;
+            Engine.board.hitscan(posx, posy, posz, cursectnum,              //Start position
+                    dax, day, (pragmas.scale(mousy2, 200, Engine._device.ydim) - 100) * 2000, //vector of 3D ang
+                    ref hitsector, ref hitwall, ref hitsprite, ref hitx, ref hity, ref hitz, Engine.CLIPMASK1);
 
-            posx2d = (mousx2 - centerx) << 12;
-            posy2d = (mousy2 - centery) << 12;
-
-            daang += (short)posx2d;
-
-            Engine.board.hitscan(posx, posy, posz + posy2d, cursectnum, Engine.table.sintable[(daang + 512) & 2047], Engine.table.sintable[daang & 2047], 0, ref sectnum, ref wallnum, ref spritenum, ref hitx, ref hity, ref hitz, Engine.CLIPMASK0 | Engine.CLIPMASK1);
+            drawspriteinfo(hitsprite, 0);
         }
 
         private void draw3dview()
         {
-            int posx3d = 0, posy3d = 0, posz3d = 0;
-            int hitsect = 0;
-            short hitwall = 0, hitsprite = 0;
-
             Engine.board.drawrooms(posx, posy, posz  - 768, ang, 100, cursectnum);
             Engine.board.drawmasks();
 
-            raytracecursor(ref hitsect, ref hitwall, ref hitsprite);
 
-            if (hitsprite >= 0)
-            {
-                Engine.printext16(0, 0, 14, 0, "Hit Sprite: " + hitsprite, 0);
-            }
+            draw3dcursorinfo();
         }
 
         public void Frame()
         {
+            
             if(cursectnum >= 0)
                 MoveViewer();
 
@@ -480,6 +572,8 @@ namespace buildlite
             {
                 draw3dview();
             }
+
+                  
 
             showmouse();
 
