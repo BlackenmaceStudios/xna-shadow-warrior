@@ -210,6 +210,12 @@ namespace buildlite
             if (y >= 131072) y = 131072;
         }
 
+        private void getpoint2(int searchxe, int searchye, ref int x, ref int y)
+        {
+            x = pragmas.divscale14(searchxe - Engine._device.halfxdim16, zoom);
+            y = pragmas.divscale14(searchye - Engine._device.midydim16, zoom);
+        }
+
         public void editinputkeyup(bool mouserightdown, bool mouseleftdown, Key key)
         {
             switch (key)
@@ -427,10 +433,38 @@ namespace buildlite
             angvel = 0;
         }
 
+        private void raytracecursor(ref int sectnum, ref short wallnum, ref short spritenum)
+        {
+            int posx2d = 0, posy2d = 0;
+            short daang = ang;
+            int hitx = 0, hity = 0, hitz = 0;
+
+            int centerx = Engine._device.xdim / 2;
+            int centery = Engine._device.ydim / 2;
+
+            posx2d = (mousx2 - centerx) << 12;
+            posy2d = (mousy2 - centery) << 12;
+
+            daang += (short)posx2d;
+
+            Engine.board.hitscan(posx, posy, posz + posy2d, cursectnum, Engine.table.sintable[(daang + 512) & 2047], Engine.table.sintable[daang & 2047], 0, ref sectnum, ref wallnum, ref spritenum, ref hitx, ref hity, ref hitz, Engine.CLIPMASK0 | Engine.CLIPMASK1);
+        }
+
         private void draw3dview()
         {
+            int posx3d = 0, posy3d = 0, posz3d = 0;
+            int hitsect = 0;
+            short hitwall = 0, hitsprite = 0;
+
             Engine.board.drawrooms(posx, posy, posz  - 768, ang, 100, cursectnum);
             Engine.board.drawmasks();
+
+            raytracecursor(ref hitsect, ref hitwall, ref hitsprite);
+
+            if (hitsprite >= 0)
+            {
+                Engine.printext16(0, 0, 14, 0, "Hit Sprite: " + hitsprite, 0);
+            }
         }
 
         public void Frame()
