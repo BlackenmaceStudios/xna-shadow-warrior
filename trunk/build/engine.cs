@@ -396,6 +396,7 @@ palette:
             GC.Collect();
 
             board = new bMap();
+            board.initspritelists();
         }
 
         //
@@ -405,6 +406,9 @@ palette:
         {
             board = null;
             GC.Collect();
+
+            if (filename.Length <= 0)
+                return 0;
 
             board = new bMap();
             if (board.loadboard(filename, ref daposx, ref daposy, ref daposz, ref daang, ref dacursectnum) == -1)
