@@ -351,11 +351,11 @@ namespace buildlite
                 }
                 else if (mouseTrace.hitsector >= 0 && mouseTrace.hitwall == -1)
                 {
-                    if (mouseTrace.hitz == Engine.board.sector[mouseTrace.hitsector].floorz)
+                    if (Engine.board.getflorzofslope((short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) <= mouseTrace.hitz)
                     {
                         Engine.board.sector[mouseTrace.hitsector].floorz += val;
                     }
-                    else if (mouseTrace.hitz == Engine.board.sector[mouseTrace.hitsector].ceilingz)
+                    else if (Engine.board.getceilzofslope( (short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) >= mouseTrace.hitz)
                     {
                         Engine.board.sector[mouseTrace.hitsector].ceilingz += val;
                     }
