@@ -49,7 +49,7 @@ namespace buildlite
         int linehighlight = -1;
 		short ang = 1536;
 
-        private const int POINT_EPISILON = 30;
+        private const int POINT_EPISILON = 5;
 
         private short numsectors
         {
@@ -297,6 +297,8 @@ namespace buildlite
             if (x >= 131072) x = 131072;
             if (y <= -131072) y = -131072;
             if (y >= 131072) y = 131072;
+
+            
         }
 
         private void getpoint2(int searchxe, int searchye, ref int x, ref int y)
@@ -386,7 +388,7 @@ namespace buildlite
                 j = 0;
                 //Check to see if point was inserted over another point
                 for (i = numwalls - 1; i >= 0; i--)     //delete points
-                    if (Math.Abs(Engine.board.wall[i].x - Engine.board.wall[Engine.board.wall[i].point2].x) < 100 && Math.Abs(Engine.board.wall[i].y - Engine.board.wall[Engine.board.wall[i].point2].y) < 100)
+                    if (Math.Abs(Engine.board.wall[i].x - Engine.board.wall[Engine.board.wall[i].point2].x) < POINT_EPISILON && Math.Abs(Engine.board.wall[i].y - Engine.board.wall[Engine.board.wall[i].point2].y) < POINT_EPISILON)
                   //  if (Engine.board.wall[i].x == Engine.board.wall[Engine.board.wall[i].point2].x)
                     //    if (Engine.board.wall[i].y == Engine.board.wall[Engine.board.wall[i].point2].y)
                         {
@@ -395,7 +397,7 @@ namespace buildlite
                         }
                 for (i = 0; i < numwalls; i++)        //make new red lines?
                 {
-                    if (Math.Abs(Engine.board.wall[i].x - dax) < 100 && Math.Abs(Engine.board.wall[i].x - day) < 100)
+                    if (Math.Abs(Engine.board.wall[i].x - dax) < 100 && Math.Abs(Engine.board.wall[i].x - day) < POINT_EPISILON)
                     {
                         EditorLib.checksectorpointer((short)i, (short)Engine.board.sectorofwall((short)i));
                         EditorLib.fixrepeats((short)i);
@@ -518,7 +520,7 @@ namespace buildlite
                 {
                     for (int i = 0; i < numwalls; i++)
                     {
-                        if (Math.Abs(Engine.board.wall[i].x - mousxplc) < 100 && Math.Abs(Engine.board.wall[i].y - mousyplc) < 100)
+                        if (Math.Abs(Engine.board.wall[i].x - mousxplc) < POINT_EPISILON && Math.Abs(Engine.board.wall[i].y - mousyplc) < POINT_EPISILON)
                         {
                             dragpoint.Add( Engine.board.wall[i] );
                         }
@@ -576,6 +578,19 @@ namespace buildlite
                         if (sectornum != -1)
                         {
                             int i = Engine.board.insertsprite(sectornum, 0);
+
+                            if ((gridlock > 0) && (grid > 0))
+                            {
+                                // if ((searchstat == 0) || (searchstat == 4))
+                                //  {
+                                //       hitz = (hitz & 0xfffffc00);
+                                //    }
+                                //   else
+                                {
+                                    dax = (int)((dax + (1024 >> grid)) & (0xffffffff << (11 - grid)));
+                                    day = (int)((day + (1024 >> grid)) & (0xffffffff << (11 - grid)));
+                                }
+                            }
 
                             Engine.board.sprite[i].x = dax;
                             Engine.board.sprite[i].y = day;
@@ -956,7 +971,19 @@ namespace buildlite
         {
             int bad = 0, danumwalls = 0, splitendwall = 0, loopnum = 0, secondstartwall = 0;
             int i, j, dax, day, startwall, endwall, m, k, splitsect = 0, splitstartwall = 0;
-                        
+
+            if ((gridlock > 0) && (grid > 0))
+            {
+                // if ((searchstat == 0) || (searchstat == 4))
+                //  {
+                //       hitz = (hitz & 0xfffffc00);
+                //    }
+                //   else
+                {
+                    mousxplc = (int)((mousxplc + (1024 >> grid)) & (0xffffffff << (11 - grid)));
+                    mousyplc = (int)((mousyplc + (1024 >> grid)) & (0xffffffff << (11 - grid)));
+                }
+            }
 
             if ((newnumwalls < numwalls) && (numwalls < bMap.MAXWALLS-1))
 			{
@@ -987,7 +1014,7 @@ namespace buildlite
 			{  //if not back to first point
 // jv
 		//		if ((firstx != mousxplc) || (firsty != mousyplc))  //nextpoint
-                if (Math.Abs(firstx - mousxplc) > 400 || Math.Abs(firsty - mousyplc) > 400)
+                if (Math.Abs(firstx - mousxplc) > POINT_EPISILON || Math.Abs(firsty - mousyplc) > POINT_EPISILON)
 // jv end
 				{
 					j = 0;
