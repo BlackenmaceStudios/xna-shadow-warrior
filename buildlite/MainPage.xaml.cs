@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !WINDOWS_PHONE
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -9,10 +10,28 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
+#else
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Shapes;
+using Microsoft.Phone.Controls;
+#endif
 
 namespace buildlite
 {
+#if WINDOWS_PHONE
+    public partial class MainPage : PhoneApplicationPage
+#else
     public partial class MainPage : UserControl
+#endif
     {
         BuildEditor _editor;
 
@@ -40,6 +59,7 @@ namespace buildlite
 
             this.MouseMove += new MouseEventHandler(MainPage_MouseMove);
             this.MouseLeftButtonDown += new MouseButtonEventHandler(MainPage_MouseLeftButtonDown);
+            this.MouseLeftButtonUp += new MouseButtonEventHandler(MainPage_MouseLeftButtonUp);
             this.KeyDown += new KeyEventHandler(MainPage_KeyDown);
             this.KeyUp += new KeyEventHandler(MainPage_KeyUp);
             viewportimg.Cursor = Cursors.None;
@@ -50,6 +70,11 @@ namespace buildlite
         void MainPage_KeyUp(object sender, KeyEventArgs e)
         {
             _editor.editinputkeyup(false, false, e.Key);
+        }
+
+        void MainPage_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            _editor.editinputkeyup(false, true, Key.None);
         }
 
         void MainPage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

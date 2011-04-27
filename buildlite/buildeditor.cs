@@ -11,6 +11,7 @@ using System.Windows.Shapes;
 using System.Windows.Media.Imaging;
 using build;
 
+
 namespace buildlite
 {
     class MouseTrace
@@ -36,6 +37,8 @@ namespace buildlite
         int posx = 32768;
 		int posy = 32768;
 		int posz = 0;
+        int mousxplc = 0, mousyplc = 0;
+        int linehighlight = -1;
 		short ang = 1536;
         private short numsectors
         {
@@ -67,6 +70,7 @@ namespace buildlite
         EditorState editorState = EditorState.STATE_2DVIEW;
         int pointhighlight = 0;
         MouseTrace mouseTrace = new MouseTrace();
+        walltype dragpoint = null;
 
         short[] localartlookup = new short[bMap.MAXTILES];
         short localartlookupnum = -1;
@@ -290,8 +294,13 @@ namespace buildlite
             y = pragmas.divscale14(searchye - Engine._device.midydim16, zoom);
         }
 
-        public void editinputkeyup(bool mouserightdown, bool mouseleftdown, Key key)
+        public void editinputkeyup(bool mouserightup, bool mouseleftup, Key key)
         {
+            if (mouseleftup)
+            {
+                dragpoint = null;
+                return;
+            }
             switch (key)
             {
                 case Key.A:
@@ -353,6 +362,54 @@ namespace buildlite
             }
         }
 
+        private void InsertPointOnHighlightedLine()
+        {
+            int dax = 0, day = 0, i, j;
+            if (linehighlight >= 0)
+            {
+                EditorLib.getclosestpointonwall(mousxplc, mousyplc, (int)linehighlight, ref dax, ref day);
+                adjustmark(ref dax, ref day, (short)newnumwalls);
+                EditorLib.insertpoint((short)linehighlight, dax, day);
+                printmessage16("Point inserted.");
+
+                j = 0;
+                //Check to see if point was inserted over another point
+                for (i = numwalls - 1; i >= 0; i--)     //delete points
+                    if (Engine.board.wall[i].x == Engine.board.wall[Engine.board.wall[i].point2].x)
+                        if (Engine.board.wall[i].y == Engine.board.wall[Engine.board.wall[i].point2].y)
+                        {
+                            EditorLib.deletepoint((short)i);
+                            j++;
+                        }
+                for (i = 0; i < numwalls; i++)        //make new red lines?
+                {
+                    if ((Engine.board.wall[i].x == dax) && (Engine.board.wall[i].y == day))
+                    {
+                        EditorLib.checksectorpointer((short)i, (short)Engine.board.sectorofwall((short)i));
+                        EditorLib.fixrepeats((short)i);
+                    }
+                    else if ((Engine.board.wall[Engine.board.wall[i].point2].x == dax) && (Engine.board.wall[Engine.board.wall[i].point2].y == day))
+                    {
+                        EditorLib.checksectorpointer((short)i, (short)Engine.board.sectorofwall((short)i));
+                        EditorLib.fixrepeats((short)i);
+                    }
+                }
+                //if (j != 0)
+                //{
+                //   dax = ((wall[linehighlight].x + wall[wall[linehighlight].point2].x)>>1);
+                //   day = ((wall[linehighlight].y + wall[wall[linehighlight].point2].y)>>1);
+                //   if ((dax != wall[linehighlight].x) || (day != wall[linehighlight].y))
+                //      if ((dax != wall[wall[linehighlight].point2].x) || (day != wall[wall[linehighlight].point2].y))
+                //      {
+                //         insertpoint(linehighlight,dax,day);
+                //         printmessage16("Point inserted at midpoint.");
+                //      }
+                //}
+
+              //  asksave = 1;
+            }
+        }
+
         public void editinputkey(bool mouserightdown, bool mouseleftdown, Key key)
         {
             if (inloadmenu)
@@ -396,9 +453,23 @@ namespace buildlite
             }
             if (mouseleftdown)
             {
-                if (editorState == EditorState.STATE_2DVIEW)
+                if (newnumwalls >= 0)
                 {
-                    getpoint(mousx2, mousy2, ref posx, ref posy);
+                    overheaddrawwalls();
+                }
+                else if (editorState == EditorState.STATE_2DVIEW && dragpoint == null)
+                {
+                    for (int i = 0; i < numwalls; i++)
+                    {
+                        if (Math.Abs(Engine.board.wall[i].x - mousxplc) < 100 && Math.Abs(Engine.board.wall[i].y - mousyplc) < 100)
+                        {
+                            dragpoint = Engine.board.wall[i];
+                            return;
+                        }
+                    }
+                    posx = mousxplc;
+                    posy = mousyplc;
+                    //getpoint(mousx2, mousy2, ref posx, ref posy);
                     Engine.board.updatesector(posx, posy, ref cursectnum);
 
                     if (cursectnum >= 0)
@@ -451,11 +522,19 @@ namespace buildlite
                 case Key.PageUp:
                     objzvel = -1024;
                     break;
+                case Key.Insert:
+                    if (editorState == EditorState.STATE_2DVIEW)
+                        InsertPointOnHighlightedLine();
+                    break;
                 case Key.Escape:
                     if (editorState == EditorState.STATE_TILESELECT)
                         editorState = EditorState.STATE_3DVIEW;
                     else if (editorState == EditorState.STATE_2DVIEW)
                     {
+                        if (newnumwalls >= 0)
+                        {
+                            newnumwalls = -1;
+                        }
                         if (inloadmenu == false)
                             inbuildmenu = !inbuildmenu;
                     }
@@ -500,6 +579,8 @@ namespace buildlite
                         angvel = -30;
                     }
                     break;
+
+
  
                 case Key.V:
                     if (editorState == EditorState.STATE_3DVIEW)
@@ -574,8 +655,6 @@ namespace buildlite
         {
             mousx2 = (int)(mousx * 1.0f);
             mousy2 = (int)(mousy * 1.0f);
-
-
 
             Engine.searchx = mousx2; // (mousx2 >> 1);
             Engine.searchy = mousy2; // (mousy2 >> 1);
@@ -697,6 +776,11 @@ namespace buildlite
             //Engine.printext256(Engine._device.xdim - (strlen(names[i]) << 3), ydim - 8, 15, -1, names[i], 0);
         }
 
+        private walltype GetPointCloseToMouse()
+        {
+            return null;
+        }
+
         private int newnumwalls = -1;
         private int firstx = 0, firsty = 0;
         private int suckwall = -1, sucksect = -1;
@@ -705,10 +789,7 @@ namespace buildlite
         {
             int bad = 0, danumwalls = 0, splitendwall = 0, loopnum = 0, secondstartwall = 0;
             int i, j, dax, day, startwall, endwall, m, k, splitsect = 0, splitstartwall = 0;
-            int mousxplc = 0, mousyplc = 0;
-            getpoint(mousx2, mousy2, ref mousxplc, ref mousyplc);
-
-            
+                        
 
             if ((newnumwalls < numwalls) && (numwalls < bMap.MAXWALLS-1))
 			{
@@ -851,7 +932,7 @@ namespace buildlite
                                 Engine.board.wall[i].cstat = 0;
                                 Engine.board.wall[i].shade = 0;
                                 Engine.board.wall[i].yrepeat = 8;
-								fixrepeats((short)i);
+								EditorLib.fixrepeats((short)i);
                                 Engine.board.wall[i].picnum = 0;
                                 Engine.board.wall[i].overpicnum = 0;
                                 Engine.board.wall[i].nextsector = -1;
@@ -899,7 +980,7 @@ namespace buildlite
                                 Engine.board.wall[i].cstat = Engine.board.wall[suckwall + j].cstat;
                                 Engine.board.wall[i].shade = Engine.board.wall[suckwall + j].shade;
                                 Engine.board.wall[i].yrepeat = Engine.board.wall[suckwall + j].yrepeat;
-								fixrepeats((short)i);
+								EditorLib.fixrepeats((short)i);
                                 Engine.board.wall[i].picnum = Engine.board.wall[suckwall + j].picnum;
                                 Engine.board.wall[i].overpicnum = Engine.board.wall[suckwall + j].overpicnum;
 
@@ -940,10 +1021,10 @@ namespace buildlite
                             Engine.board.wall[i].cstat = Engine.board.wall[suckwall].cstat;
                             Engine.board.wall[i].shade = Engine.board.wall[suckwall].shade;
                             Engine.board.wall[i].yrepeat = Engine.board.wall[suckwall].yrepeat;
-							fixrepeats((short)i);
+							EditorLib.fixrepeats((short)i);
                             Engine.board.wall[i].picnum = Engine.board.wall[suckwall].picnum;
                             Engine.board.wall[i].overpicnum = Engine.board.wall[suckwall].overpicnum;
-							checksectorpointer((short)i,(short)numsectors);
+							EditorLib.checksectorpointer((short)i,(short)numsectors);
 						}
                         Engine.board.headspritesect[numsectors] = -1;
 						numsectors++;
@@ -979,7 +1060,7 @@ namespace buildlite
                                         Engine.board.wall[i].cstat = Engine.board.wall[startwall].cstat;
                                         Engine.board.wall[i].shade = Engine.board.wall[startwall].shade;
                                         Engine.board.wall[i].yrepeat = Engine.board.wall[startwall].yrepeat;
-										fixrepeats((short)i);
+										EditorLib.fixrepeats((short)i);
                                         Engine.board.wall[i].picnum = Engine.board.wall[startwall].picnum;
                                         Engine.board.wall[i].overpicnum = Engine.board.wall[startwall].overpicnum;
 
@@ -1141,8 +1222,8 @@ namespace buildlite
 									for(j=numwalls-k;j<numwalls;j++)
 									{
                                         if (Engine.board.wall[j].nextwall >= 0)
-                                            checksectorpointer(Engine.board.wall[j].nextwall, Engine.board.wall[j].nextsector);
-                                        checksectorpointer((short)j, (short)Engine.board.sectorofwall((short)j));
+                                            EditorLib.checksectorpointer(Engine.board.wall[j].nextwall, Engine.board.wall[j].nextsector);
+                                        EditorLib.checksectorpointer((short)j, (short)Engine.board.sectorofwall((short)j));
 									}
 
 										//k now safe to use as temp
@@ -1173,7 +1254,7 @@ namespace buildlite
                                         Engine.board.wall[i].cstat = Engine.board.wall[startwall].cstat;
                                         Engine.board.wall[i].shade = Engine.board.wall[startwall].shade;
                                         Engine.board.wall[i].yrepeat = Engine.board.wall[startwall].yrepeat;
-										fixrepeats((short)i);
+										EditorLib.fixrepeats((short)i);
                                         Engine.board.wall[i].picnum = Engine.board.wall[startwall].picnum;
                                         Engine.board.wall[i].overpicnum = Engine.board.wall[startwall].overpicnum;
 
@@ -1280,8 +1361,8 @@ namespace buildlite
 									for(j=numwalls-k;j<numwalls;j++)
 									{
                                         if (Engine.board.wall[j].nextwall >= 0)
-                                            checksectorpointer(Engine.board.wall[j].nextwall, Engine.board.wall[j].nextsector);
-                                        checksectorpointer((short)j, (short)(numsectors - 1));
+                                            EditorLib.checksectorpointer(Engine.board.wall[j].nextwall, Engine.board.wall[j].nextsector);
+                                        EditorLib.checksectorpointer((short)j, (short)(numsectors - 1));
 									}
 
 									newnumwalls = -1;
@@ -1293,58 +1374,21 @@ namespace buildlite
 			}
         }
 
-        private int checksectorpointer(short i, short sectnum)
-        {
-	        int j, k, startwall, endwall, x1, y1, x2, y2;
+        
 
-	        x1 = Engine.board.wall[i].x;
-            y1 = Engine.board.wall[i].y;
-            x2 = Engine.board.wall[Engine.board.wall[i].point2].x;
-            y2 = Engine.board.wall[Engine.board.wall[i].point2].y;
-
-            if (Engine.board.wall[i].nextwall >= 0)          //Check for early exit
-	        {
-                k = Engine.board.wall[i].nextwall;
-                if ((Engine.board.wall[k].x == x2) && (Engine.board.wall[k].y == y2))
-                    if ((Engine.board.wall[Engine.board.wall[k].point2].x == x1) && (Engine.board.wall[Engine.board.wall[k].point2].y == y1))
-				        return(0);
-	        }
-
-            Engine.board.wall[i].nextsector = -1;
-            Engine.board.wall[i].nextwall = -1;
-	        for(j=0;j<numsectors;j++)
-	        {
-                startwall = Engine.board.sector[j].wallptr;
-                endwall = startwall + Engine.board.sector[j].wallnum - 1;
-		        for(k=startwall;k<=endwall;k++)
-		        {
-                    if ((Engine.board.wall[k].x == x2) && (Engine.board.wall[k].y == y2))
-                        if ((Engine.board.wall[Engine.board.wall[k].point2].x == x1) && (Engine.board.wall[Engine.board.wall[k].point2].y == y1))
-					        if (j != sectnum)
-					        {
-                                Engine.board.wall[i].nextsector = (short)j;
-                                Engine.board.wall[i].nextwall = (short)k;
-                                Engine.board.wall[k].nextsector = sectnum;
-                                Engine.board.wall[k].nextwall = i;
-					        }
-		        }
-	        }
-	        return(0);
-        }
-
-        private void fixrepeats(short i)
-        {
-	        int dax, day, dist;
-
-            dax = Engine.board.wall[Engine.board.wall[i].point2].x - Engine.board.wall[i].x;
-            day = Engine.board.wall[Engine.board.wall[i].point2].y - Engine.board.wall[i].y;
-	        dist = pragmas.ksqrt(dax*dax+day*day);
-            dax = Engine.board.wall[i].xrepeat; day = Engine.board.wall[i].yrepeat;
-            Engine.board.wall[i].xrepeat = (byte)Math.Min(Math.Max(pragmas.mulscale10(dist, day), 1), 255);
-        }
+        
 
         private void overheadeditor()
         {
+            getpoint(mousx2, mousy2, ref mousxplc, ref mousyplc);
+            linehighlight = EditorLib.getlinehighlight(mousxplc, mousyplc);
+
+            if (dragpoint != null)
+            {
+                dragpoint.x = mousxplc;
+                dragpoint.y = mousyplc;
+            }
+
             // Clear all the status bar positions to the correct color;
             clearmidstatbar16();
 
@@ -1389,18 +1433,19 @@ namespace buildlite
                 numwalls = (short)(newnumwalls);
             }
 
+
             if (newnumwalls > 0)
             {
-                int mx = 0, my = 0;
-                getpoint(mousx2, mousy2, ref mx, ref my);
+
+                
 
                 if (Engine.board.wall[newnumwalls] == null)
                 {
                     Engine.board.wall[newnumwalls - 1].copyto(ref Engine.board.wall[newnumwalls]);
                 }
 
-                Engine.board.wall[newnumwalls].x = mx;
-                Engine.board.wall[newnumwalls].y = my;
+                Engine.board.wall[newnumwalls].x = mousxplc;
+                Engine.board.wall[newnumwalls].y = mousyplc;
             }
 
             Engine.clear2dscreen();
@@ -1410,8 +1455,8 @@ namespace buildlite
 
             numwalls = onumwalls;
 
-            int mousxplc = 0, mousyplc = 0;
-            getpoint(mousx2, mousy2, ref mousxplc, ref mousyplc);
+            
+            
             pointhighlight = getpointhighlight(mousxplc, mousyplc, pointhighlight);
 
 
