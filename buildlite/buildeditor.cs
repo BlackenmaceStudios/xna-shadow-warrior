@@ -29,6 +29,23 @@ namespace buildlite
         public int hitx = 0, hity = 0, hitz = 0;
     }
 
+    enum EditingStateType
+    {
+        EDITSTATE_SECTOR = 0,
+        EDITSTATE_WALL,
+        EDITSTATE_SPRITE
+    }
+
+    enum EditingState
+    {
+        EDITING_NOTHING,
+        EDITING_PALETTE,
+        EDITING_SHADE,
+        EDITING_HITAG,
+        EDITING_LOTAG,
+        EDITING_VISIBILITY
+    }
+
     enum EditorState
     {
         STATE_2DVIEW = 0,
@@ -43,11 +60,17 @@ namespace buildlite
     {
         int xdim2d = 640, ydim2d = 480, xdimgame = 640, ydimgame = 480, bppgame = 8;
         int posx = 32768;
-		int posy = 32768;
-		int posz = 0;
+        int posy = 32768;
+        int posz = 0;
+        int startposx = 32768;
+        int startposy = 32768;
+        int startposz = 0;
+        short startang = 0;
         int mousxplc = 0, mousyplc = 0;
         int linehighlight = -1;
-		short ang = 1536;
+        short ang = 1536;
+
+        bool altkeydown = false;
 
         private const int POINT_EPISILON = 5;
 
@@ -73,12 +96,20 @@ namespace buildlite
                 Engine.board.numwalls = value;
             }
         }
-        
+
         int numsprites = 0;
         short cursectnum = -1;
         short grid = 3, gridlock = 1, showtags = 1;
         int zoom = 768, gettilezoom = 1;
         EditorState editorState = EditorState.STATE_2DVIEW;
+        EditingState editingState = EditingState.EDITING_NOTHING;
+        EditingStateType editingStateType;
+        walltype editWall = null;
+        spritetype editSprite = null;
+        sectortype editSector = null;
+        string editDescription = "";
+        string editValue = "";
+
         int pointhighlight = 0;
         MouseTrace mouseTrace = new MouseTrace();
         List<walltype> dragpoint = new List<walltype>();
@@ -107,6 +138,11 @@ namespace buildlite
             ang = 1536;
             numsectors = 0;
             numwalls = 0;
+
+            startposx = posx;
+            startposy = posy;
+            startposz = posz;
+            startang = ang;
 
             numsprites = 0;
             cursectnum = -1;
@@ -142,13 +178,13 @@ namespace buildlite
                 if (j > k) { k = j; whitecol = i; }
             }
 
-          //  Engine.loadboard("nukeland.map", ref posx, ref posy, ref posz, ref ang, ref cursectnum);
+            //  Engine.loadboard("nukeland.map", ref posx, ref posy, ref posz, ref ang, ref cursectnum);
             initnewboard();
-            
+
 
             for (short i = 0; i < bMap.MAXTILES; i++)
             {
-          //      localartfreq[i] = 0;
+                //      localartfreq[i] = 0;
                 localartlookup[i] = i;
             }
         }
@@ -191,41 +227,41 @@ namespace buildlite
 
         void printcoords16(int posxe, int posye, short ange)
         {
-	        string snotbuf;
+            string snotbuf;
             int i;
             bool m;
 
             snotbuf = "x=" + posxe + " y=" + posye + " ang=" + ange;
 
-	       // Bsprintf(snotbuf,"x=%ld y=%ld ang=%d",posxe,posye,ange);
+            // Bsprintf(snotbuf,"x=%ld y=%ld ang=%d",posxe,posye,ange);
             i = snotbuf.Length;
             if (i >= 30)
                 i = i - (i - 27);
-	        //while ((snotbuf[i] != 0) && (i < 30))
-		      //  i++;
-	        while (i < 30)
-	        {
+            //while ((snotbuf[i] != 0) && (i < 30))
+            //  i++;
+            while (i < 30)
+            {
                 snotbuf += " ";
-		        i++;
-	        }
+                i++;
+            }
 
             m = (numsectors > bMap.MAXSECTORS || numwalls > bMap.MAXWALLS || numsprites > bMap.MAXSPRITES);
 
-	        Engine.printext16(8, Engine._device.ydim-STATUS2DSIZ+128, 11, 6, snotbuf,0);
+            Engine.printext16(8, Engine._device.ydim - STATUS2DSIZ + 128, 11, 6, snotbuf, 0);
 
-            snotbuf = numsectors + "/"+ bMap.MAXSECTORS + " sect. " + numwalls + "/" + bMap.MAXWALLS + " walls " + numsprites + "/" + bMap.MAXSPRITES + "spri.";
+            snotbuf = numsectors + "/" + bMap.MAXSECTORS + " sect. " + numwalls + "/" + bMap.MAXWALLS + " walls " + numsprites + "/" + bMap.MAXSPRITES + "spri.";
 
-	        
-	        i = snotbuf.Length;
+
+            i = snotbuf.Length;
             if (i >= 40)
                 i = i - (i - 43);
-	       // while ((snotbuf[i] != 0) && (i < 46))
-		     //   i++;
-	        while (i < 46)
-	        {
+            // while ((snotbuf[i] != 0) && (i < 46))
+            //   i++;
+            while (i < 46)
+            {
                 snotbuf += " ";
-		        i++;
-	        }
+                i++;
+            }
 
             Engine.printext16(264, Engine.ydim - STATUS2DSIZ + 128, 14, 6, snotbuf, 0);
         }
@@ -256,23 +292,23 @@ namespace buildlite
         private char[] snotbuf = new char[55];
         public void printmessage16(string name)
         {
-	        int i;
+            int i;
 
-	        i = 0;
-	        while ((i < name.Length) && (i < 54))
-	        {
-		        snotbuf[i] = name[i];
-		        i++;
-	        }
-	        while (i < 54)
-	        {
-		        snotbuf[i] = (char)32;
-		        i++;
-	        }
+            i = 0;
+            while ((i < name.Length) && (i < 54))
+            {
+                snotbuf[i] = name[i];
+                i++;
+            }
+            while (i < 54)
+            {
+                snotbuf[i] = (char)32;
+                i++;
+            }
             snotbuf[54] = (char)0;
 
             Engine._device.BeginDrawing();
-	        Engine.printext16(200, Engine.ydim-STATUS2DSIZ+8, 0, 6, new string(snotbuf), 0);
+            Engine.printext16(200, Engine.ydim - STATUS2DSIZ + 8, 0, 6, new string(snotbuf), 0);
             Engine._device.EndDrawing();
         }
 
@@ -280,7 +316,7 @@ namespace buildlite
         {
             Engine._device.BeginDrawing();
             Engine._device._screenbuffer.Clear();
-            Engine.copybufint(Engine._device._screenbuffer.Pixels, (Engine.frameplace + (Engine._device.bytesperline * (Engine._device.ydim - (STATUS2DSIZ)))), Engine._device._screenbuffer.Pixels.Length, 0x08080808*4);
+            Engine.copybufint(Engine._device._screenbuffer.Pixels, (Engine.frameplace + (Engine._device.bytesperline * (Engine._device.ydim - (STATUS2DSIZ)))), Engine._device._screenbuffer.Pixels.Length, 0x08080808 * 4);
             Engine._device.EndDrawing();
         }
         private void getpoint(int searchxe, int searchye, ref int x, ref int y)
@@ -298,7 +334,7 @@ namespace buildlite
             if (y <= -131072) y = -131072;
             if (y >= 131072) y = 131072;
 
-            
+
         }
 
         private void getpoint2(int searchxe, int searchye, ref int x, ref int y)
@@ -314,18 +350,19 @@ namespace buildlite
                 dragpoint.Clear();
                 return;
             }
+
             switch (key)
             {
                 case Key.A:
                     svel = 0;
-                   //angvel = 0;
+                    //angvel = 0;
                     break;
                 case Key.Up:
                     fvel = 0;
                     break;
                 case Key.D:
                     svel = 0;
-                   // angvel = 0;
+                    // angvel = 0;
                     break;
                 case Key.Down:
                     fvel = 0;
@@ -389,12 +426,12 @@ namespace buildlite
                 //Check to see if point was inserted over another point
                 for (i = numwalls - 1; i >= 0; i--)     //delete points
                     if (Math.Abs(Engine.board.wall[i].x - Engine.board.wall[Engine.board.wall[i].point2].x) < POINT_EPISILON && Math.Abs(Engine.board.wall[i].y - Engine.board.wall[Engine.board.wall[i].point2].y) < POINT_EPISILON)
-                  //  if (Engine.board.wall[i].x == Engine.board.wall[Engine.board.wall[i].point2].x)
+                    //  if (Engine.board.wall[i].x == Engine.board.wall[Engine.board.wall[i].point2].x)
                     //    if (Engine.board.wall[i].y == Engine.board.wall[Engine.board.wall[i].point2].y)
-                        {
-                            EditorLib.deletepoint((short)i);
-                            j++;
-                        }
+                    {
+                        EditorLib.deletepoint((short)i);
+                        j++;
+                    }
                 for (i = 0; i < numwalls; i++)        //make new red lines?
                 {
                     if (Math.Abs(Engine.board.wall[i].x - dax) < 100 && Math.Abs(Engine.board.wall[i].x - day) < POINT_EPISILON)
@@ -420,7 +457,7 @@ namespace buildlite
                 //      }
                 //}
 
-              //  asksave = 1;
+                //  asksave = 1;
             }
         }
 
@@ -433,20 +470,20 @@ namespace buildlite
                 if ((Engine.board.sector[searchsector].ceilingstat & 2) == 0)
                     Engine.board.sector[searchsector].ceilingheinum = 0;
 
-                if (max > 0) 
+                if (max > 0)
                     Engine.board.sector[searchsector].ceilingheinum = (short)Math.Min(Engine.board.sector[searchsector].ceilingheinum + amt, max);
-                else 
+                else
                     Engine.board.sector[searchsector].ceilingheinum = (short)Math.Max(Engine.board.sector[searchsector].ceilingheinum + amt, max);
-                
+
             }
             else
             {
                 if ((Engine.board.sector[searchsector].floorstat & 2) == 0)
                     Engine.board.sector[searchsector].floorheinum = 0;
 
-                if (max > 0) 
+                if (max > 0)
                     Engine.board.sector[searchsector].floorheinum = (short)Math.Min(Engine.board.sector[searchsector].floorheinum + amt, max);
-                else 
+                else
                     Engine.board.sector[searchsector].floorheinum = (short)Math.Max(Engine.board.sector[searchsector].floorheinum + amt, max);
             }
 
@@ -469,13 +506,378 @@ namespace buildlite
             }
         }
 
+        private void UpdateDescription(EditingState editState)
+        {
+            switch (editState)
+            {
+                case EditingState.EDITING_HITAG:
+                    editDescription += "Hi-Tag: ";
+                    break;
+                case EditingState.EDITING_LOTAG:
+                    editDescription += "Lo-Tag: ";
+                    break;
+                case EditingState.EDITING_PALETTE:
+                    editDescription += "Palette: ";
+                    break;
+                case EditingState.EDITING_SHADE:
+                    editDescription += "Shade: ";
+                    break;
+                case EditingState.EDITING_VISIBILITY:
+                    editDescription += "Visibility: ";
+                    break;
+            }
+        }
+
+        private void SetSpriteAttribute()
+        {
+            switch (editingState)
+            {
+                case EditingState.EDITING_HITAG:
+                    editSprite.hitag = short.Parse(editValue);
+                    break;
+                case EditingState.EDITING_LOTAG:
+                    editSprite.lotag = short.Parse(editValue);
+                    break;
+                case EditingState.EDITING_PALETTE:
+                    editSprite.pal = byte.Parse(editValue);
+                    break;
+                case EditingState.EDITING_SHADE:
+                    editSprite.shade = sbyte.Parse(editValue);
+                    break;
+                default:
+                    throw new Exception("WallAttribute not implemented");
+            }
+        }
+
+        private bool UpdateSpriteEditValue(EditingState editState)
+        {
+            switch (editState)
+            {
+                case EditingState.EDITING_HITAG:
+                    editValue = "" + editSprite.hitag;
+                    break;
+                case EditingState.EDITING_LOTAG:
+                    editValue = "" + editSprite.lotag;
+                    break;
+                case EditingState.EDITING_PALETTE:
+                    editValue = "" + editSprite.pal;
+                    break;
+                case EditingState.EDITING_SHADE:
+                    editValue = "" + editSprite.shade;
+                    break;
+                default:
+                    return false;
+            }
+            return true;
+        }
+
+        private void SetWallAttribute()
+        {
+            switch (editingState)
+            {
+                case EditingState.EDITING_HITAG:
+                    editWall.hitag = short.Parse(editValue);
+                    break;
+                case EditingState.EDITING_LOTAG:
+                    editWall.lotag = short.Parse(editValue);
+                    break;
+                case EditingState.EDITING_PALETTE:
+                    editWall.pal = byte.Parse(editValue);
+                    break;
+                case EditingState.EDITING_SHADE:
+                    editWall.shade = sbyte.Parse(editValue);
+                    break;
+                default:
+                    throw new Exception("WallAttribute not implemented");
+            }
+        }
+
+        private bool UpdateWallEditValue(EditingState editState)
+        {
+            switch (editState)
+            {
+                case EditingState.EDITING_HITAG:
+                    editValue = "" + editWall.hitag;
+                    break;
+                case EditingState.EDITING_LOTAG:
+                    editValue = "" + editWall.lotag;
+                    break;
+                case EditingState.EDITING_PALETTE:
+                    editValue = "" + editWall.pal;
+                    break;
+                case EditingState.EDITING_SHADE:
+                    editValue = "" + editWall.shade;
+                    break;
+                default:
+                    return false;
+            }
+            return true;
+        }
+
+        private void SetSectorAttribute()
+        {
+            switch (editingState)
+            {
+                case EditingState.EDITING_HITAG:
+                    editSector.hitag = short.Parse(editValue);
+                    break;
+                case EditingState.EDITING_LOTAG:
+                    editSector.lotag = short.Parse(editValue);
+                    break;
+                case EditingState.EDITING_PALETTE:
+                    if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_CEILING)
+                    {
+                        editSector.ceilingpal = byte.Parse(editValue);
+                    }
+                    else if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_FLOOR)
+                    {
+                        editSector.floorpal = byte.Parse(editValue);
+                    }
+                    break;
+                case EditingState.EDITING_SHADE:
+                    if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_CEILING)
+                    {
+                        editSector.ceilingshade = sbyte.Parse(editValue);
+                    }
+                    else if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_FLOOR)
+                    {
+                        editSector.floorshade = sbyte.Parse(editValue);
+                    }
+                    break;
+                case EditingState.EDITING_VISIBILITY:
+                    editSector.visibility = byte.Parse(editValue);
+                    break;
+                default:
+                    throw new Exception("SectorAttribute not implemented");
+            }
+        }
+
+        private bool UpdateSectorEditValue(EditingState editState)
+        {
+            switch (editState)
+            {
+                case EditingState.EDITING_HITAG:
+                    editValue = "" + editSector.hitag;
+                    break;
+                case EditingState.EDITING_LOTAG:
+                    editValue = "" + editSector.lotag;
+                    break;
+                case EditingState.EDITING_PALETTE:
+                    if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_CEILING)
+                    {
+                        editDescription += "(Ceiling) ";
+                        editValue = "" + editSector.ceilingpal;
+                    }
+                    else if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_FLOOR)
+                    {
+                        editDescription += "(Floor) ";
+                        editValue = "" + editSector.floorpal;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                    break;
+                case EditingState.EDITING_SHADE:
+                    if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_CEILING)
+                    {
+                        editDescription += "(Ceiling) ";
+                        editValue = "" + editSector.ceilingshade;
+                    }
+                    else if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_FLOOR)
+                    {
+                        editDescription += "(Floor) ";
+                        editValue = "" + editSector.floorshade;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                    
+                    break;
+                case EditingState.EDITING_VISIBILITY:
+                    editValue = "" + editSector.lotag;
+                    break;
+                default:
+                    return false;
+            }
+
+            UpdateDescription(editState);
+            return true;
+        }
+
+
+        //
+        // SetEditObject
+        // I had to use boxing here, not sure the performance impact yet...
+        //
+        private void SetEditObject(EditingState editState)
+        {
+            if (editorState == EditorState.STATE_2DVIEW)
+            {
+                if (linehighlight >= 0)
+                {
+                    editWall = Engine.board.wall[linehighlight];
+                    editingStateType = EditingStateType.EDITSTATE_WALL;
+                }
+                else if ((pointhighlight & 0xc000) == 16384)
+                {
+                    editSprite = Engine.board.sprite[(pointhighlight & 16383)];
+                    editingStateType = EditingStateType.EDITSTATE_SPRITE;
+                }
+            }
+            else if (editorState == EditorState.STATE_3DVIEW)
+            {
+                if (mouseTrace.hitsprite >= 0)
+                {
+                    editSprite = Engine.board.sprite[mouseTrace.hitsprite];
+                    editingStateType = EditingStateType.EDITSTATE_SPRITE;
+                }
+                else if (mouseTrace.hitwall >= 0)
+                {
+                    editWall = Engine.board.wall[mouseTrace.hitwall];
+                    editingStateType = EditingStateType.EDITSTATE_WALL;
+                }
+                else
+                {
+                    editSector = Engine.board.sector[mouseTrace.hitsector];
+                    editingStateType = EditingStateType.EDITSTATE_SECTOR;
+                }
+            }
+            else
+            {
+                return;
+            }
+
+            if (editWall == null && editSprite == null && editSector == null)
+                return;
+
+            if (editingStateType == EditingStateType.EDITSTATE_SPRITE)
+            {
+                editDescription = "Sprite ";
+                UpdateDescription(editState);
+
+                if (!UpdateSpriteEditValue(editState))
+                    return;
+            }
+            else if (editingStateType == EditingStateType.EDITSTATE_WALL)
+            {
+                editDescription = "Wall ";
+                UpdateDescription(editState);
+
+                if (!UpdateWallEditValue(editState))
+                    return;
+            }
+            else if (editingStateType == EditingStateType.EDITSTATE_SECTOR)
+            {
+                editDescription = "Sector";
+                
+                if (!UpdateSectorEditValue(editState))
+                    return;
+            }
+            else
+            {
+                throw new Exception("SetEditObject: unimplemented type");
+            }
+
+            
+
+            editingState = editState;
+        }
+
         public void editinputkey(bool mouserightdown, bool mouseleftdown, Key key)
         {
-            if (inloadmenu)
+            if (editingState != EditingState.EDITING_NOTHING)
+            {
+                if (key == Key.Escape)
+                {
+                    editDescription = "";
+                    editValue = "";
+                    editingState = EditingState.EDITING_NOTHING;
+                }
+                else if (key == Key.Enter)
+                {
+                    switch (editingStateType)
+                    {
+                        case EditingStateType.EDITSTATE_SECTOR:
+                            SetSectorAttribute();
+                            editSector = null;
+                            break;
+
+                        case EditingStateType.EDITSTATE_SPRITE:
+                            SetSpriteAttribute();
+                            editSprite = null;
+                            break;
+                        case EditingStateType.EDITSTATE_WALL:
+                            SetWallAttribute();
+                            editWall = null;
+                            break;
+                        default:
+                            throw new Exception("SetInputKey unknown editingStateType");
+                    }
+                    editDescription = "";
+                    editValue = "";
+                    editingState = EditingState.EDITING_NOTHING;
+                }
+                else if (key == Key.Back)
+                {
+                    if (editValue.Length > 0)
+                    {
+                        editValue = editValue.Remove(editValue.Length - 1);
+                    }
+                }
+                else if (key == Key.D0)
+                {
+                    editValue += "0";
+                }
+                else if (key == Key.D1)
+                {
+                    editValue += "1";
+                }
+                else if (key == Key.D2)
+                {
+                    editValue += "2";
+                }
+                else if (key == Key.D3)
+                {
+                    editValue += "3";
+                }
+                else if (key == Key.D4)
+                {
+                    editValue += "4";
+                }
+                else if (key == Key.D5)
+                {
+                    editValue += "5";
+                }
+                else if (key == Key.D6)
+                {
+                    editValue += "6";
+                }
+                else if (key == Key.D7)
+                {
+                    editValue += "7";
+                }
+                else if (key == Key.D8)
+                {
+                    editValue += "8";
+                }
+                else if (key == Key.D9)
+                {
+                    editValue += "9";
+                }
+                return;
+            }
+            else if (inloadmenu)
             {
                 if (key == Key.Enter)
                 {
-                    Engine.loadboard(loadmenuname + ".map", ref posx, ref posy, ref posz, ref ang, ref cursectnum);
+                    Engine.loadboard(loadmenuname + ".map", ref startposx, ref startposy, ref startposz, ref startang, ref cursectnum);
+                    posx = startposx;
+                    posy = startposy;
+                    posz = startposz;
+                    ang = startang;
                     inloadmenu = false;
                 }
                 else if (key == Key.Escape)
@@ -486,7 +888,7 @@ namespace buildlite
                 {
                     if (loadmenuname.Length > 0)
                     {
-                        loadmenuname.Remove(loadmenuname.Length - 1);
+                        loadmenuname = loadmenuname.Remove(loadmenuname.Length - 1);
                     }
                 }
                 else
@@ -522,7 +924,7 @@ namespace buildlite
                     {
                         if (Math.Abs(Engine.board.wall[i].x - mousxplc) < POINT_EPISILON && Math.Abs(Engine.board.wall[i].y - mousyplc) < POINT_EPISILON)
                         {
-                            dragpoint.Add( Engine.board.wall[i] );
+                            dragpoint.Add(Engine.board.wall[i]);
                         }
                     }
                     if (dragpoint.Count > 0) return;
@@ -540,24 +942,72 @@ namespace buildlite
                 return;
             }
 
+            
             switch (key)
             {
+                case Key.Ctrl:
+                    altkeydown = !altkeydown;
+                    break;
+                case Key.L:
+                    if (altkeydown && editorState != EditorState.STATE_TILESELECT)
+                    {
+                        SetEditObject(EditingState.EDITING_LOTAG);
+                        altkeydown = false;
+                    }
+                    break;
+                case Key.H:
+                    if (altkeydown && editorState != EditorState.STATE_TILESELECT)
+                    {
+                        SetEditObject(EditingState.EDITING_HITAG);
+                        altkeydown = false;
+                    }
+                    break;
+                case Key.P:
+                    if (altkeydown)
+                    {
+                        if (editorState != EditorState.STATE_TILESELECT)
+                        {
+                            SetEditObject(EditingState.EDITING_PALETTE);
+                        }
+                        altkeydown = false;
+                    }
+                    else
+                    {
+                        if (editorState == EditorState.STATE_3DVIEW)
+                        {
+                            if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_CEILING)
+                            {
+                                Engine.board.sector[mouseTrace.hitsector].ceilingstat ^= 1;
+                            }
+                            else if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_FLOOR)
+                            {
+                                Engine.board.sector[mouseTrace.hitsector].floorstat ^= 1;
+                            }
+                        }
+                    }
+                    break;
+
                 case Key.A:
                     svel += 400;
-                  //  angvel = -30;
+                    //  angvel = -30;
                     break;
                 case Key.W:
-                    
+
                     break;
                 case Key.D:
                     svel -= 400;
-                  //  angvel = 30;
+                    //  angvel = 30;
                     break;
                 case Key.S:
                     {
                         short sectornum = -1;
                         int dax = -1, day = -1, daz = -1;
-                        if (editorState == EditorState.STATE_3DVIEW)
+                        if (altkeydown && editorState != EditorState.STATE_TILESELECT)
+                        {
+                            SetEditObject(EditingState.EDITING_SHADE);
+                            altkeydown = false;
+                        }
+                        else if (editorState == EditorState.STATE_3DVIEW)
                         {
                             sectornum = (short)mouseTrace.hitsector;
                             dax = mouseTrace.hitx;
@@ -759,9 +1209,24 @@ namespace buildlite
                         }
                     }
                     break;
- 
+
+                case Key.Home:
+                    if (editorState == EditorState.STATE_2DVIEW)
+                    {
+                        startposx = posx;
+                        startposy = posy;
+                        startposz = posz;
+                        startang = ang;
+                    }
+                    break;
+
                 case Key.V:
-                    if (editorState == EditorState.STATE_3DVIEW)
+                    if (altkeydown && editorState != EditorState.STATE_TILESELECT)
+                    {
+                        SetEditObject(EditingState.EDITING_VISIBILITY);
+                        altkeydown = false;
+                    }
+                    else if (editorState == EditorState.STATE_3DVIEW)
                     {
                         if (mouseTrace.hitsprite >= 0)
                         {
@@ -821,16 +1286,19 @@ namespace buildlite
                     return;
             }
 
-                /*
-            else if (key == Key.Enter)
-            {
+            /*
+        else if (key == Key.Enter)
+        {
                 
-            }
-                 */
+        }
+             */
         }
 
         public void editinputmouse(double mousx, double mousy)
         {
+            if (editingState != EditingState.EDITING_NOTHING)
+                return;
+
             mousx2 = (int)(mousx * 1.0f);
             mousy2 = (int)(mousy * 1.0f);
 
@@ -843,26 +1311,26 @@ namespace buildlite
 
             getpoint(mousx2, mousy2, ref mousxplc, ref mousyplc);
 
-            
+
         }
 
         private void showmouse()
         {
-	        int i;
+            int i;
 
-	        for(i=1;i<=4;i++)
-	        {
+            for (i = 1; i <= 4; i++)
+            {
                 Engine.plotpixel(mousx2 + i, mousy2, 12);
                 Engine.plotpixel(mousx2 - i, mousy2, 12);
                 Engine.plotpixel(mousx2, mousy2 - i, 12);
                 Engine.plotpixel(mousx2, mousy2 + i, 12);
-	        }
+            }
         }
 
         private void drawtilescreen(int pictopleft, int picbox)
         {
-	        int i, j, vidpos, vidpos2, dat, wallnum, xdime, ydime, cnt, pinc;
-	        int dax, day, scaledown, xtiles, ytiles, tottiles;
+            int i, j, vidpos, vidpos2, dat, wallnum, xdime, ydime, cnt, pinc;
+            int dax, day, scaledown, xtiles, ytiles, tottiles;
             byte[] picptr;
             string snotbuf = ""; //[80];
             int picptrpos = 0;
@@ -870,91 +1338,91 @@ namespace buildlite
             xtiles = (Engine._device.xdim >> 6); ytiles = (Engine._device.ydim >> 6); tottiles = xtiles * ytiles;
 
             pinc = Engine.ylookup[1];
-	        Engine.clearview();
-	        for(cnt=0;cnt<(tottiles<<(gettilezoom<<1));cnt++)         //draw the 5*3 grid of tiles
-	        {
-		        wallnum = cnt+pictopleft;
+            Engine.clearview();
+            for (cnt = 0; cnt < (tottiles << (gettilezoom << 1)); cnt++)         //draw the 5*3 grid of tiles
+            {
+                wallnum = cnt + pictopleft;
                 if (wallnum < 0)
                     continue;
-		      //  if (wallnum <= localartlookupnum)
-		      //  {
-			       // wallnum = localartlookup[wallnum];
+                //  if (wallnum <= localartlookupnum)
+                //  {
+                // wallnum = localartlookup[wallnum];
 
-                    short w = Engine.tilesizx[wallnum];
-                    short h = Engine.tilesizy[wallnum];
-                    if ((Engine.tilesizx[wallnum] != 0) && (Engine.tilesizy[wallnum] != 0))
-			        {
-                        if (Engine.waloff[wallnum] == null) Engine.loadtile((short)wallnum);
-				        picptr = Engine.waloff[wallnum].memory;
-                        picptrpos = 0;
-                        xdime = Engine.tilesizx[wallnum];
-                        ydime = Engine.tilesizy[wallnum];
+                short w = Engine.tilesizx[wallnum];
+                short h = Engine.tilesizy[wallnum];
+                if ((Engine.tilesizx[wallnum] != 0) && (Engine.tilesizy[wallnum] != 0))
+                {
+                    if (Engine.waloff[wallnum] == null) Engine.loadtile((short)wallnum);
+                    picptr = Engine.waloff[wallnum].memory;
+                    picptrpos = 0;
+                    xdime = Engine.tilesizx[wallnum];
+                    ydime = Engine.tilesizy[wallnum];
 
-				        dax = ((cnt%(xtiles<<gettilezoom))<<(6-gettilezoom));
-				        day = ((cnt/(xtiles<<gettilezoom))<<(6-gettilezoom));
-                        vidpos = Engine.ylookup[day] + dax + Engine.frameplace;
-				        if ((xdime <= (64>>gettilezoom)) && (ydime <= (64>>gettilezoom)))
-				        {
-					        for(i=0;i<xdime;i++)
-					        {
-						        vidpos2 = vidpos+i;
-						        for(j=0;j<ydime;j++)
-						        {
-                                    A.DrawPixelPallete(vidpos2, picptr[picptrpos++]);
-							        vidpos2 += pinc;
-						        }
-					        }
-				        }
-				        else                          //if 1 dimension > 64
-				        {
-					        if (xdime > ydime)
-						        scaledown = ((xdime+(63>>gettilezoom))>>(6-gettilezoom));
-					        else
-						        scaledown = ((ydime+(63>>gettilezoom))>>(6-gettilezoom));
+                    dax = ((cnt % (xtiles << gettilezoom)) << (6 - gettilezoom));
+                    day = ((cnt / (xtiles << gettilezoom)) << (6 - gettilezoom));
+                    vidpos = Engine.ylookup[day] + dax + Engine.frameplace;
+                    if ((xdime <= (64 >> gettilezoom)) && (ydime <= (64 >> gettilezoom)))
+                    {
+                        for (i = 0; i < xdime; i++)
+                        {
+                            vidpos2 = vidpos + i;
+                            for (j = 0; j < ydime; j++)
+                            {
+                                A.DrawPixelPallete(vidpos2, picptr[picptrpos++]);
+                                vidpos2 += pinc;
+                            }
+                        }
+                    }
+                    else                          //if 1 dimension > 64
+                    {
+                        if (xdime > ydime)
+                            scaledown = ((xdime + (63 >> gettilezoom)) >> (6 - gettilezoom));
+                        else
+                            scaledown = ((ydime + (63 >> gettilezoom)) >> (6 - gettilezoom));
 
-					        for(i=0;i<xdime;i+=scaledown)
-					        {
-                                if (Engine.waloff[wallnum] == null) Engine.loadtile((short)wallnum);
-                                picptr = Engine.waloff[wallnum].memory;
-                                picptrpos = ydime * i;
-                                vidpos2 = vidpos;
-                                
-						        for(j=0;j<ydime;j+=scaledown)
-						        {
-                                    A.DrawPixelPallete(vidpos2, picptr[picptrpos]);
-							        picptrpos += scaledown;
-							        vidpos2 += pinc;
-						        }
-						        vidpos++;
-					        }
-				        }
-				        if (localartlookupnum < bMap.MAXTILES)
-				        {
-					        dax = ((cnt%(xtiles<<gettilezoom))<<(6-gettilezoom));
-					        day = ((cnt/(xtiles<<gettilezoom))<<(6-gettilezoom));
-					      //  sprintf(snotbuf,"%ld",localartfreq[cnt+pictopleft]);
-					      //  printext256(dax,day,whitecol,-1,snotbuf,1);
-				        }
-			        }
-		      //  }
-	        }
+                        for (i = 0; i < xdime; i += scaledown)
+                        {
+                            if (Engine.waloff[wallnum] == null) Engine.loadtile((short)wallnum);
+                            picptr = Engine.waloff[wallnum].memory;
+                            picptrpos = ydime * i;
+                            vidpos2 = vidpos;
 
-	        cnt = picbox-pictopleft;    //draw open white box
-	        dax = ((cnt%(xtiles<<gettilezoom))<<(6-gettilezoom));
-	        day = ((cnt/(xtiles<<gettilezoom))<<(6-gettilezoom));
+                            for (j = 0; j < ydime; j += scaledown)
+                            {
+                                A.DrawPixelPallete(vidpos2, picptr[picptrpos]);
+                                picptrpos += scaledown;
+                                vidpos2 += pinc;
+                            }
+                            vidpos++;
+                        }
+                    }
+                    if (localartlookupnum < bMap.MAXTILES)
+                    {
+                        dax = ((cnt % (xtiles << gettilezoom)) << (6 - gettilezoom));
+                        day = ((cnt / (xtiles << gettilezoom)) << (6 - gettilezoom));
+                        //  sprintf(snotbuf,"%ld",localartfreq[cnt+pictopleft]);
+                        //  printext256(dax,day,whitecol,-1,snotbuf,1);
+                    }
+                }
+                //  }
+            }
 
-	        for(i=0;i<(64>>gettilezoom);i++)
-	        {
-		        Engine.plotpixel(dax+i,day,15);
+            cnt = picbox - pictopleft;    //draw open white box
+            dax = ((cnt % (xtiles << gettilezoom)) << (6 - gettilezoom));
+            day = ((cnt / (xtiles << gettilezoom)) << (6 - gettilezoom));
+
+            for (i = 0; i < (64 >> gettilezoom); i++)
+            {
+                Engine.plotpixel(dax + i, day, 15);
                 Engine.plotpixel(dax + i, day + (63 >> gettilezoom), 15);
                 Engine.plotpixel(dax, day + i, 15);
                 Engine.plotpixel(dax + (63 >> gettilezoom), day + i, 15);
-	        }
+            }
 
-	        i = localartlookup[picbox];
-	        //sprintf(snotbuf,"%ld",i);
+            i = localartlookup[picbox];
+            //sprintf(snotbuf,"%ld",i);
             snotbuf = "" + i;
-	        Engine.printext256(0,Engine._device.ydim-8,15,-1,snotbuf,0);
+            Engine.printext256(0, Engine._device.ydim - 8, 15, -1, snotbuf, 0);
             //Engine.printext256(Engine._device.xdim - (strlen(names[i]) << 3), ydim - 8, 15, -1, names[i], 0);
         }
 
@@ -985,15 +1453,15 @@ namespace buildlite
                 }
             }
 
-            if ((newnumwalls < numwalls) && (numwalls < bMap.MAXWALLS-1))
-			{
-				firstx = mousxplc; firsty = mousyplc;  //Make first point
-				newnumwalls = numwalls;
-				suckwall = -1;
-				split = 0;
+            if ((newnumwalls < numwalls) && (numwalls < bMap.MAXWALLS - 1))
+            {
+                firstx = mousxplc; firsty = mousyplc;  //Make first point
+                newnumwalls = numwalls;
+                suckwall = -1;
+                split = 0;
 
                 Engine.board.wall[newnumwalls] = null;
-              //  GC.Collect();
+                //  GC.Collect();
                 Engine.board.wall[newnumwalls] = new walltype();
 
                 Engine.board.wall[newnumwalls].extra = -1;
@@ -1002,78 +1470,78 @@ namespace buildlite
                 Engine.board.wall[newnumwalls].y = mousyplc;
                 Engine.board.wall[newnumwalls].nextsector = -1;
                 Engine.board.wall[newnumwalls].nextwall = -1;
-				for(i=0;i<numwalls;i++)
+                for (i = 0; i < numwalls; i++)
                     if ((Engine.board.wall[i].x == mousxplc) && (Engine.board.wall[i].y == mousyplc))
-						suckwall = i;
+                        suckwall = i;
                 Engine.board.wall[newnumwalls].point2 = (short)(newnumwalls + 1);
 
-				printmessage16("Sector drawing started.");
-				newnumwalls++;
-			}
-			else
-			{  //if not back to first point
-// jv
-		//		if ((firstx != mousxplc) || (firsty != mousyplc))  //nextpoint
+                printmessage16("Sector drawing started.");
+                newnumwalls++;
+            }
+            else
+            {  //if not back to first point
+                // jv
+                //		if ((firstx != mousxplc) || (firsty != mousyplc))  //nextpoint
                 if (Math.Abs(firstx - mousxplc) > POINT_EPISILON || Math.Abs(firsty - mousyplc) > POINT_EPISILON)
-// jv end
-				{
-					j = 0;
-					for(i=numwalls;i<newnumwalls;i++)
+                // jv end
+                {
+                    j = 0;
+                    for (i = numwalls; i < newnumwalls; i++)
                         if ((mousxplc == Engine.board.wall[i].x) && (mousyplc == Engine.board.wall[i].y))
-							j = 1;
-					if (j == 0)
-					{
-							//check if starting to split a sector
-						if (newnumwalls == numwalls+1)
-						{
+                            j = 1;
+                    if (j == 0)
+                    {
+                        //check if starting to split a sector
+                        if (newnumwalls == numwalls + 1)
+                        {
                             dax = ((Engine.board.wall[numwalls].x + mousxplc) >> 1);
                             day = ((Engine.board.wall[numwalls].y + mousyplc) >> 1);
-							for(i=0;i<numsectors;i++)
-								if (Engine.board.inside(dax,day,(short)i) == 1)
-								{    //check if first point at point of sector
-									m = -1;
+                            for (i = 0; i < numsectors; i++)
+                                if (Engine.board.inside(dax, day, (short)i) == 1)
+                                {    //check if first point at point of sector
+                                    m = -1;
                                     startwall = Engine.board.sector[i].wallptr;
                                     endwall = startwall + Engine.board.sector[i].wallnum - 1;
-									for(k=startwall;k<=endwall;k++)
+                                    for (k = startwall; k <= endwall; k++)
                                         if (Engine.board.wall[k].x == Engine.board.wall[numwalls].x)
                                             if (Engine.board.wall[k].y == Engine.board.wall[numwalls].y)
-											{
-												m = k;
-												break;
-											}
-									if (m >= 0)
+                                            {
+                                                m = k;
+                                                break;
+                                            }
+                                    if (m >= 0)
                                         if ((Engine.board.wall[Engine.board.wall[k].point2].x != mousxplc) || (Engine.board.wall[Engine.board.wall[k].point2].y != mousyplc))
                                             if ((Engine.board.wall[Engine.board.lastwall((short)k)].x != mousxplc) || (Engine.board.wall[Engine.board.lastwall((short)k)].y != mousyplc))
-											{
-												split = 1;
-												splitsect = i;
-												splitstartwall = m;
-												break;
-											}
-								}
-						}
+                                            {
+                                                split = 1;
+                                                splitsect = i;
+                                                splitstartwall = m;
+                                                break;
+                                            }
+                                }
+                        }
 
-							//make new point
+                        //make new point
 
-						//make sure not drawing over old red line
-						bad = 0;
-						for(i=0;i<numwalls;i++)
-						{
+                        //make sure not drawing over old red line
+                        bad = 0;
+                        for (i = 0; i < numwalls; i++)
+                        {
                             if (Engine.board.wall[i].nextwall >= 0)
-							{
+                            {
                                 if ((Engine.board.wall[i].x == mousxplc) && (Engine.board.wall[i].y == mousyplc))
                                     if ((Engine.board.wall[Engine.board.wall[i].point2].x == Engine.board.wall[newnumwalls - 1].x) && (Engine.board.wall[Engine.board.wall[i].point2].y == Engine.board.wall[newnumwalls - 1].y))
-										bad = 1;
+                                        bad = 1;
                                 if ((Engine.board.wall[i].x == Engine.board.wall[newnumwalls - 1].x) && (Engine.board.wall[i].y == Engine.board.wall[newnumwalls - 1].y))
                                     if ((Engine.board.wall[Engine.board.wall[i].point2].x == mousxplc) && (Engine.board.wall[Engine.board.wall[i].point2].y == mousyplc))
-										bad = 1;
-							}
-						}
+                                        bad = 1;
+                            }
+                        }
 
-						if (bad == 0)
-						{
+                        if (bad == 0)
+                        {
                             Engine.board.wall[newnumwalls] = null;
-                          //  GC.Collect();
+                            //  GC.Collect();
                             Engine.board.wall[newnumwalls] = new walltype();
                             Engine.board.wall[newnumwalls].extra = -1;
 
@@ -1081,39 +1549,39 @@ namespace buildlite
                             Engine.board.wall[newnumwalls].y = mousyplc;
                             Engine.board.wall[newnumwalls].nextsector = -1;
                             Engine.board.wall[newnumwalls].nextwall = -1;
-							for(i=0;i<numwalls;i++)
+                            for (i = 0; i < numwalls; i++)
                                 if ((Engine.board.wall[i].x == mousxplc) && (Engine.board.wall[i].y == mousyplc))
-									suckwall = i;
+                                    suckwall = i;
                             Engine.board.wall[newnumwalls].point2 = (short)(newnumwalls + 1);
-							newnumwalls++;
-						}
-						else
-						{
-							printmessage16("You can't draw new lines over red lines.");
-						}
-					}
-				}
+                            newnumwalls++;
+                        }
+                        else
+                        {
+                            printmessage16("You can't draw new lines over red lines.");
+                        }
+                    }
+                }
 
-					//if not split and back to first point
-// jv - else if
-				else if ((split == 0) /*&& (firstx == mousxplc) && (firsty == mousyplc)*/ && (newnumwalls >= numwalls+3))
-// jv end
-				{
+                    //if not split and back to first point
+                // jv - else if
+                else if ((split == 0) /*&& (firstx == mousxplc) && (firsty == mousyplc)*/ && (newnumwalls >= numwalls + 3))
+                // jv end
+                {
                     Engine.board.wall[newnumwalls - 1].point2 = (short)numwalls;
 
-					if (suckwall == -1)  //if no connections to other sectors
-					{
-						k = -1;
-						for(i=0;i<numsectors;i++)
+                    if (suckwall == -1)  //if no connections to other sectors
+                    {
+                        k = -1;
+                        for (i = 0; i < numsectors; i++)
                             if (Engine.board.inside(firstx, firsty, (short)i) == 1)
-								k = i;
-						if (k == -1)   //if not inside another sector either
-						{              //add island sector
+                                k = i;
+                        if (k == -1)   //if not inside another sector either
+                        {              //add island sector
                             if (Engine.board.clockdir(numwalls) == 1)
-								EditorLib.flipwalls(numwalls,(short)newnumwalls);
+                                EditorLib.flipwalls(numwalls, (short)newnumwalls);
 
                             Engine.board.sector[numsectors] = null;
-                          //  GC.Collect();
+                            //  GC.Collect();
                             Engine.board.sector[numsectors] = new sectortype();
                             Engine.board.sector[numsectors].extra = -1;
 
@@ -1121,40 +1589,40 @@ namespace buildlite
                             Engine.board.sector[numsectors].wallnum = (short)(newnumwalls - numwalls);
                             Engine.board.sector[numsectors].ceilingz = (-32 << 8);
                             Engine.board.sector[numsectors].floorz = (32 << 8);
-							for(i=numwalls;i<newnumwalls;i++)
-							{
+                            for (i = numwalls; i < newnumwalls; i++)
+                            {
                                 Engine.board.wall[i].cstat = 0;
                                 Engine.board.wall[i].shade = 0;
                                 Engine.board.wall[i].yrepeat = 8;
-								EditorLib.fixrepeats((short)i);
+                                EditorLib.fixrepeats((short)i);
                                 Engine.board.wall[i].picnum = 0;
                                 Engine.board.wall[i].overpicnum = 0;
                                 Engine.board.wall[i].nextsector = -1;
                                 Engine.board.wall[i].nextwall = -1;
-							}
+                            }
                             Engine.board.headspritesect[numsectors] = -1;
-							numsectors++;
-                            
-						}
-						else       //else add loop to sector
-						{
-							if (Engine.board.clockdir(numwalls) == 0)
-								EditorLib.flipwalls(numwalls,(short)newnumwalls);
+                            numsectors++;
 
-							j = newnumwalls-numwalls;
+                        }
+                        else       //else add loop to sector
+                        {
+                            if (Engine.board.clockdir(numwalls) == 0)
+                                EditorLib.flipwalls(numwalls, (short)newnumwalls);
+
+                            j = newnumwalls - numwalls;
 
                             Engine.board.sector[k].wallnum += (short)j;
-							for(i=k+1;i<numsectors;i++)
+                            for (i = k + 1; i < numsectors; i++)
                                 Engine.board.sector[i].wallptr += (short)j;
                             suckwall = Engine.board.sector[k].wallptr;
 
-							for(i=0;i<numwalls;i++)
-							{
+                            for (i = 0; i < numwalls; i++)
+                            {
                                 if (Engine.board.wall[i].nextwall >= suckwall)
                                     Engine.board.wall[i].nextwall += (short)j;
                                 if (Engine.board.wall[i].point2 >= suckwall)
                                     Engine.board.wall[i].point2 += (short)j;
-							}
+                            }
 
                             for (i = newnumwalls - 1; i >= suckwall; i--)
                             {
@@ -1167,31 +1635,31 @@ namespace buildlite
                                 Engine.board.wall[i + newnumwalls].copyto(ref Engine.board.wall[i + suckwall]);
                             }
 
-							for(i=suckwall;i<suckwall+j;i++)
-							{
+                            for (i = suckwall; i < suckwall + j; i++)
+                            {
                                 Engine.board.wall[i].point2 += (short)(suckwall - numwalls);
 
                                 Engine.board.wall[i].cstat = Engine.board.wall[suckwall + j].cstat;
                                 Engine.board.wall[i].shade = Engine.board.wall[suckwall + j].shade;
                                 Engine.board.wall[i].yrepeat = Engine.board.wall[suckwall + j].yrepeat;
-								EditorLib.fixrepeats((short)i);
+                                EditorLib.fixrepeats((short)i);
                                 Engine.board.wall[i].picnum = Engine.board.wall[suckwall + j].picnum;
                                 Engine.board.wall[i].overpicnum = Engine.board.wall[suckwall + j].overpicnum;
 
                                 Engine.board.wall[i].nextsector = -1;
                                 Engine.board.wall[i].nextwall = -1;
-							}
-						}
-					}
-					else
-					{
-						  //add new sector with connections
-						if (Engine.board.clockdir(numwalls) == 1)
-							EditorLib.flipwalls(numwalls,(short)newnumwalls);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //add new sector with connections
+                        if (Engine.board.clockdir(numwalls) == 1)
+                            EditorLib.flipwalls(numwalls, (short)newnumwalls);
 
-						//clearbufbyte(FP_OFF(&sector[numsectors]),sizeof(sectortype),0L);
+                        //clearbufbyte(FP_OFF(&sector[numsectors]),sizeof(sectortype),0L);
                         Engine.board.sector[numsectors] = null;
-                   //     GC.Collect();
+                        //     GC.Collect();
                         Engine.board.sector[numsectors] = new sectortype();
                         Engine.board.sector[numsectors].extra = -1;
 
@@ -1210,367 +1678,367 @@ namespace buildlite
                         Engine.board.sector[numsectors].floorpicnum = Engine.board.sector[sucksect].floorpicnum;
                         Engine.board.sector[numsectors].ceilingheinum = Engine.board.sector[sucksect].ceilingheinum;
                         Engine.board.sector[numsectors].floorheinum = Engine.board.sector[sucksect].floorheinum;
-						for(i=numwalls;i<newnumwalls;i++)
-						{
+                        for (i = numwalls; i < newnumwalls; i++)
+                        {
                             Engine.board.wall[i].cstat = Engine.board.wall[suckwall].cstat;
                             Engine.board.wall[i].shade = Engine.board.wall[suckwall].shade;
                             Engine.board.wall[i].yrepeat = Engine.board.wall[suckwall].yrepeat;
-							EditorLib.fixrepeats((short)i);
+                            EditorLib.fixrepeats((short)i);
                             Engine.board.wall[i].picnum = Engine.board.wall[suckwall].picnum;
                             Engine.board.wall[i].overpicnum = Engine.board.wall[suckwall].overpicnum;
-							EditorLib.checksectorpointer((short)i,(short)numsectors);
-						}
+                            EditorLib.checksectorpointer((short)i, (short)numsectors);
+                        }
                         Engine.board.headspritesect[numsectors] = -1;
-						numsectors++;
-                        
-					}
-					numwalls = (short)newnumwalls;
-					newnumwalls = -1;
-					//asksave = 1;
-				}
-				if (split == 1)
-				{
-						 //split sector
-					startwall = Engine.board.sector[splitsect].wallptr;
+                        numsectors++;
+
+                    }
+                    numwalls = (short)newnumwalls;
+                    newnumwalls = -1;
+                    //asksave = 1;
+                }
+                if (split == 1)
+                {
+                    //split sector
+                    startwall = Engine.board.sector[splitsect].wallptr;
                     endwall = startwall + Engine.board.sector[splitsect].wallnum - 1;
-					for(k=startwall;k<=endwall;k++)
+                    for (k = startwall; k <= endwall; k++)
                         if (Engine.board.wall[k].x == Engine.board.wall[newnumwalls - 1].x)
                             if (Engine.board.wall[k].y == Engine.board.wall[newnumwalls - 1].y)
-							{
-								bad = 0;
+                            {
+                                bad = 0;
                                 if (Engine.board.loopnumofsector((short)splitsect, (short)splitstartwall) != Engine.board.loopnumofsector((short)splitsect, (short)k))
-									bad = 1;
+                                    bad = 1;
 
-								if (bad == 0)
-								{
-									//SPLIT IT!
-									//Split splitsect given: startwall,
-									//   new points: numwalls to newnumwalls-2
+                                if (bad == 0)
+                                {
+                                    //SPLIT IT!
+                                    //Split splitsect given: startwall,
+                                    //   new points: numwalls to newnumwalls-2
 
-									splitendwall = k;
-									newnumwalls--;  //first fix up the new walls
-									for(i=numwalls;i<newnumwalls;i++)
-									{
+                                    splitendwall = k;
+                                    newnumwalls--;  //first fix up the new walls
+                                    for (i = numwalls; i < newnumwalls; i++)
+                                    {
                                         Engine.board.wall[i].cstat = Engine.board.wall[startwall].cstat;
                                         Engine.board.wall[i].shade = Engine.board.wall[startwall].shade;
                                         Engine.board.wall[i].yrepeat = Engine.board.wall[startwall].yrepeat;
-										EditorLib.fixrepeats((short)i);
+                                        EditorLib.fixrepeats((short)i);
                                         Engine.board.wall[i].picnum = Engine.board.wall[startwall].picnum;
                                         Engine.board.wall[i].overpicnum = Engine.board.wall[startwall].overpicnum;
 
                                         Engine.board.wall[i].nextwall = -1;
                                         Engine.board.wall[i].nextsector = -1;
                                         Engine.board.wall[i].point2 = (short)(i + 1);
-									}
+                                    }
 
-									danumwalls = newnumwalls;  //where to add more walls
-									m = splitendwall;          //copy rest of loop next
-									while (m != splitstartwall)
-									{
-										//memcpy(&wall[danumwalls],&wall[m],sizeof(walltype));
+                                    danumwalls = newnumwalls;  //where to add more walls
+                                    m = splitendwall;          //copy rest of loop next
+                                    while (m != splitstartwall)
+                                    {
+                                        //memcpy(&wall[danumwalls],&wall[m],sizeof(walltype));
 
                                         Engine.board.wall[m].copyto(ref Engine.board.wall[danumwalls]);
 
                                         Engine.board.wall[danumwalls].point2 = (short)(danumwalls + 1);
-										danumwalls++;
+                                        danumwalls++;
                                         m = Engine.board.wall[m].point2;
-									}
+                                    }
                                     Engine.board.wall[danumwalls - 1].point2 = numwalls;
 
-										//Add other loops for 1st sector
+                                    //Add other loops for 1st sector
                                     loopnum = Engine.board.loopnumofsector((short)splitsect, (short)splitstartwall);
-									i = loopnum;
-									for(j=startwall;j<=endwall;j++)
-									{
+                                    i = loopnum;
+                                    for (j = startwall; j <= endwall; j++)
+                                    {
                                         k = Engine.board.loopnumofsector((short)splitsect, (short)j);
-										if ((k != i) && (k != loopnum))
-										{
-											i = k;
+                                        if ((k != i) && (k != loopnum))
+                                        {
+                                            i = k;
                                             if (Engine.board.loopinside(Engine.board.wall[j].x, Engine.board.wall[j].y, (short)numwalls) == 1)
-											{
-												m = j;          //copy loop
-												k = danumwalls;
-												do
-												{
-													//memcpy(&wall[danumwalls],&wall[m],sizeof(walltype));
+                                            {
+                                                m = j;          //copy loop
+                                                k = danumwalls;
+                                                do
+                                                {
+                                                    //memcpy(&wall[danumwalls],&wall[m],sizeof(walltype));
                                                     Engine.board.wall[m].copyto(ref Engine.board.wall[danumwalls]);
                                                     Engine.board.wall[danumwalls].point2 = (short)(danumwalls + 1);
-													danumwalls++;
+                                                    danumwalls++;
                                                     m = Engine.board.wall[m].point2;
-												}
-												while (m != j);
+                                                }
+                                                while (m != j);
                                                 Engine.board.wall[danumwalls - 1].point2 = (short)k;
-											}
-										}
-									}
+                                            }
+                                        }
+                                    }
 
-									secondstartwall = danumwalls;
-										//copy split points for other sector backwards
-									for(j=newnumwalls;j>numwalls;j--)
-									{
-										//memcpy(&wall[danumwalls],&wall[j],sizeof(walltype));
+                                    secondstartwall = danumwalls;
+                                    //copy split points for other sector backwards
+                                    for (j = newnumwalls; j > numwalls; j--)
+                                    {
+                                        //memcpy(&wall[danumwalls],&wall[j],sizeof(walltype));
                                         Engine.board.wall[j].copyto(ref Engine.board.wall[danumwalls]);
                                         Engine.board.wall[danumwalls].nextwall = -1;
                                         Engine.board.wall[danumwalls].nextsector = -1;
                                         Engine.board.wall[danumwalls].point2 = (short)(danumwalls + 1);
-										danumwalls++;
-									}
-									m = splitstartwall;     //copy rest of loop next
-									while (m != splitendwall)
-									{
-										//memcpy(&wall[danumwalls],&wall[m],sizeof(walltype));
+                                        danumwalls++;
+                                    }
+                                    m = splitstartwall;     //copy rest of loop next
+                                    while (m != splitendwall)
+                                    {
+                                        //memcpy(&wall[danumwalls],&wall[m],sizeof(walltype));
                                         Engine.board.wall[m].copyto(ref Engine.board.wall[danumwalls]);
                                         Engine.board.wall[danumwalls].point2 = (short)(danumwalls + 1);
-										danumwalls++;
+                                        danumwalls++;
                                         m = Engine.board.wall[m].point2;
-									}
+                                    }
                                     Engine.board.wall[danumwalls - 1].point2 = (short)secondstartwall;
 
-										//Add other loops for 2nd sector
+                                    //Add other loops for 2nd sector
                                     loopnum = Engine.board.loopnumofsector((short)splitsect, (short)splitstartwall);
-									i = loopnum;
-									for(j=startwall;j<=endwall;j++)
-									{
+                                    i = loopnum;
+                                    for (j = startwall; j <= endwall; j++)
+                                    {
                                         k = Engine.board.loopnumofsector((short)splitsect, (short)j);
-										if ((k != i) && (k != loopnum))
-										{
-											i = k;
+                                        if ((k != i) && (k != loopnum))
+                                        {
+                                            i = k;
                                             if (Engine.board.loopinside(Engine.board.wall[j].x, Engine.board.wall[j].y, (short)secondstartwall) == 1)
-											{
-												m = j;          //copy loop
-												k = danumwalls;
-												do
-												{
-													//memcpy(&wall[danumwalls],&wall[m],sizeof(walltype));
+                                            {
+                                                m = j;          //copy loop
+                                                k = danumwalls;
+                                                do
+                                                {
+                                                    //memcpy(&wall[danumwalls],&wall[m],sizeof(walltype));
                                                     Engine.board.wall[m].copyto(ref Engine.board.wall[danumwalls]);
                                                     Engine.board.wall[danumwalls].point2 = (short)(danumwalls + 1);
-													danumwalls++;
+                                                    danumwalls++;
                                                     m = Engine.board.wall[m].point2;
-												}
-												while (m != j);
+                                                }
+                                                while (m != j);
                                                 Engine.board.wall[danumwalls - 1].point2 = (short)k;
-											}
-										}
-									}
+                                            }
+                                        }
+                                    }
 
-										//fix all next pointers on old sector line
-									for(j=numwalls;j<danumwalls;j++)
-									{
+                                    //fix all next pointers on old sector line
+                                    for (j = numwalls; j < danumwalls; j++)
+                                    {
                                         if (Engine.board.wall[j].nextwall >= 0)
-										{
+                                        {
                                             Engine.board.wall[Engine.board.wall[j].nextwall].nextwall = (short)j;
-											if (j < secondstartwall)
+                                            if (j < secondstartwall)
                                                 Engine.board.wall[Engine.board.wall[j].nextwall].nextsector = numsectors;
-											else
+                                            else
                                                 Engine.board.wall[Engine.board.wall[j].nextwall].nextsector = (short)(numsectors + 1);
-										}
-									}
-										//set all next pointers on split
-									for(j=numwalls;j<newnumwalls;j++)
-									{
-										m = secondstartwall+(newnumwalls-1-j);
+                                        }
+                                    }
+                                    //set all next pointers on split
+                                    for (j = numwalls; j < newnumwalls; j++)
+                                    {
+                                        m = secondstartwall + (newnumwalls - 1 - j);
                                         Engine.board.wall[j].nextwall = (short)m;
                                         Engine.board.wall[j].nextsector = (short)(numsectors + 1);
                                         Engine.board.wall[m].nextwall = (short)j;
                                         Engine.board.wall[m].nextsector = numsectors;
-									}
-										//copy sector attributes & fix wall pointers
-									//memcpy(&sector[numsectors],&sector[splitsect],sizeof(sectortype));
-									//memcpy(&sector[numsectors+1],&sector[splitsect],sizeof(sectortype));
+                                    }
+                                    //copy sector attributes & fix wall pointers
+                                    //memcpy(&sector[numsectors],&sector[splitsect],sizeof(sectortype));
+                                    //memcpy(&sector[numsectors+1],&sector[splitsect],sizeof(sectortype));
                                     Engine.board.sector[splitsect].copyto(ref Engine.board.sector[numsectors]);
-                                    Engine.board.sector[splitsect].copyto(ref Engine.board.sector[numsectors+1]);
+                                    Engine.board.sector[splitsect].copyto(ref Engine.board.sector[numsectors + 1]);
 
                                     Engine.board.sector[numsectors].wallptr = numwalls;
                                     Engine.board.sector[numsectors].wallnum = (short)(secondstartwall - numwalls);
                                     Engine.board.sector[numsectors + 1].wallptr = (short)(secondstartwall);
                                     Engine.board.sector[numsectors + 1].wallnum = (short)(danumwalls - secondstartwall);
 
-										//fix sprites
+                                    //fix sprites
                                     j = Engine.board.headspritesect[splitsect];
-									while (j != -1)
-									{
+                                    while (j != -1)
+                                    {
                                         k = Engine.board.nextspritesect[j];
                                         if (Engine.board.loopinside(Engine.board.sprite[j].x, Engine.board.sprite[j].y, numwalls) == 1)
                                             Engine.board.changespritesect((short)j, numsectors);
-										//else if (loopinside(sprite[j].x,sprite[j].y,secondstartwall) == 1)
-										else  //Make sure no sprites get left out & deleted!
+                                        //else if (loopinside(sprite[j].x,sprite[j].y,secondstartwall) == 1)
+                                        else  //Make sure no sprites get left out & deleted!
                                             Engine.board.changespritesect((short)j, (short)(numsectors + 1));
-										j = k;
-									}
+                                        j = k;
+                                    }
 
-									numsectors+=2;
+                                    numsectors += 2;
 
-										//Back of number of walls of new sector for later
-									k = danumwalls-numwalls;
+                                    //Back of number of walls of new sector for later
+                                    k = danumwalls - numwalls;
 
-										//clear out old sector's next pointers for clean deletesector
-									numwalls = (short)danumwalls;
-									for(j=startwall;j<=endwall;j++)
-									{
-										Engine.board.wall[j].nextwall = -1;
+                                    //clear out old sector's next pointers for clean deletesector
+                                    numwalls = (short)danumwalls;
+                                    for (j = startwall; j <= endwall; j++)
+                                    {
+                                        Engine.board.wall[j].nextwall = -1;
                                         Engine.board.wall[j].nextsector = -1;
-									}
-									EditorLib.deletesector((short)splitsect);
+                                    }
+                                    EditorLib.deletesector((short)splitsect);
 
-										//Check pointers
-									for(j=numwalls-k;j<numwalls;j++)
-									{
+                                    //Check pointers
+                                    for (j = numwalls - k; j < numwalls; j++)
+                                    {
                                         if (Engine.board.wall[j].nextwall >= 0)
                                             EditorLib.checksectorpointer(Engine.board.wall[j].nextwall, Engine.board.wall[j].nextsector);
                                         EditorLib.checksectorpointer((short)j, (short)Engine.board.sectorofwall((short)j));
-									}
+                                    }
 
-										//k now safe to use as temp
+                                    //k now safe to use as temp
 
-									for(m=numsectors-2;m<numsectors;m++)
-									{
+                                    for (m = numsectors - 2; m < numsectors; m++)
+                                    {
                                         j = Engine.board.headspritesect[m];
-										while (j != -1)
-										{
+                                        while (j != -1)
+                                        {
                                             k = Engine.board.nextspritesect[j];
                                             Engine.board.setsprite((short)j, Engine.board.sprite[j].x, Engine.board.sprite[j].y, Engine.board.sprite[j].z);
-											j = k;
-										}
-									}
+                                            j = k;
+                                        }
+                                    }
 
-									newnumwalls = -1;
-									printmessage16("Sector split.");
-									break;
-								}
-								else
-								{
-										//Sector split - actually loop joining
+                                    newnumwalls = -1;
+                                    printmessage16("Sector split.");
+                                    break;
+                                }
+                                else
+                                {
+                                    //Sector split - actually loop joining
 
-									splitendwall = k;
-									newnumwalls--;  //first fix up the new walls
-									for(i=numwalls;i<newnumwalls;i++)
-									{
+                                    splitendwall = k;
+                                    newnumwalls--;  //first fix up the new walls
+                                    for (i = numwalls; i < newnumwalls; i++)
+                                    {
                                         Engine.board.wall[i].cstat = Engine.board.wall[startwall].cstat;
                                         Engine.board.wall[i].shade = Engine.board.wall[startwall].shade;
                                         Engine.board.wall[i].yrepeat = Engine.board.wall[startwall].yrepeat;
-										EditorLib.fixrepeats((short)i);
+                                        EditorLib.fixrepeats((short)i);
                                         Engine.board.wall[i].picnum = Engine.board.wall[startwall].picnum;
                                         Engine.board.wall[i].overpicnum = Engine.board.wall[startwall].overpicnum;
 
                                         Engine.board.wall[i].nextwall = -1;
                                         Engine.board.wall[i].nextsector = -1;
                                         Engine.board.wall[i].point2 = (short)(i + 1);
-									}
+                                    }
 
-									danumwalls = newnumwalls;  //where to add more walls
-									m = splitendwall;          //copy rest of loop next
-									do
-									{
-										//memcpy(&wall[danumwalls],&wall[m],sizeof(walltype));
+                                    danumwalls = newnumwalls;  //where to add more walls
+                                    m = splitendwall;          //copy rest of loop next
+                                    do
+                                    {
+                                        //memcpy(&wall[danumwalls],&wall[m],sizeof(walltype));
                                         Engine.board.wall[m].copyto(ref Engine.board.wall[danumwalls]);
                                         Engine.board.wall[danumwalls].point2 = (short)(danumwalls + 1);
-										danumwalls++;
+                                        danumwalls++;
                                         m = Engine.board.wall[m].point2;
-									} while (m != splitendwall);
+                                    } while (m != splitendwall);
 
-									//copy split points for other sector backwards
-									for(j=newnumwalls;j>numwalls;j--)
-									{
-										//memcpy(&wall[danumwalls],&wall[j],sizeof(walltype));
+                                    //copy split points for other sector backwards
+                                    for (j = newnumwalls; j > numwalls; j--)
+                                    {
+                                        //memcpy(&wall[danumwalls],&wall[j],sizeof(walltype));
                                         Engine.board.wall[j].copyto(ref Engine.board.wall[danumwalls]);
                                         Engine.board.wall[danumwalls].nextwall = -1;
                                         Engine.board.wall[danumwalls].nextsector = -1;
                                         Engine.board.wall[danumwalls].point2 = (short)(danumwalls + 1);
-										danumwalls++;
-									}
+                                        danumwalls++;
+                                    }
 
-									m = splitstartwall;     //copy rest of loop next
-									do
-									{
-										//memcpy(&wall[danumwalls],&wall[m],sizeof(walltype));
+                                    m = splitstartwall;     //copy rest of loop next
+                                    do
+                                    {
+                                        //memcpy(&wall[danumwalls],&wall[m],sizeof(walltype));
                                         Engine.board.wall[m].copyto(ref Engine.board.wall[danumwalls]);
                                         Engine.board.wall[danumwalls].point2 = (short)(danumwalls + 1);
-										danumwalls++;
+                                        danumwalls++;
                                         m = Engine.board.wall[m].point2;
-									} while (m != splitstartwall);
+                                    } while (m != splitstartwall);
                                     Engine.board.wall[danumwalls - 1].point2 = numwalls;
 
-										//Add other loops to sector
+                                    //Add other loops to sector
                                     loopnum = Engine.board.loopnumofsector((short)splitsect, (short)splitstartwall);
-									i = loopnum;
-									for(j=startwall;j<=endwall;j++)
-									{
+                                    i = loopnum;
+                                    for (j = startwall; j <= endwall; j++)
+                                    {
                                         k = Engine.board.loopnumofsector((short)splitsect, (short)j);
                                         if ((k != i) && (k != Engine.board.loopnumofsector((short)splitsect, (short)splitstartwall)) && (k != Engine.board.loopnumofsector((short)splitsect, (short)splitendwall)))
-										{
-											i = k;
-											m = j; k = danumwalls;     //copy loop
-											do
-											{
-												//memcpy(&wall[danumwalls],&wall[m],sizeof(walltype));
+                                        {
+                                            i = k;
+                                            m = j; k = danumwalls;     //copy loop
+                                            do
+                                            {
+                                                //memcpy(&wall[danumwalls],&wall[m],sizeof(walltype));
                                                 Engine.board.wall[m].copyto(ref Engine.board.wall[danumwalls]);
                                                 Engine.board.wall[danumwalls].point2 = (short)(danumwalls + 1);
-												danumwalls++;
+                                                danumwalls++;
                                                 m = Engine.board.wall[m].point2;
-											} while (m != j);
+                                            } while (m != j);
                                             Engine.board.wall[danumwalls - 1].point2 = (short)k;
-										}
-									}
+                                        }
+                                    }
 
-										//fix all next pointers on old sector line
-									for(j=numwalls;j<danumwalls;j++)
-									{
+                                    //fix all next pointers on old sector line
+                                    for (j = numwalls; j < danumwalls; j++)
+                                    {
                                         if (Engine.board.wall[j].nextwall >= 0)
-										{
+                                        {
                                             Engine.board.wall[Engine.board.wall[j].nextwall].nextwall = (short)j;
                                             Engine.board.wall[Engine.board.wall[j].nextwall].nextsector = numsectors;
-										}
-									}
+                                        }
+                                    }
 
-										//copy sector attributes & fix wall pointers
-									//memcpy(&sector[numsectors],&sector[splitsect],sizeof(sectortype));
+                                    //copy sector attributes & fix wall pointers
+                                    //memcpy(&sector[numsectors],&sector[splitsect],sizeof(sectortype));
                                     Engine.board.sector[splitsect].copyto(ref Engine.board.sector[numsectors]);
                                     Engine.board.sector[numsectors].wallptr = numwalls;
                                     Engine.board.sector[numsectors].wallnum = (short)(danumwalls - numwalls);
 
-										//fix sprites
+                                    //fix sprites
                                     j = Engine.board.headspritesect[splitsect];
-									while (j != -1)
-									{
+                                    while (j != -1)
+                                    {
                                         k = Engine.board.nextspritesect[j];
                                         Engine.board.changespritesect((short)j, numsectors);
-										j = k;
-									}
+                                        j = k;
+                                    }
 
-									numsectors++;
-                                    
-										//Back of number of walls of new sector for later
-									k = danumwalls-numwalls;
+                                    numsectors++;
 
-										//clear out old sector's next pointers for clean deletesector
-									numwalls = (short)danumwalls;
-									for(j=startwall;j<=endwall;j++)
-									{
+                                    //Back of number of walls of new sector for later
+                                    k = danumwalls - numwalls;
+
+                                    //clear out old sector's next pointers for clean deletesector
+                                    numwalls = (short)danumwalls;
+                                    for (j = startwall; j <= endwall; j++)
+                                    {
                                         Engine.board.wall[j].nextwall = -1;
                                         Engine.board.wall[j].nextsector = -1;
-									}
-									EditorLib.deletesector((short)splitsect);
+                                    }
+                                    EditorLib.deletesector((short)splitsect);
 
-										//Check pointers
-									for(j=numwalls-k;j<numwalls;j++)
-									{
+                                    //Check pointers
+                                    for (j = numwalls - k; j < numwalls; j++)
+                                    {
                                         if (Engine.board.wall[j].nextwall >= 0)
                                             EditorLib.checksectorpointer(Engine.board.wall[j].nextwall, Engine.board.wall[j].nextsector);
                                         EditorLib.checksectorpointer((short)j, (short)(numsectors - 1));
-									}
+                                    }
 
-									newnumwalls = -1;
-									printmessage16("Loops joined.");
-									break;
-								}
-							}
-				}
-			}
+                                    newnumwalls = -1;
+                                    printmessage16("Loops joined.");
+                                    break;
+                                }
+                            }
+                }
+            }
         }
 
-        
 
-        
+
+
 
         private void overheadeditor()
         {
@@ -1588,23 +2056,32 @@ namespace buildlite
             // Clear all the status bar positions to the correct color;
             clearmidstatbar16();
 
-           	Engine.xdim2d = Engine._device.xdim;
-	        Engine.ydim2d = Engine._device.ydim;
+            Engine.xdim2d = Engine._device.xdim;
+            Engine.ydim2d = Engine._device.ydim;
 
-	        Engine.searchx = pragmas.scale(Engine.searchx,xdim2d,xdimgame);
-	        Engine.searchy = pragmas.scale(Engine.searchy,ydim2d-STATUS2DSIZ,ydimgame);
-	       // oposz = posz;
+            Engine.searchx = pragmas.scale(Engine.searchx, xdim2d, xdimgame);
+            Engine.searchy = pragmas.scale(Engine.searchy, ydim2d - STATUS2DSIZ, ydimgame);
+            // oposz = posz;
 
-	        Engine.ydim16 = Engine.ydim;
-	        Engine.drawline16(0,Engine._device.ydim-STATUS2DSIZ,Engine._device.xdim-1,Engine._device.ydim-STATUS2DSIZ,7);
-	        Engine.drawline16(0,Engine._device.ydim-1,Engine._device.xdim-1,Engine._device.ydim-1,7);
-	        Engine.drawline16(0,Engine._device.ydim-STATUS2DSIZ,0,Engine._device.ydim-1,7);
-	        Engine.drawline16(Engine._device.xdim-1,Engine._device.ydim-STATUS2DSIZ,Engine._device.xdim-1,Engine._device.ydim-1,7);
-	        Engine.drawline16(0,Engine._device.ydim-STATUS2DSIZ+24,Engine._device.xdim-1,Engine._device.ydim-STATUS2DSIZ+24,7);
-	        Engine.drawline16(192,Engine._device.ydim-STATUS2DSIZ,192,Engine._device.ydim-STATUS2DSIZ+24,7);
-	        Engine.printext16(9,Engine._device.ydim-STATUS2DSIZ+9,4,-1,kensig,0);
-	        Engine.printext16(8,Engine._device.ydim-STATUS2DSIZ+8,12,-1,kensig,0);
-            if (inbuildmenu)
+            Engine.ydim16 = Engine.ydim;
+            Engine.drawline16(0, Engine._device.ydim - STATUS2DSIZ, Engine._device.xdim - 1, Engine._device.ydim - STATUS2DSIZ, 7);
+            Engine.drawline16(0, Engine._device.ydim - 1, Engine._device.xdim - 1, Engine._device.ydim - 1, 7);
+            Engine.drawline16(0, Engine._device.ydim - STATUS2DSIZ, 0, Engine._device.ydim - 1, 7);
+            Engine.drawline16(Engine._device.xdim - 1, Engine._device.ydim - STATUS2DSIZ, Engine._device.xdim - 1, Engine._device.ydim - 1, 7);
+            Engine.drawline16(0, Engine._device.ydim - STATUS2DSIZ + 24, Engine._device.xdim - 1, Engine._device.ydim - STATUS2DSIZ + 24, 7);
+            Engine.drawline16(192, Engine._device.ydim - STATUS2DSIZ, 192, Engine._device.ydim - STATUS2DSIZ + 24, 7);
+            Engine.printext16(9, Engine._device.ydim - STATUS2DSIZ + 9, 4, -1, kensig, 0);
+            Engine.printext16(8, Engine._device.ydim - STATUS2DSIZ + 8, 12, -1, kensig, 0);
+
+            if (altkeydown)
+            {
+                printmessage16("Control(alt) key is down");
+            }
+            else if (editingState != EditingState.EDITING_NOTHING)
+            {
+                printmessage16(editDescription + editValue);
+            }
+            else if (inbuildmenu)
             {
                 printmessage16("(N)ew, (L)oad, (S)ave as");
             }
@@ -1616,10 +2093,10 @@ namespace buildlite
             {
                 printmessage16("WebBuild: By Justin Marshall v1");
             }
-	        Engine.drawline16(0,Engine._device.ydim-1-24,Engine._device.xdim-1,Engine._device.ydim-1-24,7);
-	        Engine.drawline16(256,Engine._device.ydim-1-24,256,Engine._device.ydim-1,7);
-	        Engine.ydim16 = Engine.ydim-STATUS2DSIZ;
-	        Engine._device.EndDrawing();
+            Engine.drawline16(0, Engine._device.ydim - 1 - 24, Engine._device.xdim - 1, Engine._device.ydim - 1 - 24, 7);
+            Engine.drawline16(256, Engine._device.ydim - 1 - 24, 256, Engine._device.ydim - 1, 7);
+            Engine.ydim16 = Engine.ydim - STATUS2DSIZ;
+            Engine._device.EndDrawing();
 
             printcoords16(posx, posy, ang);
 
@@ -1632,9 +2109,6 @@ namespace buildlite
 
             if (newnumwalls > 0)
             {
-
-                
-
                 if (Engine.board.wall[newnumwalls] == null)
                 {
                     Engine.board.wall[newnumwalls - 1].copyto(ref Engine.board.wall[newnumwalls]);
@@ -1647,19 +2121,36 @@ namespace buildlite
             Engine.clear2dscreen();
             Engine.draw2dgrid(posx, posy, ang, zoom, grid);
 
+            int x1, y1;
+            int x2 = pragmas.mulscale14(startposx - posx, zoom);          //Draw brown arrow (start)
+            int y2 = pragmas.mulscale14(startposy - posy, zoom);
+            if (((320 + x2) >= 2) && ((320 + x2) <= 637))
+            {
+                if (((200 + y2) >= 2) && ((200 + y2) <= Engine.ydim16 - 3))
+                {
+                    x1 = pragmas.mulscale11(Engine.table.sintable[(startang + 2560) & 2047], zoom) / 768;
+                    y1 = pragmas.mulscale11(Engine.table.sintable[(startang + 2048) & 2047], zoom) / 768;
+                    Engine.drawline16((320 + x2) + x1, (200 + y2) + y1, (320 + x2) - x1, (200 + y2) - y1, 6);
+                    Engine.drawline16((320 + x2) + x1, (200 + y2) + y1, (320 + x2) + y1, (200 + y2) - x1, 6);
+                    Engine.drawline16((320 + x2) + x1, (200 + y2) + y1, (320 + x2) - y1, (200 + y2) + x1, 6);
+                }
+            }
+
+            
+
             Engine.board.draw2dscreen(posx, posy, ang, zoom, grid);
+
 
             numwalls = onumwalls;
 
-            
-            
+
             pointhighlight = getpointhighlight(mousxplc, mousyplc, pointhighlight);
 
 
             if ((pointhighlight & 0xc000) == 16384)
             {
                 drawspriteinfo((pointhighlight & 16383), (Engine._device.ydim - STATUS2DSIZ) + 30);
-            }     
+            }
         }
 
         //
@@ -1720,7 +2211,7 @@ namespace buildlite
         Int32 getpointhighlight(Int32 xplc, Int32 yplc, Int32 point)
         {
             Int32 i, j, dst, dist = 512, closest = -1;
-            Int32 dax=0,day=0;
+            Int32 dax = 0, day = 0;
 
             if (Engine.board.numwalls == 0)
                 return -1;
@@ -1728,24 +2219,24 @@ namespace buildlite
             if (grid < 1)
                 dist = 0;
 
-   
+
 
             for (i = 0; i < Engine.board.numsectors; i++)
             {
-                for (j=Engine.board.sector[i].wallptr; j<Engine.board.sector[i].wallptr+Engine.board.sector[i].wallnum; j++)
+                for (j = Engine.board.sector[i].wallptr; j < Engine.board.sector[i].wallptr + Engine.board.sector[i].wallnum; j++)
                 {
                     Engine.screencoords(ref dax, ref day, Engine.board.wall[j].x - posx, Engine.board.wall[j].y - posy, zoom);
                     day += Engine.getscreenvdisp(Engine.board.getflorzofslope((short)i, Engine.board.wall[j].x, Engine.board.wall[j].y) - posz, zoom);
 
-                    if (Engine._device.halfxdim16+dax < 0 || Engine._device.halfxdim16+dax >= Engine._device.xdim || Engine._device.midydim16+day < 0 || Engine._device.midydim16+day >= Engine._device.ydim)
-                         continue;
+                    if (Engine._device.halfxdim16 + dax < 0 || Engine._device.halfxdim16 + dax >= Engine._device.xdim || Engine._device.midydim16 + day < 0 || Engine._device.midydim16 + day >= Engine._device.ydim)
+                        continue;
 
-                    dst = pragmas.klabs(Engine._device.halfxdim16+dax-Engine.searchx) + pragmas.klabs(Engine._device.midydim16+day-Engine.searchy);
+                    dst = pragmas.klabs(Engine._device.halfxdim16 + dax - Engine.searchx) + pragmas.klabs(Engine._device.midydim16 + day - Engine.searchy);
 
                     if (dst <= dist)
                     {
                         // prefer white walls
-                        if (dst<dist || closest==-1 || (!(Engine.board.wall[j].nextwall>=0) || !(Engine.board.wall[closest].nextwall>=0)))
+                        if (dst < dist || closest == -1 || (!(Engine.board.wall[j].nextwall >= 0) || !(Engine.board.wall[closest].nextwall >= 0)))
                         {
                             dist = dst;
                             closest = j;
@@ -1767,8 +2258,8 @@ namespace buildlite
 
                         if (true /*!m32_sideview*/)
                         {
-                            
-                            dst = pragmas.klabs(xplc - Engine.board.sprite[i].x) + pragmas.klabs(yplc - Engine.board.sprite[i].y)-150;
+
+                            dst = pragmas.klabs(xplc - Engine.board.sprite[i].x) + pragmas.klabs(yplc - Engine.board.sprite[i].y) - 150;
                         }
                         else
                         {
@@ -1799,12 +2290,12 @@ namespace buildlite
             if (hitsprite >= 0)
             {
                 int picnum = Engine.board.sprite[hitsprite].picnum;
-                Engine.printext16(0, ypos + 0, 15, -1, "Sprite: " + hitsprite + " Stats", 0);
-                Engine.printext16(0, ypos + 15, 15, -1, "Hitag: " + Engine.board.sprite[hitsprite].hitag, 0);
-                Engine.printext16(0, ypos + 25, 15, -1, "Lotag: " + Engine.board.sprite[hitsprite].lotag, 0);
-                Engine.printext16(0, ypos + 35, 15, -1, "Picnum: " + Engine.board.sprite[hitsprite].picnum, 0);
-                Engine.printext16(0, ypos + 45, 15, -1, "Pal: " + Engine.board.sprite[hitsprite].pal, 0);
-                Engine.printext16(0, ypos + 55, 15, -1, "Shade: " + Engine.board.sprite[hitsprite].shade, 0);
+                Engine.printext16(0, ypos + 10, 15, -1, "Sprite: " + hitsprite + " Stats", 0);
+                Engine.printext16(0, ypos + 25, 15, -1, "Hitag: " + Engine.board.sprite[hitsprite].hitag, 0);
+                Engine.printext16(0, ypos + 35, 15, -1, "Lotag: " + Engine.board.sprite[hitsprite].lotag, 0);
+                Engine.printext16(0, ypos + 45, 15, -1, "Picnum: " + Engine.board.sprite[hitsprite].picnum, 0);
+                Engine.printext16(0, ypos + 55, 15, -1, "Pal: " + Engine.board.sprite[hitsprite].pal, 0);
+                Engine.printext16(0, ypos + 65, 15, -1, "Shade: " + Engine.board.sprite[hitsprite].shade, 0);
                 Engine.rotatesprite(125 << 16, (ypos + 20) << 16, 65536, 0, Engine.board.sprite[hitsprite].picnum, Engine.board.sprite[hitsprite].shade, Engine.board.sprite[hitsprite].pal, 8 | 16, 0, 0, Engine._device.xdim - 1, Engine._device.ydim - 30);
             }
         }
@@ -1814,19 +2305,19 @@ namespace buildlite
             if (hitwall >= 0)
             {
                 int picnum = Engine.board.wall[hitwall].picnum;
-                Engine.printext16(0, ypos + 0, 15, -1, "Wall: " + hitwall + " Stats", 0);
-                Engine.printext16(0, ypos + 15, 15, -1, "Hitag: " + Engine.board.wall[hitwall].hitag, 0);
-                Engine.printext16(0, ypos + 25, 15, -1, "Lotag: " + Engine.board.wall[hitwall].lotag, 0);
-                Engine.printext16(0, ypos + 35, 15, -1, "Picnum: " + Engine.board.wall[hitwall].picnum, 0);
-                Engine.printext16(0, ypos + 45, 15, -1, "Pal: " + Engine.board.wall[hitwall].pal, 0);
-                Engine.printext16(0, ypos + 55, 15, -1, "Shade: " + Engine.board.wall[hitwall].shade, 0);
+                Engine.printext16(0, ypos + 10, 15, -1, "Wall: " + hitwall + " Stats", 0);
+                Engine.printext16(0, ypos + 25, 15, -1, "Hitag: " + Engine.board.wall[hitwall].hitag, 0);
+                Engine.printext16(0, ypos + 35, 15, -1, "Lotag: " + Engine.board.wall[hitwall].lotag, 0);
+                Engine.printext16(0, ypos + 45, 15, -1, "Picnum: " + Engine.board.wall[hitwall].picnum, 0);
+                Engine.printext16(0, ypos + 55, 15, -1, "Pal: " + Engine.board.wall[hitwall].pal, 0);
+                Engine.printext16(0, ypos + 65, 15, -1, "Shade: " + Engine.board.wall[hitwall].shade, 0);
                 Engine.rotatesprite(125 << 16, (ypos + 20) << 16, 65536, 0, Engine.board.wall[hitwall].picnum, Engine.board.wall[hitwall].shade, Engine.board.wall[hitwall].pal, 8 | 16, 0, 0, Engine._device.xdim - 1, Engine._device.ydim - 30);
             }
         }
 
         private void draw3dcursorinfo()
         {
-            
+
             int dax = 16384;
             int day = pragmas.divscale14(mousx2 - (Engine._device.xdim >> 1), Engine._device.xdim >> 1);
             Engine.rotatepoint(0, 0, dax, day, ang, ref dax, ref day);
@@ -1852,24 +2343,24 @@ namespace buildlite
                 if (Engine.board.getflorzofslope((short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) <= mouseTrace.hitz)
                 {
                     int picnum = Engine.board.wall[mouseTrace.hitsector].picnum;
-                    Engine.printext16(0, 0, 15, -1, "Sector(floor) " + mouseTrace.hitsector + " Stats", 0);
-                    Engine.printext16(0, 15, 15, -1, "Hitag: " + Engine.board.sector[mouseTrace.hitsector].hitag, 0);
-                    Engine.printext16(0, 25, 15, -1, "Lotag: " + Engine.board.sector[mouseTrace.hitsector].lotag, 0);
-                    Engine.printext16(0, 35, 15, -1, "Picnum: " + Engine.board.sector[mouseTrace.hitsector].floorpicnum, 0);
-                    Engine.printext16(0, 45, 15, -1, "Pal: " + Engine.board.sector[mouseTrace.hitsector].floorpal, 0);
-                    Engine.printext16(0, 55, 15, -1, "Shade: " + Engine.board.sector[mouseTrace.hitsector].floorshade, 0);
+                    Engine.printext16(0, 10, 15, -1, "Sector(floor) " + mouseTrace.hitsector + " Stats", 0);
+                    Engine.printext16(0, 25, 15, -1, "Hitag: " + Engine.board.sector[mouseTrace.hitsector].hitag, 0);
+                    Engine.printext16(0, 35, 15, -1, "Lotag: " + Engine.board.sector[mouseTrace.hitsector].lotag, 0);
+                    Engine.printext16(0, 45, 15, -1, "Picnum: " + Engine.board.sector[mouseTrace.hitsector].floorpicnum, 0);
+                    Engine.printext16(0, 55, 15, -1, "Pal: " + Engine.board.sector[mouseTrace.hitsector].floorpal, 0);
+                    Engine.printext16(0, 65, 15, -1, "Shade: " + Engine.board.sector[mouseTrace.hitsector].floorshade, 0);
                     Engine.rotatesprite(125 << 16, (20) << 16, 65536, 0, Engine.board.sector[mouseTrace.hitsector].floorpicnum, Engine.board.sector[mouseTrace.hitsector].floorshade, Engine.board.sector[mouseTrace.hitsector].floorpal, 8 | 16, 0, 0, Engine._device.xdim - 1, Engine._device.ydim - 30);
                     mouseTrace.hittype = MouseSectorHitType.MOUSE_SECTORHIT_FLOOR;
                 }
                 else if (Engine.board.getceilzofslope((short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) >= mouseTrace.hitz)
                 {
                     int picnum = Engine.board.wall[mouseTrace.hitsector].picnum;
-                    Engine.printext16(0, 0, 15, -1, "Sector(ceiling) " + mouseTrace.hitsector + " Stats", 0);
-                    Engine.printext16(0, 15, 15, -1, "Hitag: " + Engine.board.sector[mouseTrace.hitsector].hitag, 0);
-                    Engine.printext16(0, 25, 15, -1, "Lotag: " + Engine.board.sector[mouseTrace.hitsector].lotag, 0);
-                    Engine.printext16(0, 35, 15, -1, "Picnum: " + Engine.board.sector[mouseTrace.hitsector].ceilingpicnum, 0);
-                    Engine.printext16(0, 45, 15, -1, "Pal: " + Engine.board.sector[mouseTrace.hitsector].ceilingpal, 0);
-                    Engine.printext16(0, 55, 15, -1, "Shade: " + Engine.board.sector[mouseTrace.hitsector].ceilingshade, 0);
+                    Engine.printext16(0, 10, 15, -1, "Sector(ceiling) " + mouseTrace.hitsector + " Stats", 0);
+                    Engine.printext16(0, 25, 15, -1, "Hitag: " + Engine.board.sector[mouseTrace.hitsector].hitag, 0);
+                    Engine.printext16(0, 35, 15, -1, "Lotag: " + Engine.board.sector[mouseTrace.hitsector].lotag, 0);
+                    Engine.printext16(0, 45, 15, -1, "Picnum: " + Engine.board.sector[mouseTrace.hitsector].ceilingpicnum, 0);
+                    Engine.printext16(0, 55, 15, -1, "Pal: " + Engine.board.sector[mouseTrace.hitsector].ceilingpal, 0);
+                    Engine.printext16(0, 65, 15, -1, "Shade: " + Engine.board.sector[mouseTrace.hitsector].ceilingshade, 0);
                     Engine.rotatesprite(125 << 16, (20) << 16, 65536, 0, Engine.board.sector[mouseTrace.hitsector].ceilingpicnum, Engine.board.sector[mouseTrace.hitsector].ceilingshade, Engine.board.sector[mouseTrace.hitsector].ceilingpal, 8 | 16, 0, 0, Engine._device.xdim - 1, Engine._device.ydim - 30);
 
                     mouseTrace.hittype = MouseSectorHitType.MOUSE_SECTORHIT_CEILING;
@@ -1883,10 +2374,19 @@ namespace buildlite
 
         private void draw3dview()
         {
-            Engine.board.drawrooms(posx, posy, posz  - 768, ang, 100, cursectnum);
+            Engine.board.drawrooms(posx, posy, posz - 768, ang, 100, cursectnum);
             Engine.board.drawmasks();
 
+            if (editingState != EditingState.EDITING_NOTHING)
+            {
+                Engine.printext16(0, 0, 15, 0, editDescription + editValue, 0);
+                return;
+            }
 
+            if (altkeydown)
+            {
+                Engine.printext16(0, 0, 15, 0, "Control(Alt) key is down", 0);
+            }
             draw3dcursorinfo();
         }
 
@@ -1894,7 +2394,7 @@ namespace buildlite
         {
             int topleft = 0, tilenum = 0;
 
-            if(cursectnum >= 0)
+            if (cursectnum >= 0)
                 MoveViewer();
 
             switch (editorState)
@@ -1928,7 +2428,7 @@ namespace buildlite
                     throw new Exception("Unknown EditorState");
             }
 
-            ChangeObjectZ(objzvel);   
+            ChangeObjectZ(objzvel);
 
             showmouse();
 
