@@ -264,19 +264,21 @@ namespace build
         //
         private bool ContentFileExists(string filepath)
         {
-
-            if (filepath.Contains(".grp"))
-            {
-                return true;
-            }
-            return false;
+            return File.Exists("base/" + filepath);
         }
         public byte[] kreadfile(string name)
         {
-            if (ContentFileExists(name))
+       //     if (ContentFileExists(name))
+        //    {
+            try
             {
                 return ReadContentFile(name);
             }
+            catch (System.IO.FileNotFoundException)
+            {
+
+            }
+      //      }
 
             name = name.ToUpper();
             for (int i = 0; i < grpfiles.Count; i++)
@@ -293,10 +295,12 @@ namespace build
 
         public kFile kopen4load(string name)
         {
-            if (ContentFileExists(name))
+          //  if (ContentFileExists(name))
+            try
             {
                 return new kFile(ReadContentFile(name));
             }
+            catch (System.NullReferenceException) { }
             name = name.ToUpper();
             for (int i = 0; i < grpfiles.Count; i++)
             {

@@ -390,11 +390,22 @@ palette:
             _device.RestorePalette();
         }
 
+        public static void newboard()
+        {
+            board = null;
+            GC.Collect();
+
+            board = new bMap();
+        }
+
         //
         // loadboard
         //
         public static int loadboard(string filename, ref int daposx, ref int daposy, ref int daposz, ref short daang, ref short dacursectnum)
         {
+            board = null;
+            GC.Collect();
+
             board = new bMap();
             if (board.loadboard(filename, ref daposx, ref daposy, ref daposz, ref daang, ref dacursectnum) == -1)
             {
@@ -414,6 +425,15 @@ palette:
             Engine.EndDrawing();
         }
 
+        //
+        // plotpixel
+        //
+        public static void plotpixelpal(int x, int y, int col)
+        {
+            Engine.BeginDrawing();
+            pragmas.drawpixelpal(ylookup[y] + x + frameplace, col);
+            Engine.EndDrawing();
+        }
 
         // return vertical screen coordinate displacement for BUILD z coord
         public static Int32 getscreenvdisp(Int32 bz, Int32 zoome)
@@ -519,6 +539,11 @@ palette:
             qsetmode = 200;
         }
 
+        public static void clearview()
+        {
+            Array.Clear(Engine._device._screenbuffer.Pixels, 0, Engine._device._screenbuffer.Pixels.Length);
+        }
+
 
         public static void loadtile(short tilenume)
         {
@@ -613,6 +638,41 @@ palette:
 		        }
 		        stx += charxsiz;
 	        }
+            _device.EndDrawing();
+        }
+
+        //
+        // printext256
+        //
+        public static void printext256(int xpos, int ypos, short col, short backcol, string name, byte fontsize)
+        {
+            int stx, i, x, y, charxsiz;
+            byte[] fontptr;
+            int letptr, ptr;
+
+            stx = xpos;
+
+            if (fontsize != 0) { fontptr = table.smalltextfont; charxsiz = 4; }
+            else { fontptr = table.textfont; charxsiz = 8; }
+
+            Engine.BeginDrawing();
+            for (i = 0; i < name.Length; i++)
+            {
+                letptr = name[i] << 3;
+                ptr = _device.bytesperline * (ypos + 7) + (stx - fontsize) + frameplace;
+                for (y = 7; y >= 0; y--)
+                {
+                    for (x = charxsiz - 1; x >= 0; x--)
+                    {
+                        if ((fontptr[letptr + y] & pow2char[7 - fontsize - x]) != 0)
+                            pragmas.drawpixel(x + ptr, col);
+                        else if (backcol >= 0)
+                            pragmas.drawpixel(x + ptr, backcol);
+                    }
+                    ptr -= _device.bytesperline;
+                }
+                stx += charxsiz;
+            }
             _device.EndDrawing();
         }
 

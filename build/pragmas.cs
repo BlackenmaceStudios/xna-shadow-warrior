@@ -37,6 +37,11 @@ namespace build
             Engine._device._screenbuffer.Pixels[pbase] = doscolors[a];
         }
 
+        public static void drawpixelpal(int pbase, int a)
+        {
+            Engine._device._screenbuffer.Pixels[pbase] = a;
+        }
+
         public static int dmval
         {
             get
