@@ -15,10 +15,17 @@ using build;
 
 namespace buildlite
 {
+    enum MouseSectorHitType
+    {
+        MOUSE_SECTORHIT_NONE,
+        MOUSE_SECTORHIT_FLOOR,
+        MOUSE_SECTORHIT_CEILING
+    }
     class MouseTrace
     {
         public short hitsprite = 0, hitwall = 0;
         public int hitsector = 0;
+        public MouseSectorHitType hittype = MouseSectorHitType.MOUSE_SECTORHIT_NONE;
         public int hitx = 0, hity = 0, hitz = 0;
     }
 
@@ -376,7 +383,7 @@ namespace buildlite
                 j = 0;
                 //Check to see if point was inserted over another point
                 for (i = numwalls - 1; i >= 0; i--)     //delete points
-                    if (Math.Abs(Engine.board.wall[i].x - Engine.board.wall[Engine.board.wall[i].point2].x) < 400 && Math.Abs(Engine.board.wall[i].y - Engine.board.wall[Engine.board.wall[i].point2].y) < 400)
+                    if (Math.Abs(Engine.board.wall[i].x - Engine.board.wall[Engine.board.wall[i].point2].x) < 100 && Math.Abs(Engine.board.wall[i].y - Engine.board.wall[Engine.board.wall[i].point2].y) < 100)
                   //  if (Engine.board.wall[i].x == Engine.board.wall[Engine.board.wall[i].point2].x)
                     //    if (Engine.board.wall[i].y == Engine.board.wall[Engine.board.wall[i].point2].y)
                         {
@@ -385,12 +392,12 @@ namespace buildlite
                         }
                 for (i = 0; i < numwalls; i++)        //make new red lines?
                 {
-                    if (Math.Abs(Engine.board.wall[i].x - dax) < 400 && Math.Abs(Engine.board.wall[i].x - day) < 400)
+                    if (Math.Abs(Engine.board.wall[i].x - dax) < 100 && Math.Abs(Engine.board.wall[i].x - day) < 100)
                     {
                         EditorLib.checksectorpointer((short)i, (short)Engine.board.sectorofwall((short)i));
                         EditorLib.fixrepeats((short)i);
                     }
-                    else if ((Engine.board.wall[Engine.board.wall[i].point2].x - dax) < 400 && (Engine.board.wall[Engine.board.wall[i].point2].y - day) < 400)
+                    else if ((Engine.board.wall[Engine.board.wall[i].point2].x - dax) < 100 && (Engine.board.wall[Engine.board.wall[i].point2].y - day) < 100)
                     {
                         EditorLib.checksectorpointer((short)i, (short)Engine.board.sectorofwall((short)i));
                         EditorLib.fixrepeats((short)i);
@@ -463,7 +470,7 @@ namespace buildlite
                 {
                     for (int i = 0; i < numwalls; i++)
                     {
-                        if (Math.Abs(Engine.board.wall[i].x - mousxplc) < 400 && Math.Abs(Engine.board.wall[i].y - mousyplc) < 400)
+                        if (Math.Abs(Engine.board.wall[i].x - mousxplc) < 100 && Math.Abs(Engine.board.wall[i].y - mousyplc) < 100)
                         {
                             dragpoint.Add( Engine.board.wall[i] );
                         }
@@ -654,7 +661,9 @@ namespace buildlite
                     }
                     break;
 
+                case Key.NumPad4:
 
+                    break;
  
                 case Key.V:
                     if (editorState == EditorState.STATE_3DVIEW)
@@ -667,11 +676,11 @@ namespace buildlite
                         {
                             localartlookupnum = Engine.board.wall[mouseTrace.hitwall].picnum;
                         }
-                        else if (mouseTrace.hitz == Engine.board.sector[mouseTrace.hitsector].floorz)
+                        else if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_FLOOR)
                         {
                             localartlookupnum = Engine.board.sector[mouseTrace.hitsector].floorpicnum;
                         }
-                        else if (mouseTrace.hitz == Engine.board.sector[mouseTrace.hitsector].ceilingz)
+                        else if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_CEILING)
                         {
                             localartlookupnum = Engine.board.sector[mouseTrace.hitsector].ceilingpicnum;
                         }
@@ -700,11 +709,11 @@ namespace buildlite
                             {
                                 Engine.board.wall[mouseTrace.hitwall].picnum = localartlookupnum;
                             }
-                            else if (mouseTrace.hitz == Engine.board.sector[mouseTrace.hitsector].floorz)
+                            else if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_FLOOR)
                             {
                                 Engine.board.sector[mouseTrace.hitsector].floorpicnum = localartlookupnum;
                             }
-                            else if (mouseTrace.hitz == Engine.board.sector[mouseTrace.hitsector].ceilingz)
+                            else if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_CEILING)
                             {
                                 Engine.board.sector[mouseTrace.hitsector].ceilingpicnum = localartlookupnum;
                             }
@@ -738,6 +747,8 @@ namespace buildlite
             if (Engine.searchy > Engine.ydim - 5) mousy2 = Engine.ydim - 5;
 
             getpoint(mousx2, mousy2, ref mousxplc, ref mousyplc);
+
+            
         }
 
         private void showmouse()
@@ -1713,6 +1724,7 @@ namespace buildlite
             int day = pragmas.divscale14(mousx2 - (Engine._device.xdim >> 1), Engine._device.xdim >> 1);
             Engine.rotatepoint(0, 0, dax, day, ang, ref dax, ref day);
 
+
             Engine.board.hitscan(posx, posy, posz, cursectnum,              //Start position
                     dax, day, (pragmas.scale(mousy2, 200, Engine._device.ydim) - 100) * 2000, //vector of 3D ang
                     ref mouseTrace.hitsector, ref mouseTrace.hitwall, ref mouseTrace.hitsprite, ref mouseTrace.hitx, ref mouseTrace.hity, ref mouseTrace.hitz, Engine.CLIPMASK1);
@@ -1721,34 +1733,45 @@ namespace buildlite
             if (mouseTrace.hitsprite >= 0)
             {
                 drawspriteinfo(mouseTrace.hitsprite, 0);
+                mouseTrace.hittype = MouseSectorHitType.MOUSE_SECTORHIT_NONE;
             }
             else if (mouseTrace.hitwall >= 0)
             {
                 drawwallinfo(mouseTrace.hitwall, 0);
+                mouseTrace.hittype = MouseSectorHitType.MOUSE_SECTORHIT_NONE;
             }
-            else if (mouseTrace.hitz == Engine.board.sector[mouseTrace.hitsector].floorz)
+            else if (editorState == EditorState.STATE_3DVIEW)
             {
-                int picnum = Engine.board.wall[mouseTrace.hitsector].picnum;
-                Engine.printext16(0, 0, 15, -1, "Sector(floor) " + mouseTrace.hitsector + " Stats", 0);
-                Engine.printext16(0, 15, 15, -1, "Hitag: " + Engine.board.sector[mouseTrace.hitsector].hitag, 0);
-                Engine.printext16(0, 25, 15, -1, "Lotag: " + Engine.board.sector[mouseTrace.hitsector].lotag, 0);
-                Engine.printext16(0, 35, 15, -1, "Picnum: " + Engine.board.sector[mouseTrace.hitsector].floorpicnum, 0);
-                Engine.printext16(0, 45, 15, -1, "Pal: " + Engine.board.sector[mouseTrace.hitsector].floorpal, 0);
-                Engine.printext16(0, 55, 15, -1, "Shade: " + Engine.board.sector[mouseTrace.hitsector].floorshade, 0);
-                Engine.rotatesprite(125 << 16, (20) << 16, 65536, 0, Engine.board.sector[mouseTrace.hitsector].floorpicnum, Engine.board.sector[mouseTrace.hitsector].floorshade, Engine.board.sector[mouseTrace.hitsector].floorpal, 8 | 16, 0, 0, Engine._device.xdim - 1, Engine._device.ydim - 30);
+                if (Engine.board.getflorzofslope((short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) <= mouseTrace.hitz)
+                {
+                    int picnum = Engine.board.wall[mouseTrace.hitsector].picnum;
+                    Engine.printext16(0, 0, 15, -1, "Sector(floor) " + mouseTrace.hitsector + " Stats", 0);
+                    Engine.printext16(0, 15, 15, -1, "Hitag: " + Engine.board.sector[mouseTrace.hitsector].hitag, 0);
+                    Engine.printext16(0, 25, 15, -1, "Lotag: " + Engine.board.sector[mouseTrace.hitsector].lotag, 0);
+                    Engine.printext16(0, 35, 15, -1, "Picnum: " + Engine.board.sector[mouseTrace.hitsector].floorpicnum, 0);
+                    Engine.printext16(0, 45, 15, -1, "Pal: " + Engine.board.sector[mouseTrace.hitsector].floorpal, 0);
+                    Engine.printext16(0, 55, 15, -1, "Shade: " + Engine.board.sector[mouseTrace.hitsector].floorshade, 0);
+                    Engine.rotatesprite(125 << 16, (20) << 16, 65536, 0, Engine.board.sector[mouseTrace.hitsector].floorpicnum, Engine.board.sector[mouseTrace.hitsector].floorshade, Engine.board.sector[mouseTrace.hitsector].floorpal, 8 | 16, 0, 0, Engine._device.xdim - 1, Engine._device.ydim - 30);
+                    mouseTrace.hittype = MouseSectorHitType.MOUSE_SECTORHIT_FLOOR;
+                }
+                else if (Engine.board.getceilzofslope((short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) >= mouseTrace.hitz)
+                {
+                    int picnum = Engine.board.wall[mouseTrace.hitsector].picnum;
+                    Engine.printext16(0, 0, 15, -1, "Sector(ceiling) " + mouseTrace.hitsector + " Stats", 0);
+                    Engine.printext16(0, 15, 15, -1, "Hitag: " + Engine.board.sector[mouseTrace.hitsector].hitag, 0);
+                    Engine.printext16(0, 25, 15, -1, "Lotag: " + Engine.board.sector[mouseTrace.hitsector].lotag, 0);
+                    Engine.printext16(0, 35, 15, -1, "Picnum: " + Engine.board.sector[mouseTrace.hitsector].ceilingpicnum, 0);
+                    Engine.printext16(0, 45, 15, -1, "Pal: " + Engine.board.sector[mouseTrace.hitsector].ceilingpal, 0);
+                    Engine.printext16(0, 55, 15, -1, "Shade: " + Engine.board.sector[mouseTrace.hitsector].ceilingshade, 0);
+                    Engine.rotatesprite(125 << 16, (20) << 16, 65536, 0, Engine.board.sector[mouseTrace.hitsector].ceilingpicnum, Engine.board.sector[mouseTrace.hitsector].ceilingshade, Engine.board.sector[mouseTrace.hitsector].ceilingpal, 8 | 16, 0, 0, Engine._device.xdim - 1, Engine._device.ydim - 30);
+
+                    mouseTrace.hittype = MouseSectorHitType.MOUSE_SECTORHIT_CEILING;
+                }
             }
-            else if (mouseTrace.hitz == Engine.board.sector[mouseTrace.hitsector].ceilingz)
+            else
             {
-                int picnum = Engine.board.wall[mouseTrace.hitsector].picnum;
-                Engine.printext16(0, 0, 15, -1, "Sector(ceiling) " + mouseTrace.hitsector + " Stats", 0);
-                Engine.printext16(0, 15, 15, -1, "Hitag: " + Engine.board.sector[mouseTrace.hitsector].hitag, 0);
-                Engine.printext16(0, 25, 15, -1, "Lotag: " + Engine.board.sector[mouseTrace.hitsector].lotag, 0);
-                Engine.printext16(0, 35, 15, -1, "Picnum: " + Engine.board.sector[mouseTrace.hitsector].ceilingpicnum, 0);
-                Engine.printext16(0, 45, 15, -1, "Pal: " + Engine.board.sector[mouseTrace.hitsector].ceilingpal, 0);
-                Engine.printext16(0, 55, 15, -1, "Shade: " + Engine.board.sector[mouseTrace.hitsector].ceilingshade, 0);
-                Engine.rotatesprite(125 << 16, (20) << 16, 65536, 0, Engine.board.sector[mouseTrace.hitsector].ceilingpicnum, Engine.board.sector[mouseTrace.hitsector].ceilingshade, Engine.board.sector[mouseTrace.hitsector].ceilingpal, 8 | 16, 0, 0, Engine._device.xdim - 1, Engine._device.ydim - 30);
+                mouseTrace.hittype = MouseSectorHitType.MOUSE_SECTORHIT_NONE;
             }
-            
         }
 
         private void draw3dview()
