@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Windows;
 using System.Windows.Controls;
@@ -70,7 +71,7 @@ namespace buildlite
         EditorState editorState = EditorState.STATE_2DVIEW;
         int pointhighlight = 0;
         MouseTrace mouseTrace = new MouseTrace();
-        walltype dragpoint = null;
+        List<walltype> dragpoint = new List<walltype>();
 
         short[] localartlookup = new short[bMap.MAXTILES];
         short localartlookupnum = -1;
@@ -298,7 +299,7 @@ namespace buildlite
         {
             if (mouseleftup)
             {
-                dragpoint = null;
+                dragpoint.Clear();
                 return;
             }
             switch (key)
@@ -375,20 +376,21 @@ namespace buildlite
                 j = 0;
                 //Check to see if point was inserted over another point
                 for (i = numwalls - 1; i >= 0; i--)     //delete points
-                    if (Engine.board.wall[i].x == Engine.board.wall[Engine.board.wall[i].point2].x)
-                        if (Engine.board.wall[i].y == Engine.board.wall[Engine.board.wall[i].point2].y)
+                    if (Math.Abs(Engine.board.wall[i].x - Engine.board.wall[Engine.board.wall[i].point2].x) < 400 && Math.Abs(Engine.board.wall[i].y - Engine.board.wall[Engine.board.wall[i].point2].y) < 400)
+                  //  if (Engine.board.wall[i].x == Engine.board.wall[Engine.board.wall[i].point2].x)
+                    //    if (Engine.board.wall[i].y == Engine.board.wall[Engine.board.wall[i].point2].y)
                         {
                             EditorLib.deletepoint((short)i);
                             j++;
                         }
                 for (i = 0; i < numwalls; i++)        //make new red lines?
                 {
-                    if ((Engine.board.wall[i].x == dax) && (Engine.board.wall[i].y == day))
+                    if (Math.Abs(Engine.board.wall[i].x - dax) < 400 && Math.Abs(Engine.board.wall[i].x - day) < 400)
                     {
                         EditorLib.checksectorpointer((short)i, (short)Engine.board.sectorofwall((short)i));
                         EditorLib.fixrepeats((short)i);
                     }
-                    else if ((Engine.board.wall[Engine.board.wall[i].point2].x == dax) && (Engine.board.wall[Engine.board.wall[i].point2].y == day))
+                    else if ((Engine.board.wall[Engine.board.wall[i].point2].x - dax) < 400 && (Engine.board.wall[Engine.board.wall[i].point2].y - day) < 400)
                     {
                         EditorLib.checksectorpointer((short)i, (short)Engine.board.sectorofwall((short)i));
                         EditorLib.fixrepeats((short)i);
@@ -457,16 +459,16 @@ namespace buildlite
                 {
                     overheaddrawwalls();
                 }
-                else if (editorState == EditorState.STATE_2DVIEW && dragpoint == null)
+                else if (editorState == EditorState.STATE_2DVIEW && dragpoint.Count == 0)
                 {
                     for (int i = 0; i < numwalls; i++)
                     {
-                        if (Math.Abs(Engine.board.wall[i].x - mousxplc) < 100 && Math.Abs(Engine.board.wall[i].y - mousyplc) < 100)
+                        if (Math.Abs(Engine.board.wall[i].x - mousxplc) < 400 && Math.Abs(Engine.board.wall[i].y - mousyplc) < 400)
                         {
-                            dragpoint = Engine.board.wall[i];
-                            return;
+                            dragpoint.Add( Engine.board.wall[i] );
                         }
                     }
+                    if (dragpoint.Count > 0) return;
                     posx = mousxplc;
                     posy = mousyplc;
                     //getpoint(mousx2, mousy2, ref posx, ref posy);
@@ -495,7 +497,79 @@ namespace buildlite
                   //  angvel = 30;
                     break;
                 case Key.S:
-                    
+                    {
+                        short sectornum = -1;
+                        int dax = -1, day = -1, daz = -1;
+                        if (editorState == EditorState.STATE_3DVIEW)
+                        {
+                            sectornum = (short)mouseTrace.hitsector;
+                            dax = mouseTrace.hitx;
+                            day = mouseTrace.hity;
+                            daz = mouseTrace.hitz;
+                        }
+                        else if (editorState == EditorState.STATE_2DVIEW)
+                        {
+                            Engine.board.updatesector(mousxplc, mousxplc, ref sectornum);
+                            if (sectornum >= 0)
+                            {
+                                dax = mousxplc;
+                                day = mousyplc;
+                                daz = Engine.board.sector[sectornum].floorz;
+                            }
+                        }
+
+                        if (sectornum != -1)
+                        {
+                            int i = Engine.board.insertsprite(sectornum, 0);
+
+                            Engine.board.sprite[i].x = dax;
+                            Engine.board.sprite[i].y = day;
+                            Engine.board.sprite[i].cstat = 0;
+                            Engine.board.sprite[i].shade = 0;
+                            Engine.board.sprite[i].pal = 0;
+                            Engine.board.sprite[i].xrepeat = 64;
+                            Engine.board.sprite[i].yrepeat = 64;
+                            Engine.board.sprite[i].xoffset = 0;
+                            Engine.board.sprite[i].yoffset = 0;
+                            Engine.board.sprite[i].ang = 1536;
+                            Engine.board.sprite[i].xvel = 0;
+                            Engine.board.sprite[i].yvel = 0;
+                            Engine.board.sprite[i].zvel = 0;
+                            Engine.board.sprite[i].owner = -1;
+                            Engine.board.sprite[i].clipdist = 32;
+                            Engine.board.sprite[i].lotag = 0;
+                            Engine.board.sprite[i].hitag = 0;
+                            Engine.board.sprite[i].extra = -1;
+
+                            int j = ((Engine.tilesizy[Engine.board.sprite[i].picnum] * Engine.board.sprite[i].yrepeat) << 1);
+                            if ((Engine.board.sprite[i].cstat & 128) == 0)
+                                Engine.board.sprite[i].z = Math.Min(Math.Max(mouseTrace.hitz, Engine.board.getceilzofslope((short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) + (j << 1)), Engine.board.getflorzofslope((short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity));
+                            else
+                                Engine.board.sprite[i].z = Math.Min(Math.Max(mouseTrace.hitz, Engine.board.getceilzofslope((short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) + j), Engine.board.getflorzofslope((short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) - j);
+
+                            if ((Engine.searchstat == 0) || (Engine.searchstat == 4))
+                            {
+                                Engine.board.sprite[i].cstat |= (16 + 64);
+                                if (mouseTrace.hitwall >= 0)
+                                    Engine.board.sprite[i].ang = (short)((Engine.getangle(Engine.board.wall[Engine.board.wall[mouseTrace.hitwall].point2].x - Engine.board.wall[mouseTrace.hitwall].x, Engine.board.wall[Engine.board.wall[mouseTrace.hitwall].point2].y - Engine.board.wall[mouseTrace.hitwall].y) + 512) & 2047);
+
+                                //Make sure sprite's in right sector
+                                if (Engine.board.inside(Engine.board.sprite[i].x, Engine.board.sprite[i].y, Engine.board.sprite[i].sectnum) == 0)
+                                {
+                                    j = Engine.board.wall[mouseTrace.hitwall].point2;
+                                    Engine.board.sprite[i].x -= pragmas.ksgn(Engine.board.wall[j].y - Engine.board.wall[mouseTrace.hitwall].y);
+                                    Engine.board.sprite[i].y += pragmas.ksgn(Engine.board.wall[j].x - Engine.board.wall[mouseTrace.hitwall].x);
+                                }
+                            }
+                            else
+                            {
+                                if (Engine.tilesizy[Engine.board.sprite[i].picnum] >= 32) Engine.board.sprite[i].cstat |= 1;
+                            }
+
+
+                            EditorLib.updatenumsprites();
+                        }
+                    }
                     break;
                 case Key.Q:
                     svel = 400;
@@ -662,6 +736,8 @@ namespace buildlite
             if (Engine.searchy < 4) mousy2 = 4;
             if (Engine.searchx > Engine.xdim - 5) mousx2 = Engine.xdim - 5;
             if (Engine.searchy > Engine.ydim - 5) mousy2 = Engine.ydim - 5;
+
+            getpoint(mousx2, mousy2, ref mousxplc, ref mousyplc);
         }
 
         private void showmouse()
@@ -820,7 +896,7 @@ namespace buildlite
 			{  //if not back to first point
 // jv
 		//		if ((firstx != mousxplc) || (firsty != mousyplc))  //nextpoint
-                if (Math.Abs(firstx - mousxplc) > 100 || Math.Abs(firsty - mousyplc) > 100)
+                if (Math.Abs(firstx - mousxplc) > 400 || Math.Abs(firsty - mousyplc) > 400)
 // jv end
 				{
 					j = 0;
@@ -1380,13 +1456,15 @@ namespace buildlite
 
         private void overheadeditor()
         {
-            getpoint(mousx2, mousy2, ref mousxplc, ref mousyplc);
             linehighlight = EditorLib.getlinehighlight(mousxplc, mousyplc);
 
             if (dragpoint != null)
             {
-                dragpoint.x = mousxplc;
-                dragpoint.y = mousyplc;
+                for (int i = 0; i < dragpoint.Count; i++)
+                {
+                    dragpoint[i].x = mousxplc;
+                    dragpoint[i].y = mousyplc;
+                }
             }
 
             // Clear all the status bar positions to the correct color;
