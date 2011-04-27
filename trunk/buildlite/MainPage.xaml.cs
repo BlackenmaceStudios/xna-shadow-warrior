@@ -44,7 +44,8 @@ namespace buildlite
         {
             _editor = new BuildEditor();
 
-            this.Focus();
+            
+
 
             System.Windows.Interop.SilverlightHost host = Application.Current.Host;
             // The Settings object, which represents Web browser settings.
@@ -65,11 +66,14 @@ namespace buildlite
             viewportimg.Cursor = Cursors.None;
 
             CompositionTarget.Rendering += new EventHandler(Page_CompositionTarget_Rendering);
+            this.Focus();
+            this.CaptureMouse();
         }
 
         void MainPage_KeyUp(object sender, KeyEventArgs e)
         {
             _editor.editinputkeyup(false, false, e.Key);
+            e.Handled = true;
         }
 
         void MainPage_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
