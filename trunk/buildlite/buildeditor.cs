@@ -48,6 +48,9 @@ namespace buildlite
         int mousxplc = 0, mousyplc = 0;
         int linehighlight = -1;
 		short ang = 1536;
+
+        private const int POINT_EPISILON = 30;
+
         private short numsectors
         {
             get
@@ -358,11 +361,11 @@ namespace buildlite
                 }
                 else if (mouseTrace.hitsector >= 0 && mouseTrace.hitwall == -1)
                 {
-                    if (Engine.board.getflorzofslope((short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) <= mouseTrace.hitz)
+                    if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_FLOOR)
                     {
                         Engine.board.sector[mouseTrace.hitsector].floorz += val;
                     }
-                    else if (Engine.board.getceilzofslope( (short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) >= mouseTrace.hitz)
+                    else if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_CEILING)
                     {
                         Engine.board.sector[mouseTrace.hitsector].ceilingz += val;
                     }
@@ -416,6 +419,51 @@ namespace buildlite
                 //}
 
               //  asksave = 1;
+            }
+        }
+
+        private void AdjustSectorSlope(bool adjustfloor, int amt, int max)
+        {
+            int searchsector = mouseTrace.hitsector;
+
+            if (!adjustfloor)
+            {
+                if ((Engine.board.sector[searchsector].ceilingstat & 2) == 0)
+                    Engine.board.sector[searchsector].ceilingheinum = 0;
+
+                if (max > 0) 
+                    Engine.board.sector[searchsector].ceilingheinum = (short)Math.Min(Engine.board.sector[searchsector].ceilingheinum + amt, max);
+                else 
+                    Engine.board.sector[searchsector].ceilingheinum = (short)Math.Max(Engine.board.sector[searchsector].ceilingheinum + amt, max);
+                
+            }
+            else
+            {
+                if ((Engine.board.sector[searchsector].floorstat & 2) == 0)
+                    Engine.board.sector[searchsector].floorheinum = 0;
+
+                if (max > 0) 
+                    Engine.board.sector[searchsector].floorheinum = (short)Math.Min(Engine.board.sector[searchsector].floorheinum + amt, max);
+                else 
+                    Engine.board.sector[searchsector].floorheinum = (short)Math.Max(Engine.board.sector[searchsector].floorheinum + amt, max);
+            }
+
+            if (Engine.board.sector[mouseTrace.hitsector].ceilingheinum == 0)
+            {
+                Engine.board.sector[mouseTrace.hitsector].ceilingstat &= ~2;
+            }
+            else
+            {
+                Engine.board.sector[mouseTrace.hitsector].ceilingstat |= 2;
+            }
+
+            if (Engine.board.sector[mouseTrace.hitsector].floorheinum == 0)
+            {
+                Engine.board.sector[mouseTrace.hitsector].floorstat &= ~2;
+            }
+            else
+            {
+                Engine.board.sector[mouseTrace.hitsector].floorstat |= 2;
             }
         }
 
@@ -662,7 +710,39 @@ namespace buildlite
                     break;
 
                 case Key.NumPad4:
+                    if (editorState == EditorState.STATE_3DVIEW)
+                    {
+                        if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_FLOOR)
+                        {
+                            AdjustSectorSlope(true, -512, -32768);
+                        }
+                        else if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_CEILING)
+                        {
+                            AdjustSectorSlope(false, -512, -32768);
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+                    break;
 
+                case Key.NumPad6:
+                    if (editorState == EditorState.STATE_3DVIEW)
+                    {
+                        if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_FLOOR)
+                        {
+                            AdjustSectorSlope(true, 512, 32767);
+                        }
+                        else if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_CEILING)
+                        {
+                            AdjustSectorSlope(false, 512, 32767);
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
                     break;
  
                 case Key.V:
@@ -1727,7 +1807,7 @@ namespace buildlite
 
             Engine.board.hitscan(posx, posy, posz, cursectnum,              //Start position
                     dax, day, (pragmas.scale(mousy2, 200, Engine._device.ydim) - 100) * 2000, //vector of 3D ang
-                    ref mouseTrace.hitsector, ref mouseTrace.hitwall, ref mouseTrace.hitsprite, ref mouseTrace.hitx, ref mouseTrace.hity, ref mouseTrace.hitz, Engine.CLIPMASK1);
+                    ref mouseTrace.hitsector, ref mouseTrace.hitwall, ref mouseTrace.hitsprite, ref mouseTrace.hitx, ref mouseTrace.hity, ref mouseTrace.hitz, Engine.CLIPMASK0 | Engine.CLIPMASK1);
 
 
             if (mouseTrace.hitsprite >= 0)
