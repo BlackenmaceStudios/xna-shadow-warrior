@@ -347,10 +347,213 @@ namespace build
 	        nextspritestat[MAXSPRITES-1] = -1;
         }
 
+        public int lastwall(short point)
+        {
+            int i, j, cnt;
+
+	        if ((point > 0) && (wall[point-1].point2 == point)) return(point-1);
+	        i = point;
+	        cnt = MAXWALLS;
+	        do
+	        {
+		        j = wall[i].point2;
+		        if (j == point) return(i);
+		        i = j;
+		        cnt--;
+	        } while (cnt > 0);
+	        return(point);
+        }
+
+        public int deletespritesect(short deleteme)
+        {
+	        if (sprite[deleteme].sectnum == MAXSECTORS)
+		        return(-1);
+
+	        if (headspritesect[sprite[deleteme].sectnum] == deleteme)
+		        headspritesect[sprite[deleteme].sectnum] = nextspritesect[deleteme];
+
+	        if (prevspritesect[deleteme] >= 0) nextspritesect[prevspritesect[deleteme]] = nextspritesect[deleteme];
+	        if (nextspritesect[deleteme] >= 0) prevspritesect[nextspritesect[deleteme]] = prevspritesect[deleteme];
+
+	        if (headspritesect[MAXSECTORS] >= 0) prevspritesect[headspritesect[MAXSECTORS]] = deleteme;
+	        prevspritesect[deleteme] = -1;
+	        nextspritesect[deleteme] = headspritesect[MAXSECTORS];
+	        headspritesect[MAXSECTORS] = deleteme;
+
+	        sprite[deleteme].sectnum = MAXSECTORS;
+	        return(0);
+        }
+
+        public int deletesprite(short spritenum)
+        {
+	        deletespritestat(spritenum);
+	        return(deletespritesect(spritenum));
+        }
+
+        public int setsprite(short spritenum,int newx, int newy, int newz)
+        {
+	        short bad, j, tempsectnum;
+
+	        sprite[spritenum].x = newx;
+	        sprite[spritenum].y = newy;
+	        sprite[spritenum].z = newz;
+
+	        tempsectnum = sprite[spritenum].sectnum;
+	        updatesector(newx,newy,ref tempsectnum);
+	        if (tempsectnum < 0)
+		        return(-1);
+	        if (tempsectnum != sprite[spritenum].sectnum)
+		        changespritesect(spritenum,tempsectnum);
+
+	        return(0);
+        }
+
+
+        public int sectorofwall(short theline)
+        {
+	        int i, j, gap;
+
+	        if ((theline < 0) || (theline >= numwalls)) return(-1);
+	        i = wall[theline].nextwall; if (i >= 0) return(wall[i].nextsector);
+
+	        gap = (numsectors>>1); i = gap;
+	        while (gap > 1)
+	        {
+		        gap >>= 1;
+		        if (sector[i].wallptr < theline) i += gap; else i -= gap;
+	        }
+	        while (sector[i].wallptr > theline) i--;
+	        while (sector[i].wallptr+sector[i].wallnum <= theline) i++;
+	        return(i);
+        }
+
+        public int clockdir(short wallstart)   //Returns: 0 is CW, 1 is CCW
+        {
+	        short i, themin;
+	        int minx, templong, x0, x1, x2, y0, y1, y2;
+
+	        minx = 0x7fffffff;
+	        themin = -1;
+	        i = (short)(wallstart-1);
+	        do
+	        {
+		        i++;
+		        if (wall[wall[i].point2].x < minx)
+		        {
+			        minx = wall[wall[i].point2].x;
+			        themin = i;
+		        }
+	        }
+	        while ((wall[i].point2 != wallstart) && (i < MAXWALLS));
+
+	        x0 = wall[themin].x;
+	        y0 = wall[themin].y;
+	        x1 = wall[wall[themin].point2].x;
+	        y1 = wall[wall[themin].point2].y;
+	        x2 = wall[wall[wall[themin].point2].point2].x;
+	        y2 = wall[wall[wall[themin].point2].point2].y;
+
+	        if ((y1 >= y2) && (y1 <= y0)) return(0);
+	        if ((y1 >= y0) && (y1 <= y2)) return(1);
+
+	        templong = (x0-x1)*(y2-y1) - (x2-x1)*(y0-y1);
+	        if (templong < 0)
+		        return(0);
+	        else
+		        return(1);
+        }
+
+        public int loopinside(int x, int y, short startwall)
+        {
+            int x1, y1, x2, y2, templong;
+	        short i, cnt;
+
+	        cnt = (short)clockdir(startwall);
+	        i = startwall;
+	        do
+	        {
+		        x1 = wall[i].x; x2 = wall[wall[i].point2].x;
+		        if ((x1 >= x) || (x2 >= x))
+		        {
+			        y1 = wall[i].y; y2 = wall[wall[i].point2].y;
+			        if (y1 > y2)
+			        {
+                        templong = x1; x1 = x2; x2 = templong;
+				        templong = y1; y1 = y2; y2 = templong;
+			        }
+			        if ((y1 <= y) && (y2 > y))
+				        if (x1*(y-y2)+x2*(y1-y) <= x*(y1-y2))
+					        cnt ^= 1;
+		        }
+		        i = wall[i].point2;
+	        }
+	        while (i != startwall);
+	        return(cnt);
+        }
+
+        public int numloopsofsector(short sectnum)
+        {
+	        int i, numloops, startwall, endwall;
+
+	        numloops = 0;
+	        startwall = sector[sectnum].wallptr;
+	        endwall = startwall + sector[sectnum].wallnum;
+	        for(i=startwall;i<endwall;i++)
+		        if (wall[i].point2 < i) numloops++;
+	        return(numloops);
+        }
+
+        
+        public int loopnumofsector(short sectnum, short wallnum)
+        {
+	        int i, numloops, startwall, endwall;
+
+	        numloops = 0;
+	        startwall = sector[sectnum].wallptr;
+	        endwall = startwall + sector[sectnum].wallnum;
+	        for(i=startwall;i<endwall;i++)
+	        {
+		        if (i == wallnum) return(numloops);
+		        if (wall[i].point2 < i) numloops++;
+	        }
+	        return(-1);
+        }
+
+
+        public int deletespritestat(short deleteme)
+        {
+	        if (sprite[deleteme].statnum == MAXSTATUS)
+		        return(-1);
+
+	        if (headspritestat[sprite[deleteme].statnum] == deleteme)
+		        headspritestat[sprite[deleteme].statnum] = nextspritestat[deleteme];
+
+	        if (prevspritestat[deleteme] >= 0) nextspritestat[prevspritestat[deleteme]] = nextspritestat[deleteme];
+	        if (nextspritestat[deleteme] >= 0) prevspritestat[nextspritestat[deleteme]] = prevspritestat[deleteme];
+
+	        if (headspritestat[MAXSTATUS] >= 0) prevspritestat[headspritestat[MAXSTATUS]] = deleteme;
+	        prevspritestat[deleteme] = -1;
+	        nextspritestat[deleteme] = headspritestat[MAXSTATUS];
+	        headspritestat[MAXSTATUS] = deleteme;
+
+	        sprite[deleteme].statnum = MAXSTATUS;
+	        return(0);
+        }
+
+        public int changespritesect(short spritenum, short newsectnum)
+        {
+	        if ((newsectnum < 0) || (newsectnum > MAXSECTORS)) return(-1);
+	        if (sprite[spritenum].sectnum == newsectnum) return(0);
+	        if (sprite[spritenum].sectnum == MAXSECTORS) return(-1);
+	        if (deletespritesect(spritenum) < 0) return(-1);
+	        insertspritesect(newsectnum);
+	        return(0);
+        }
+
         //
         // inside
         //
-        private int inside(int x, int y, short sectnum)
+        public int inside(int x, int y, short sectnum)
         {
             walltype wal;
             int i;
@@ -5442,6 +5645,51 @@ namespace build
 	    public byte visibility, filler;
 	    public short lotag, hitag, extra;
 
+        public sectortype()
+        {
+
+        }
+
+        public void copyto(ref sectortype sector)
+        {
+            if (sector == null)
+                sector = new sectortype();
+
+            sector.wallptr = wallptr;
+            sector.wallnum = wallnum;
+
+            sector.ceilingz = ceilingz;
+            sector.floorz = floorz;
+
+            sector.ceilingstat = ceilingstat;
+            sector.floorstat = floorstat;
+
+            sector.ceilingpicnum = ceilingpicnum;
+            sector.ceilingheinum = ceilingheinum;
+
+            sector.ceilingshade = ceilingshade;
+
+            sector.ceilingpal = ceilingpal;
+            sector.ceilingxpanning = ceilingxpanning;
+            sector.ceilingypanning = ceilingypanning;
+
+            sector.floorpicnum = floorpicnum;
+            sector.floorheinum = floorheinum;
+
+            sector.floorshade = floorshade;
+
+            sector.floorpal = floorpal;
+            sector.floorxpanning = floorxpanning;
+            sector.floorypanning = floorypanning;
+
+            sector.visibility = visibility;
+            sector.filler = filler;
+
+            sector.lotag = lotag;
+            sector.hitag = hitag;
+            sector.extra = extra;
+        }
+
         public sectortype( ref kFile file )
         {
             wallptr = file.kreadshort();
@@ -5502,6 +5750,39 @@ namespace build
 	    public sbyte shade;
 	    public byte pal, xrepeat, yrepeat, xpanning, ypanning;
 	    public short lotag, hitag, extra;
+        public walltype()
+        {
+
+        }
+
+        public void copyto(ref walltype wall)
+        {
+            if (wall == null)
+                wall = new walltype();
+
+            wall.x = x;
+            wall.y = y;
+
+            wall.point2 = point2;
+            wall.nextwall = nextwall;
+            wall.nextsector = nextsector;
+            wall.cstat = cstat;
+
+            wall.picnum = picnum;
+            wall.overpicnum = overpicnum;
+
+            wall.shade = shade;
+
+            wall.pal = pal;
+            wall.xrepeat = xrepeat;
+            wall.yrepeat = yrepeat;
+            wall.xpanning = xpanning;
+            wall.ypanning = ypanning;
+
+            wall.lotag = lotag;
+            wall.hitag = hitag;
+            wall.extra = extra;
+        }
 
         public walltype( ref kFile file )
         {

@@ -77,6 +77,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="buildeditor.cs" />
+    <Compile Include="editorlib.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -93,7 +94,13 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="base\SW.GRP" />
+    <Content Include="base\ASCBOARD.MAP" />
+    <Content Include="base\BOARDS.MAP" />
+    <Content Include="base\EVILAL.MAP" />
+    <Content Include="base\KENSIG.MAP" />
+    <Content Include="base\NSNOAL.MAP" />
+    <Content Include="base\NUKELAND.MAP" />
+    <Content Include="base\STUFF.DAT" />
     <None Include="Properties\AppManifest.xml" />
   </ItemGroup>
   <ItemGroup>

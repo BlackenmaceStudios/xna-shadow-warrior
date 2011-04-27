@@ -321,6 +321,11 @@ namespace build
 	        }
         }
 
+        public static void DrawPixelPallete(int pos, byte ch)
+        {
+            Engine._device._screenbuffer.Pixels[pos] = Engine._device._palette._palettebuffer[ch];
+        }
+
         public static void tsetupspritevline(byte[] paloffs, int paloffspos, int bxinc, int byinc, int ysiz)
         {
 	      //  gpal = paloffs;
