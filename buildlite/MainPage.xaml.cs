@@ -18,18 +18,18 @@ namespace buildlite
     public partial class MainPage : UserControl
     {
         EditorPage editorPage;
-        EventHandler saveDataEvent;
+        
         bSaveDialog saveDialog = new bSaveDialog();
 
         public MainPage()
         {
             InitializeComponent();
 
-            saveDataEvent += SaveData;
-
             // This needs to get the hell out of here....
             saveDialog.OpenFileWriteDialog("Build Map Fil", ".map");
-            EditorPage.saveDialogEvent = saveDataEvent;
+            EditorPage.saveDialogEvent = new EventHandler(SaveData);
+            EditorPage.quitDialogEvent = new EventHandler(QuitBuildEvent);
+            EditorPage.openDialogEvent = new EventHandler(OpenMapEvent);
 
             editorPage = new EditorPage(this);
 
@@ -43,16 +43,29 @@ namespace buildlite
             settings.MaxFrameRate = 60;
         }
 
+        public void OpenMapEvent(object sender, EventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+
+            dialog.Filter = "Build Map File" + "|*" + ".map";
+            dialog.FilterIndex = 1;
+            dialog.Multiselect = false;
+
+            bool? fileopen = dialog.ShowDialog();
+            if (!fileopen.Value)
+                return;
+
+            editorPage.OpenMap(dialog.File.OpenRead());
+        }
+
+        public void QuitBuildEvent(object sender, EventArgs e)
+        {
+            System.Windows.Browser.HtmlPage.Document.Submit();
+        }
+
         public void SaveData(object sender, EventArgs e)
         {
-            string myTextFile = "This is a a test";
-            HtmlDocument doc = HtmlPage.Document;
-            HtmlElement downloadData = doc.GetElementById("downloadData");
-            downloadData.SetAttribute("value", myTextFile);
-
-            HtmlElement fileName = doc.GetElementById("fileName");
-            fileName.SetAttribute("value", "myFile.txt");
-            doc.Submit("generateFileForm");
+            saveDialog.SaveFile((System.IO.BinaryWriter)sender);
         }
 
         void LaunchEditor(object sender, EventArgs e)

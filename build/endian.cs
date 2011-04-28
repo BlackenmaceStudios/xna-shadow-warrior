@@ -10,7 +10,7 @@ namespace build
     {
         bool swap = false;
 
-        public EndianBinaryReader(MemoryStream stream)
+        public EndianBinaryReader(Stream stream)
             : base(stream)
         {
 

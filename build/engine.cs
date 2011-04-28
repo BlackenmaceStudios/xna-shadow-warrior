@@ -404,6 +404,7 @@ palette:
         //
         public static int loadboard(string filename, ref int daposx, ref int daposy, ref int daposz, ref short daang, ref short dacursectnum)
         {
+            kFile fil;
             board = null;
             GC.Collect();
 
@@ -411,7 +412,15 @@ palette:
                 return 0;
 
             board = new bMap();
-            if (board.loadboard(filename, ref daposx, ref daposy, ref daposz, ref daang, ref dacursectnum) == -1)
+            Engine.Printf("bMap::LoadBoard: Loading " + filename);
+
+            
+            if ((fil = Engine.filesystem.kopen4load(filename)) == null)
+            {
+                return (-1);
+            }
+
+            if (board.loadboard(fil, ref daposx, ref daposy, ref daposz, ref daang, ref dacursectnum) == -1)
             {
                 throw new Exception("loadboard: failed to load board " + filename);
             }

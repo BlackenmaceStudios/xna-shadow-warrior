@@ -41,6 +41,11 @@ namespace build
             _reader = new EndianBinaryReader(new MemoryStream(buffer));
         }
 
+        public kFile(Stream stream)
+        {
+            _reader = new EndianBinaryReader(stream);
+        }
+
         public void SetLittleEdian()
         {
             _reader.SetLittleEdian();
