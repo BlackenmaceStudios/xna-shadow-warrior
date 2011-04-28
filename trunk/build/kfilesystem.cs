@@ -8,6 +8,13 @@ using System.Windows;
 using Microsoft.Internal;
 namespace build
 {
+    public class kFileWrite
+    {
+        public kFileWrite(byte[] buffer)
+        {
+
+        }
+    }
     public class kFile
     {
         EndianBinaryReader _reader;

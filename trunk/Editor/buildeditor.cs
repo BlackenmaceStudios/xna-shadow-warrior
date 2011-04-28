@@ -1067,14 +1067,14 @@ namespace Editor
                             else
                                 Engine.board.sprite[i].z = Math.Min(Math.Max(mouseTrace.hitz, Engine.board.getceilzofslope((short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) + j), Engine.board.getflorzofslope((short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) - j);
 
-                            if ((Engine.searchstat == 0) || (Engine.searchstat == 4))
+                            if (mouseTrace.hitwall >= 0)
                             {
                                 Engine.board.sprite[i].cstat |= (16 + 64);
                                 if (mouseTrace.hitwall >= 0)
                                     Engine.board.sprite[i].ang = (short)((Engine.getangle(Engine.board.wall[Engine.board.wall[mouseTrace.hitwall].point2].x - Engine.board.wall[mouseTrace.hitwall].x, Engine.board.wall[Engine.board.wall[mouseTrace.hitwall].point2].y - Engine.board.wall[mouseTrace.hitwall].y) + 512) & 2047);
 
                                 //Make sure sprite's in right sector
-                                if (Engine.board.inside(Engine.board.sprite[i].x, Engine.board.sprite[i].y, Engine.board.sprite[i].sectnum) == 0)
+                                while (Engine.board.inside(Engine.board.sprite[i].x, Engine.board.sprite[i].y, Engine.board.sprite[i].sectnum) == 0)
                                 {
                                     j = Engine.board.wall[mouseTrace.hitwall].point2;
                                     Engine.board.sprite[i].x -= pragmas.ksgn(Engine.board.wall[j].y - Engine.board.wall[mouseTrace.hitwall].y);
@@ -1119,6 +1119,19 @@ namespace Editor
                 case Key.Insert:
                     if (editorState == EditorState.STATE_2DVIEW)
                         InsertPointOnHighlightedLine();
+                    break;
+                case Key.Delete:
+                    if (editorState == EditorState.STATE_2DVIEW)
+                    {
+                        if ((pointhighlight & 0xc000) == 16384)
+                        {
+                            Engine.board.deletesprite((short)(pointhighlight & 16383));
+                        }
+                    }
+                    else if (editorState == EditorState.STATE_3DVIEW)
+                    {
+                        Engine.board.deletesprite(mouseTrace.hitsprite);
+                    }
                     break;
                 case Key.Escape:
                     if (editorState == EditorState.STATE_TILESELECT)
