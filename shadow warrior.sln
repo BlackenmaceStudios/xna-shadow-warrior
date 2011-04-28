@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "buildlite", "buildlite\buil
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Editor", "Editor\Editor.csproj", "{268BA90D-6BDC-4C15-A6F0-4BE101FEE68A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "game", "game\game.csproj", "{444546E6-84F0-49A2-9405-4BEA3FE159CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,10 @@ Global
 		{268BA90D-6BDC-4C15-A6F0-4BE101FEE68A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{268BA90D-6BDC-4C15-A6F0-4BE101FEE68A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{268BA90D-6BDC-4C15-A6F0-4BE101FEE68A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{444546E6-84F0-49A2-9405-4BEA3FE159CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{444546E6-84F0-49A2-9405-4BEA3FE159CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{444546E6-84F0-49A2-9405-4BEA3FE159CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{444546E6-84F0-49A2-9405-4BEA3FE159CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
