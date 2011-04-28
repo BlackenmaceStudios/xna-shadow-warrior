@@ -13,11 +13,14 @@ using System.Windows.Browser;
 
 using build;
 using Editor;
+using game;
+
 namespace buildlite
 {
     public partial class MainPage : UserControl
     {
         EditorPage editorPage;
+        GamePage gamePage;
         
         bSaveDialog saveDialog = new bSaveDialog();
 
@@ -41,6 +44,32 @@ namespace buildlite
             settings.EnableFrameRateCounter = true;
             //        settings.EnableRedrawRegions = true;
             settings.MaxFrameRate = 60;
+        }
+
+        public void LaunchGame(object sender, EventArgs e)
+        {
+            gamePage = new GamePage(this, "nukeland.map", null);
+            LayoutRoot.Children.Clear();
+            LayoutRoot.Children.Add(gamePage);
+            gamePage.Focus();
+        }
+
+        public void LaunchUserMap(object sender, EventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+
+            dialog.Filter = "Build Map File" + "|*" + ".map";
+            dialog.FilterIndex = 1;
+            dialog.Multiselect = false;
+
+            bool? fileopen = dialog.ShowDialog();
+            if (!fileopen.Value)
+                return;
+
+            gamePage = new GamePage(this, "", dialog.File.OpenRead());
+            LayoutRoot.Children.Clear();
+            LayoutRoot.Children.Add(gamePage);
+            gamePage.Focus();
         }
 
         public void OpenMapEvent(object sender, EventArgs e)
