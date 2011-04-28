@@ -7,8 +7,7 @@
     <VisualStudio>
       <FlavorProperties GUID="{A1591282-1198-4647-A2B1-27E5FF5F6F3B}">
         <SilverlightProjectProperties>
-          <StartPageUrl>
-          </StartPageUrl>
+          <StartPageUrl>index.html</StartPageUrl>
           <StartAction>DynamicPage</StartAction>
           <AspNetDebugging>True</AspNetDebugging>
           <NativeDebugging>False</NativeDebugging>

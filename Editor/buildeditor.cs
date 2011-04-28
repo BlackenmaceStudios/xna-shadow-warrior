@@ -112,7 +112,7 @@ namespace Editor
 
         int pointhighlight = 0;
         MouseTrace mouseTrace = new MouseTrace();
-        List<walltype> dragpoint = new List<walltype>();
+        int dragpoint = -1;
 
         short[] localartlookup = new short[bMap.MAXTILES];
         short localartlookupnum = -1;
@@ -347,7 +347,7 @@ namespace Editor
         {
             if (mouseleftup)
             {
-                dragpoint.Clear();
+                dragpoint = -1;
                 return;
             }
 
@@ -938,6 +938,11 @@ namespace Editor
                     loadmenuname = "";
                     inloadmenu = true;
                 }
+                else if (key == Key.S)
+                {
+                    System.IO.StreamWriter stream = new System.IO.StreamWriter(new System.IO.MemoryStream());
+                    EditorPage.saveDialogEvent.Method.Invoke(EditorPage.saveDialogEvent.Target, new object[] {stream, null});
+                }
 
                 inbuildmenu = !inbuildmenu;
                 return;
@@ -948,16 +953,18 @@ namespace Editor
                 {
                     overheaddrawwalls();
                 }
-                else if (editorState == EditorState.STATE_2DVIEW && dragpoint.Count == 0)
+                else if (editorState == EditorState.STATE_2DVIEW)
                 {
-                    for (int i = 0; i < numwalls; i++)
+                    if (pointhighlight >= 0)
                     {
-                        if (Math.Abs(Engine.board.wall[i].x - mousxplc) < POINT_EPISILON && Math.Abs(Engine.board.wall[i].y - mousyplc) < POINT_EPISILON)
+                        //float dist = (float)Math.Sqrt((Engine.board.wall[pointhighlight].x - mousxplc) * (Engine.board.wall[pointhighlight].x - mousxplc) +
+                      //                          (Engine.board.wall[pointhighlight].y - mousyplc) * (Engine.board.wall[pointhighlight].y - mousyplc));
+                      //  if (dist < 20)
                         {
-                            dragpoint.Add(Engine.board.wall[i]);
+                            dragpoint = pointhighlight;
                         }
+                        return;
                     }
-                    if (dragpoint.Count > 0) return;
                     posx = mousxplc;
                     posy = mousyplc;
                     //getpoint(mousx2, mousy2, ref posx, ref posy);
@@ -1181,6 +1188,10 @@ namespace Editor
                         if ((pointhighlight & 0xc000) == 16384)
                         {
                             Engine.board.deletesprite((short)(pointhighlight & 16383));
+                        }
+                        else
+                        {
+                            EditorLib.deletepoint((short)pointhighlight);
                         }
                     }
                     else if (editorState == EditorState.STATE_3DVIEW)
@@ -2104,20 +2115,33 @@ namespace Editor
             }
         }
 
-
-
-
-
         private void overheadeditor()
         {
             linehighlight = EditorLib.getlinehighlight(mousxplc, mousyplc);
 
-            if (dragpoint != null)
+            if (dragpoint != -1)
             {
-                for (int i = 0; i < dragpoint.Count; i++)
+                int dax = 0, day = 0;
+                if ((gridlock > 0) && (grid > 0))
                 {
-                    dragpoint[i].x = mousxplc;
-                    dragpoint[i].y = mousyplc;
+                    // if ((searchstat == 0) || (searchstat == 4))
+                    //  {
+                    //       hitz = (hitz & 0xfffffc00);
+                    //    }
+                    //   else
+                    {
+                        dax = (int)((mousxplc + (1024 >> grid)) & (0xffffffff << (11 - grid)));
+                        day = (int)((mousyplc + (1024 >> grid)) & (0xffffffff << (11 - grid)));
+                    }
+                }
+                if ((dragpoint & 0xc000) == 16384)
+                {
+                    Engine.board.sprite[pointhighlight & 16383].x = dax;
+                    Engine.board.sprite[pointhighlight & 16383].y = day;
+                }
+                else
+                {
+                    EditorLib.dragpoint((short)pointhighlight, dax, day);
                 }
             }
 
@@ -2212,7 +2236,7 @@ namespace Editor
             numwalls = onumwalls;
 
 
-            pointhighlight = getpointhighlight(mousxplc, mousyplc, pointhighlight);
+            pointhighlight = getpointhighlight(mousxplc, mousyplc);
 
 
             if ((pointhighlight & 0xc000) == 16384)
@@ -2276,7 +2300,7 @@ namespace Editor
             angvel = 0;
         }
 
-        Int32 getpointhighlight(Int32 xplc, Int32 yplc, Int32 point)
+        Int32 getpointhighlight(Int32 xplc, Int32 yplc)
         {
             Int32 i, j, dst, dist = 512, closest = -1;
             Int32 dax = 0, day = 0;
@@ -2284,23 +2308,36 @@ namespace Editor
             if (Engine.board.numwalls == 0)
                 return -1;
 
+            if ((gridlock > 0) && (grid > 0))
+            {
+                // if ((searchstat == 0) || (searchstat == 4))
+                //  {
+                //       hitz = (hitz & 0xfffffc00);
+                //    }
+                //   else
+                {
+                    xplc = (int)((xplc + (1024 >> grid)) & (0xffffffff << (11 - grid)));
+                    yplc = (int)((yplc + (1024 >> grid)) & (0xffffffff << (11 - grid)));
+                }
+            }
+
             if (grid < 1)
                 dist = 0;
-
-
 
             for (i = 0; i < Engine.board.numsectors; i++)
             {
                 for (j = Engine.board.sector[i].wallptr; j < Engine.board.sector[i].wallptr + Engine.board.sector[i].wallnum; j++)
                 {
-                    Engine.screencoords(ref dax, ref day, Engine.board.wall[j].x - posx, Engine.board.wall[j].y - posy, zoom);
+                    Engine.screencoords(ref dax, ref day, Engine.board.wall[j].x - xplc, Engine.board.wall[j].y - yplc, zoom);
                     day += Engine.getscreenvdisp(Engine.board.getflorzofslope((short)i, Engine.board.wall[j].x, Engine.board.wall[j].y) - posz, zoom);
 
                     if (Engine._device.halfxdim16 + dax < 0 || Engine._device.halfxdim16 + dax >= Engine._device.xdim || Engine._device.midydim16 + day < 0 || Engine._device.midydim16 + day >= Engine._device.ydim)
                         continue;
-
-                    dst = pragmas.klabs(Engine._device.halfxdim16 + dax - Engine.searchx) + pragmas.klabs(Engine._device.midydim16 + day - Engine.searchy);
-
+// jv
+                   // dst = pragmas.klabs(Engine._device.halfxdim16 + dax - Engine.searchx) + pragmas.klabs(Engine._device.midydim16 + day - Engine.searchy);
+                    dst = (int)Math.Sqrt((Engine.board.wall[j].x - mousxplc) * (Engine.board.wall[j].x - mousxplc) +
+                                                (Engine.board.wall[j].y - mousyplc) * (Engine.board.wall[j].y - mousyplc));
+                    // jv end
                     if (dst <= dist)
                     {
                         // prefer white walls
@@ -2308,6 +2345,7 @@ namespace Editor
                         {
                             dist = dst;
                             closest = j;
+
                         }
                     }
                 }
@@ -2331,7 +2369,7 @@ namespace Editor
                         }
                         else
                         {
-                            Engine.screencoords(ref dax, ref day, Engine.board.sprite[i].x - posx, Engine.board.sprite[i].y - posy, zoom);
+                            Engine.screencoords(ref dax, ref day, Engine.board.sprite[i].x - xplc, Engine.board.sprite[i].y - yplc, zoom);
                             day += Engine.getscreenvdisp(Engine.board.sprite[i].z - posz, zoom);
 
                             if (Engine._device.halfxdim16 + dax < 0 || Engine._device.halfxdim16 + dax >= Engine._device.xdim || Engine._device.midydim16 + day < 0 || Engine._device.midydim16 + day >= Engine._device.ydim)
@@ -2349,7 +2387,7 @@ namespace Editor
                         }
                     }
                 }
-
+            
             return closest;
         }
 

@@ -189,6 +189,47 @@ namespace Editor
 	        return(closest);
         }
 
+        public static void dragpoint(short pointhighlight, int dax, int day)
+        {
+	        short cnt, tempshort;
+
+	        Engine.board.wall[pointhighlight].x = dax;
+            Engine.board.wall[pointhighlight].y = day;
+
+	        cnt = bMap.MAXWALLS;
+	        tempshort = pointhighlight;    //search points CCW
+	        do
+	        {
+                if (Engine.board.wall[tempshort].nextwall >= 0)
+		        {
+                    tempshort = Engine.board.wall[Engine.board.wall[tempshort].nextwall].point2;
+                    Engine.board.wall[tempshort].x = dax;
+                    Engine.board.wall[tempshort].y = day;
+		        }
+		        else
+		        {
+			        tempshort = pointhighlight;    //search points CW if not searched all the way around
+			        do
+			        {
+                        if (Engine.board.wall[Engine.board.lastwall(tempshort)].nextwall >= 0)
+				        {
+                            tempshort = Engine.board.wall[Engine.board.lastwall(tempshort)].nextwall;
+                            Engine.board.wall[tempshort].x = dax;
+                            Engine.board.wall[tempshort].y = day;
+				        }
+				        else
+				        {
+					        break;
+				        }
+				        cnt--;
+			        }
+			        while ((tempshort != pointhighlight) && (cnt > 0));
+			        break;
+		        }
+		        cnt--;
+	        }
+	        while ((tempshort != pointhighlight) && (cnt > 0));
+        }
 
         public static int movewalls(int start, int offs)
         {

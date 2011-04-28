@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System;  
+using System.Windows.Controls;  
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,16 +10,31 @@ using System.Windows;
 using Microsoft.Internal;
 namespace build
 {
+    
+
     public class kFileWrite
     {
-        public kFileWrite(byte[] buffer)
-        {
+        BinaryWriter _writer;
+        string _ext;
 
+        public kFileWrite(string name, string ext)
+        {
+            _ext = ext;
+            _writer = new BinaryWriter(new MemoryStream());
+        }
+
+        public BinaryWriter io
+        {
+            get
+            {
+                return _writer;
+            }
         }
     }
     public class kFile
     {
         EndianBinaryReader _reader;
+        
 
         public kFile(byte[] buffer)
         {
