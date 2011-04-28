@@ -76,8 +76,6 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="buildeditor.cs" />
-    <Compile Include="editorlib.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -107,6 +105,10 @@
     <ProjectReference Include="..\build\build.csproj">
       <Project>{6794C26C-4A8B-440C-A73E-32E8C98421AA}</Project>
       <Name>build</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Editor\Editor.csproj">
+      <Project>{268BA90D-6BDC-4C15-A6F0-4BE101FEE68A}</Project>
+      <Name>Editor</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />

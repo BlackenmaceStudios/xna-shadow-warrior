@@ -11,7 +11,7 @@ using System.Windows.Shapes;
 
 using build;
 
-namespace buildlite
+namespace Editor
 {
     public static class EditorLib
     {

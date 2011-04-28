@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using build;
 
 
-namespace buildlite
+namespace Editor
 {
     enum MouseSectorHitType
     {
