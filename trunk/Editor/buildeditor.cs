@@ -390,6 +390,29 @@ namespace Editor
             }
         }
 
+        private void UpdateSpritesInSectorZ(short sectornum)
+        {
+            for (int i = Engine.board.headspritesect[mouseTrace.hitsector]; i >= 0; i = Engine.board.nextspritesect[i])
+            {
+                spritetype spr = Engine.board.sprite[i];
+                short sprsect = spr.sectnum;
+                short oldspr = spr.sectnum;
+
+                Engine.board.updatesectorz( spr.x, spr.y, spr.z, ref sprsect);
+                if (sprsect == -1)
+                {
+                    spr.z = Engine.board.getflorzofslope(oldspr, spr.x, spr.y);
+
+                    sprsect = oldspr;
+                    Engine.board.updatesectorz(spr.x, spr.y, spr.z, ref sprsect);
+                    if (sprsect == -1)
+                    {
+                        spr.z = Engine.board.getceilzofslope(oldspr, spr.x, spr.y);
+                    }
+                }
+            }
+        }
+
         private void ChangeObjectZ(int val)
         {
             if (editorState == EditorState.STATE_3DVIEW)
@@ -403,10 +426,14 @@ namespace Editor
                     if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_FLOOR)
                     {
                         Engine.board.sector[mouseTrace.hitsector].floorz += val;
+
+                        UpdateSpritesInSectorZ((short)mouseTrace.hitsector);
                     }
                     else if (mouseTrace.hittype == MouseSectorHitType.MOUSE_SECTORHIT_CEILING)
                     {
                         Engine.board.sector[mouseTrace.hitsector].ceilingz += val;
+
+                        UpdateSpritesInSectorZ((short)mouseTrace.hitsector);
                     }
                 }
             }
@@ -504,6 +531,8 @@ namespace Editor
             {
                 Engine.board.sector[mouseTrace.hitsector].floorstat |= 2;
             }
+
+            UpdateSpritesInSectorZ((short)mouseTrace.hitsector);
         }
 
         private void UpdateDescription(EditingState editState)
@@ -1093,7 +1122,7 @@ namespace Editor
                             else
                                 Engine.board.sprite[i].z = Math.Min(Math.Max(mouseTrace.hitz, Engine.board.getceilzofslope((short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) + j), Engine.board.getflorzofslope((short)mouseTrace.hitsector, mouseTrace.hitx, mouseTrace.hity) - j);
 
-                            if (mouseTrace.hitwall >= 0)
+                            if (mouseTrace.hitwall >= 0 && editorState == EditorState.STATE_3DVIEW)
                             {
                                 Engine.board.sprite[i].cstat |= (16 + 64);
                                 if (mouseTrace.hitwall >= 0)
