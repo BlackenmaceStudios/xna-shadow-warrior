@@ -26,20 +26,22 @@ namespace buildlite
             dialog.FilterIndex = 1;
         }
 
-        public void SaveFile(System.IO.BinaryWriter file)
+        public void SaveFile(System.IO.Stream file)
         {
             bool? ret = dialog.ShowDialog();
             if (ret.Value == false)
+            {
                 return;
+            }
 
             System.IO.Stream stream = dialog.OpenFile();
 
             if (stream != null)
             {
-                byte[] buffer = new byte[file.BaseStream.Length];
-                file.BaseStream.Position = 0;
-                file.BaseStream.Read(buffer, 0, (int)file.BaseStream.Length);
-                stream.Write(buffer, 0, (int)file.BaseStream.Length);
+                byte[] buffer = new byte[file.Length];
+                file.Position = 0;
+                file.Read(buffer, 0, (int)file.Length);
+                stream.Write(buffer, 0, (int)file.Length);
                 stream.Close();
             }
         }

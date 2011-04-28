@@ -7,7 +7,7 @@ namespace build
     class bGrpArchive
     {
         private BinaryReader grpFile;
-        private BinaryReader grpBuffer;
+        public BinaryReader grpBuffer;
 
         private int numFilesInGrp;
 
@@ -25,7 +25,12 @@ namespace build
 
         public bGrpArchive(string grpFilePath)
         {
-            Init(grpFilePath);
+            Init(null, grpFilePath);
+        }
+
+        public bGrpArchive(Stream grpFileStream)
+        {
+            Init(grpFileStream, "");
         }
 
         public byte[] ReadFile(string filename)
@@ -43,10 +48,18 @@ namespace build
             return null;
         }
 
-        private void Init(string grpFilePath)
+        private void Init(Stream memstream, string grpFilePath)
         {
             Engine.Printf("bGrpArchive::Init: Loading " + grpFilePath);
-            grpFile = new BinaryReader(new MemoryStream( Engine.filesystem.ReadContentFile( grpFilePath )));
+
+            if (memstream != null)
+            {
+                grpFile = new BinaryReader(memstream);
+            }
+            else
+            {
+                grpFile = new BinaryReader(new MemoryStream(Engine.filesystem.ReadContentFile(grpFilePath)));
+            }
             if (grpFile == null)
             {
                 throw new Exception("bGrpArchive::Init Failed to load " + grpFilePath);

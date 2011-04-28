@@ -26,7 +26,7 @@ namespace game
             Engine.Init();
 
             // Load in the game data.
-            Engine.initgroupfile("stuff.dat");
+            Engine.initgroupfile("data.grp");
 
             Engine.LoadTables();
 

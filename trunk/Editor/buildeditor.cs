@@ -161,7 +161,7 @@ namespace Editor
             Engine.editstatus = true;
 
             // Load in the game data.
-            Engine.initgroupfile("stuff.dat");
+            Engine.initgroupfile("data.grp");
 
             Engine.LoadTables();
 

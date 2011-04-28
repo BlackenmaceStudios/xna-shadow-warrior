@@ -63,7 +63,7 @@ namespace build
 
         public static VgaDevice _device = new VgaDevice();
 
-        public static kFileSystem filesystem;
+        public static kFileSystem filesystem = new kFileSystem();
         public static bTable table;
         public static bPalette palette;
 
@@ -536,8 +536,6 @@ palette:
             Utility.Init();
 
             pragmas.InitPragmas();
-
-            filesystem = new kFileSystem();
 
 
             for (i = 1; i < 1024; i++) lowrecip[i] = ((1 << 24) - 1) / i;

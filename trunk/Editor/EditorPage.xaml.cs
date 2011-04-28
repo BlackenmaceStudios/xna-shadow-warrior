@@ -76,7 +76,7 @@ namespace Editor
                 short sectnum = -1;
                 Engine.board.updatesector(_editor.startposx, _editor.startposy, ref sectnum);
                 Engine.board.saveboard(stream, _editor.startposx, _editor.startposy, _editor.startposz, _editor.startang, sectnum);
-                EditorPage.saveDialogEvent.Method.Invoke(EditorPage.saveDialogEvent.Target, new object[] { stream, null });
+                EditorPage.saveDialogEvent.Method.Invoke(EditorPage.saveDialogEvent.Target, new object[] { stream.BaseStream, null });
             }
             stream.Dispose();
             _editor.inbuildmenu = false;
