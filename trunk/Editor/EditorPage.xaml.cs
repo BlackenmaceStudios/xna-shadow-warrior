@@ -16,6 +16,7 @@ namespace Editor
     {
         BuildEditor _editor;
         UserControl _parent;
+        public static EventHandler saveDialogEvent;
 
         public EditorPage(UserControl parent)
         {
