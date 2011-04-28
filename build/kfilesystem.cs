@@ -261,6 +261,7 @@ namespace build
 
     public class kFileSystem
     {
+        public bool allowOneGrpFileOnly = false;
         List<bGrpArchive> grpfiles = new List<bGrpArchive>();
 
         //
@@ -348,7 +349,35 @@ namespace build
         //
         public void InitGrpFile(string name)
         {
+            if (allowOneGrpFileOnly)
+            {
+                if (grpfiles.Count > 0)
+                    return;
+            }
             bGrpArchive grpfile = new bGrpArchive(name);
+            grpfiles.Add(grpfile);
+        }
+
+        public Stream GetGrpFileStream(int grpnum)
+        {
+            grpfiles[grpnum].grpBuffer.BaseStream.Position = 0;
+            return grpfiles[grpnum].grpBuffer.BaseStream;
+        }
+
+        //
+        // InitGrpFile
+        //
+        public void InitGrpFile(Stream stream)
+        {
+            if (allowOneGrpFileOnly)
+            {
+                if (grpfiles.Count > 0)
+                {
+                    grpfiles.Clear();
+                }
+            }
+
+            bGrpArchive grpfile = new bGrpArchive(stream);
             grpfiles.Add(grpfile);
         }
     }

@@ -8,9 +8,17 @@
 
     <Grid x:Name="LayoutRoot" Background="White">
         <StackPanel Name="launchpanel" Loaded="Page_Loaded" Visibility="Visible" Background="#FF0A0A0A">
-			<Button Content="Launch Game" HorizontalAlignment="Left" Height="41" Margin="50,0,0,0" Width="149" Click="LaunchGame"/>
-			<Button Content="Launch Custom Map" HorizontalAlignment="Left" Height="41" Margin="50,0,0,0" Width="149" Click="LaunchUserMap"/>
-			<Button Content="Launch Editor" HorizontalAlignment="Left" Height="41" Margin="50,0,0,0" Width="149" Click="LaunchEditor"/>
+			<Button Content="New project(grp file)" HorizontalAlignment="Left" Height="41" Margin="50,0,0,0" Width="149" Click="NewProjectClick"/>
+			<Button Content="Load Project(grp file)" HorizontalAlignment="Left" Height="41" Margin="50,0,0,0" Width="149" Click="LoadProjectClick"/>
+			<StackPanel Name="paneloptions">
+				<Button Content="Save Project(grp file)" HorizontalAlignment="Left" Height="41" Margin="50,0,0,0" Width="149" Click="SaveProjectClick"/>
+				<Button Content="Grp File Manager" HorizontalAlignment="Left" Height="41" Margin="50,0,0,0" Width="149" />
+				<Button Content="Launch EditArt" HorizontalAlignment="Left" Height="41" Margin="50,0,0,0" Width="149" Click="LaunchEditArtClick"/>
+				<Button Content="Launch Pallete Editor" HorizontalAlignment="Left" Height="41" Margin="50,0,0,0" Width="149" />
+				<Button Content="Launch Game" HorizontalAlignment="Left" Height="41" Margin="50,0,0,0" Width="149" Click="LaunchGame"/>
+				<Button Content="Launch Custom Map" HorizontalAlignment="Left" Height="41" Margin="50,0,0,0" Width="149" Click="LaunchUserMap"/>
+				<Button Content="Launch Editor" HorizontalAlignment="Left" Height="41" Margin="50,0,0,0" Width="149" Click="LaunchEditor"/>
+			</StackPanel>
         </StackPanel>
     </Grid>
 </UserControl>

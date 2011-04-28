@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Editor", "Editor\Editor.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "game", "game\game.csproj", "{444546E6-84F0-49A2-9405-4BEA3FE159CB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "editart", "editart\editart.csproj", "{42733BF4-D8A4-429D-B95B-49087F78ABCD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,10 @@ Global
 		{444546E6-84F0-49A2-9405-4BEA3FE159CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{444546E6-84F0-49A2-9405-4BEA3FE159CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{444546E6-84F0-49A2-9405-4BEA3FE159CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42733BF4-D8A4-429D-B95B-49087F78ABCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42733BF4-D8A4-429D-B95B-49087F78ABCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42733BF4-D8A4-429D-B95B-49087F78ABCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42733BF4-D8A4-429D-B95B-49087F78ABCD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
