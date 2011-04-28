@@ -712,7 +712,7 @@ namespace Editor
         // SetEditObject
         // I had to use boxing here, not sure the performance impact yet...
         //
-        private void SetEditObject(EditingState editState)
+        private bool SetEditObject(EditingState editState)
         {
             if (editorState == EditorState.STATE_2DVIEW)
             {
@@ -747,11 +747,11 @@ namespace Editor
             }
             else
             {
-                return;
+                return false;
             }
 
             if (editWall == null && editSprite == null && editSector == null)
-                return;
+                return false;
 
             if (editingStateType == EditingStateType.EDITSTATE_SPRITE)
             {
@@ -759,7 +759,7 @@ namespace Editor
                 UpdateDescription(editState);
 
                 if (!UpdateSpriteEditValue(editState))
-                    return;
+                    return false;
             }
             else if (editingStateType == EditingStateType.EDITSTATE_WALL)
             {
@@ -767,14 +767,14 @@ namespace Editor
                 UpdateDescription(editState);
 
                 if (!UpdateWallEditValue(editState))
-                    return;
+                    return false;
             }
             else if (editingStateType == EditingStateType.EDITSTATE_SECTOR)
             {
                 editDescription = "Sector";
                 
                 if (!UpdateSectorEditValue(editState))
-                    return;
+                    return false;
             }
             else
             {
@@ -784,6 +784,7 @@ namespace Editor
             
 
             editingState = editState;
+            return true;
         }
 
         public void editinputkey(bool mouserightdown, bool mouseleftdown, Key key)
@@ -948,6 +949,27 @@ namespace Editor
                 case Key.Ctrl:
                     altkeydown = !altkeydown;
                     break;
+                case Key.O:
+                    if (altkeydown && editorState == EditorState.STATE_2DVIEW)
+                    {
+                        if ((newnumwalls = EditorLib.whitelinescan((short)linehighlight)) < numwalls)
+                        {
+                            //  printmessage16("Can't make a sector out there.");
+                        }
+                        else
+                        {
+                            for (short i = numwalls; i < newnumwalls; i++)
+                            {
+                                Engine.board.wall[Engine.board.wall[i].nextwall].nextwall = i;
+                                Engine.board.wall[Engine.board.wall[i].nextwall].nextsector = numsectors;
+                            }
+                            numwalls = (short)newnumwalls;
+                            newnumwalls = -1;
+                            numsectors++;
+                            printmessage16("Inner loop made into new sector.");
+                        }
+                    }
+                    break;
                 case Key.L:
                     if (altkeydown && editorState != EditorState.STATE_TILESELECT)
                     {
@@ -998,13 +1020,17 @@ namespace Editor
                     svel -= 400;
                     //  angvel = 30;
                     break;
+                
                 case Key.S:
                     {
                         short sectornum = -1;
                         int dax = -1, day = -1, daz = -1;
                         if (altkeydown && editorState != EditorState.STATE_TILESELECT)
                         {
-                            SetEditObject(EditingState.EDITING_SHADE);
+                            if (!SetEditObject(EditingState.EDITING_SHADE))
+                            {
+                                
+                            }
                             altkeydown = false;
                         }
                         else if (editorState == EditorState.STATE_3DVIEW)
@@ -1016,7 +1042,7 @@ namespace Editor
                         }
                         else if (editorState == EditorState.STATE_2DVIEW)
                         {
-                            Engine.board.updatesector(mousxplc, mousxplc, ref sectornum);
+                            Engine.board.updatesector(mousxplc, mousyplc, ref sectornum);
                             if (sectornum >= 0)
                             {
                                 dax = mousxplc;

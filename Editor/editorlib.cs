@@ -36,6 +36,61 @@ namespace Editor
             Engine.board.wall[i].xrepeat = (byte)Math.Min(Math.Max(pragmas.mulscale10(dist, day), 1), 255);
         }
 
+        public static int whitelinescan(short dalinehighlight)
+        {
+            int i, j, k;
+            short sucksect, newnumwalls;
+
+            sucksect = (short)Engine.board.sectorofwall(dalinehighlight);
+
+            //memcpy(&sector[numsectors], &sector[sucksect], sizeof(sectortype));
+            Engine.board.sector[sucksect].copyto(ref Engine.board.sector[Engine.board.numsectors]);
+            Engine.board.sector[Engine.board.numsectors].wallptr = (short)Engine.board.numwalls;
+            Engine.board.sector[Engine.board.numsectors].wallnum = 0;
+            i = dalinehighlight;
+            newnumwalls = (short)Engine.board.numwalls;
+            do
+            {
+                j = Engine.board.lastwall((short)i);
+                if (Engine.board.wall[j].nextwall >= 0)
+                {
+                    j = Engine.board.wall[j].point2;
+                    for (k = 0; k < Engine.board.numwalls; k++)
+                    {
+                        if (Engine.board.wall[Engine.board.wall[k].point2].x == Engine.board.wall[j].x)
+                            if (Engine.board.wall[Engine.board.wall[k].point2].y == Engine.board.wall[j].y)
+                                if (Engine.board.wall[k].nextwall == -1)
+                                {
+                                    j = k;
+                                    break;
+                                }
+                    }
+                }
+
+                //memcpy(&wall[newnumwalls], &wall[i], sizeof(walltype));
+
+                Engine.board.wall[i].copyto(ref Engine.board.wall[newnumwalls]);
+
+                Engine.board.wall[newnumwalls].nextwall = (short)j;
+                Engine.board.wall[newnumwalls].nextsector = (short)Engine.board.sectorofwall((short)j);
+
+                newnumwalls++;
+                Engine.board.sector[Engine.board.numsectors].wallnum++;
+
+                i = j;
+            }
+            while (i != dalinehighlight);
+
+            for (i = Engine.board.numwalls; i < newnumwalls - 1; i++)
+                Engine.board.wall[i].point2 = (short)(i + 1);
+            Engine.board.wall[newnumwalls - 1].point2 = (short)Engine.board.numwalls;
+
+            if (Engine.board.clockdir((short)Engine.board.numwalls) == 1)
+                return (-1);
+            else
+                return (newnumwalls);
+        }
+
         public static void insertpoint(short linehighlight, int dax, int day)
         {
 	        short sucksect;
