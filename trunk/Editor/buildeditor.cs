@@ -62,10 +62,10 @@ namespace Editor
         int posx = 32768;
         int posy = 32768;
         int posz = 0;
-        int startposx = 32768;
-        int startposy = 32768;
-        int startposz = 0;
-        short startang = 0;
+        public int startposx = 32768;
+        public int startposy = 32768;
+        public int startposz = 0;
+        public short startang = 0;
         int mousxplc = 0, mousyplc = 0;
         int linehighlight = -1;
         short ang = 1536;
@@ -116,8 +116,8 @@ namespace Editor
 
         short[] localartlookup = new short[bMap.MAXTILES];
         short localartlookupnum = -1;
-        bool inbuildmenu = false;
-        bool inloadmenu = false;
+        public bool inbuildmenu = false;
+        public bool inloadmenu = false;
         string loadmenuname = "";
         int mousx2 = 8;
         int mousy2 = 8;
@@ -128,7 +128,7 @@ namespace Editor
         int whitecol = 0;
         int objzvel = 0;
 
-        private void initnewboard()
+        public void initnewboard()
         {
             Engine.newboard();
             xdim2d = 640; ydim2d = 480; xdimgame = 640; ydimgame = 480; bppgame = 8;
@@ -816,6 +816,18 @@ namespace Editor
             return true;
         }
 
+        public void LoadMapFromStream(System.IO.Stream stream)
+        {
+            kFile file = new kFile(stream);
+
+            initnewboard();
+            Engine.board.loadboard(file, ref startposx, ref startposy, ref startposz, ref startang, ref cursectnum);
+            posx = startposx;
+            posy = startposy;
+            posz = startposz;
+            ang = startang;
+        }
+
         public void editinputkey(bool mouserightdown, bool mouseleftdown, Key key)
         {
             if (editingState != EditingState.EDITING_NOTHING)
@@ -929,6 +941,7 @@ namespace Editor
             }
             else if (inbuildmenu)
             {
+                /*
                 if (key == Key.N)
                 {
                     initnewboard();
@@ -938,12 +951,7 @@ namespace Editor
                     loadmenuname = "";
                     inloadmenu = true;
                 }
-                else if (key == Key.S)
-                {
-                    System.IO.StreamWriter stream = new System.IO.StreamWriter(new System.IO.MemoryStream());
-                    EditorPage.saveDialogEvent.Method.Invoke(EditorPage.saveDialogEvent.Target, new object[] {stream, null});
-                }
-
+                */
                 inbuildmenu = !inbuildmenu;
                 return;
             }
@@ -2175,7 +2183,8 @@ namespace Editor
             }
             else if (inbuildmenu)
             {
-                printmessage16("(N)ew, (L)oad, (S)ave as");
+                //printmessage16("(N)ew, (L)oad, (S)ave as");
+                printmessage16("Build Options Menu Active");
             }
             else if (inloadmenu)
             {

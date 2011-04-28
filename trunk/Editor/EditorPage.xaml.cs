@@ -16,7 +16,10 @@ namespace Editor
     {
         BuildEditor _editor;
         UserControl _parent;
+
+        public static EventHandler openDialogEvent;
         public static EventHandler saveDialogEvent;
+        public static EventHandler quitDialogEvent;
 
         public EditorPage(UserControl parent)
         {
@@ -40,6 +43,48 @@ namespace Editor
             CompositionTarget.Rendering += new EventHandler(Page_CompositionTarget_Rendering);
             _parent.Focus();
             _parent.CaptureMouse();
+        }
+
+        public void OpenMap(System.IO.Stream stream)
+        {
+            _editor.LoadMapFromStream(stream);
+        }
+
+        void NewBoardClick(object sender, EventArgs e)
+        {
+            _editor.initnewboard();
+            _editor.inbuildmenu = false;
+        }
+
+        void LoadBoardClick(object sender, EventArgs e)
+        {
+            EditorPage.openDialogEvent.Method.Invoke(EditorPage.openDialogEvent.Target, new object[] { null, null });
+            _editor.inbuildmenu = false;
+        }
+
+        void LoadBoardXAPClick(object sender, EventArgs e)
+        {
+            _editor.inbuildmenu = false;
+            _editor.inloadmenu = true;
+        }
+
+        void SaveBoardClick(object sender, EventArgs e)
+        {
+            System.IO.BinaryWriter stream = new System.IO.BinaryWriter(new System.IO.MemoryStream());
+            if (Engine.board != null)
+            {
+                short sectnum = -1;
+                Engine.board.updatesector(_editor.startposx, _editor.startposy, ref sectnum);
+                Engine.board.saveboard(stream, _editor.startposx, _editor.startposy, _editor.startposz, _editor.startang, sectnum);
+                EditorPage.saveDialogEvent.Method.Invoke(EditorPage.saveDialogEvent.Target, new object[] { stream, null });
+            }
+            stream.Dispose();
+            _editor.inbuildmenu = false;
+        }
+
+        void ExitBuildClick(object sender, EventArgs e)
+        {
+            EditorPage.quitDialogEvent.Method.Invoke(EditorPage.quitDialogEvent.Target, new object[] { null, null });
         }
 
         void MainPage_KeyUp(object sender, KeyEventArgs e)
@@ -66,12 +111,31 @@ namespace Editor
 
         void MainPage_MouseMove(object sender, MouseEventArgs e)
         {
+            if (_editor.inbuildmenu)
+                return;
+
             Point p = e.GetPosition(viewportimg);
             _editor.editinputmouse(p.X, p.Y);
         }
 
         void Page_CompositionTarget_Rendering(object sender, EventArgs e)
         {
+            if (_editor.inbuildmenu)
+            {
+                if (buildmenu.Visibility == System.Windows.Visibility.Collapsed)
+                {
+                    buildmenu.Visibility = System.Windows.Visibility.Visible;
+                    viewportimg.Cursor = Cursors.Arrow;
+                }
+            }
+            else
+            {
+                if (buildmenu.Visibility == System.Windows.Visibility.Visible)
+                {
+                    buildmenu.Visibility = System.Windows.Visibility.Collapsed;
+                    viewportimg.Cursor = Cursors.None;
+                }
+            }
             _editor.Frame();
         }
     }

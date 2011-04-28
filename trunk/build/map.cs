@@ -5550,22 +5550,65 @@ namespace build
 	        Engine.EndDrawing();
         }
 
-        public int loadboard(string filename, ref int daposx, ref int daposy, ref int daposz, ref short daang, ref short dacursectnum)
+        public void saveboard(System.IO.BinaryWriter fil, int daposx, int daposy, int daposz, short daang, short dacursectnum)
         {
-	        short numsprites;
-            kFile fil;
+	        short  i, j, numsprites;
 
-            Engine.Printf("bMap::LoadBoard: Loading " + filename);
+            
+	        fil.Write(mapversion);
 
-	        if ((fil = Engine.filesystem.kopen4load(filename)) == null)
-		    { 
-                mapversion = 7; 
-                return(-1); 
+	        fil.Write(daposx);
+	        fil.Write(daposy);
+	        fil.Write(daposz);
+            fil.Write(daang);
+            fil.Write(dacursectnum);
+
+            fil.Write((short)numsectors);
+            for (i = 0; i < numsectors; i++)
+            {
+                sector[i].Write(ref fil);
             }
 
+
+            fil.Write((short)numwalls);
+            for (i = 0; i < numwalls; i++)
+            {
+                wall[i].Write(ref fil);
+            }
+
+	        numsprites = 0;
+	        for(j=0;j<MAXSTATUS;j++)
+	        {
+		        i = (short)headspritestat[j];
+		        while (i != -1)
+		        {
+			        numsprites++;
+                    i = (short)nextspritestat[i];
+		        }
+	        }
+	        //write(fil,&numsprites,2);
+            fil.Write((short)numsprites);
+
+	        for(j=0;j<MAXSTATUS;j++)
+	        {
+		        i = (short)headspritestat[j];
+		        while (i != -1)
+		        {
+                    sprite[i].Write(ref fil);
+			        //write(fil,&sprite[i],sizeof(spritetype));
+                    i = (short)nextspritestat[i];
+		        }
+	        }
+
+          //  fil.Dispose();
+
+        }
+
+        public int loadboard(kFile fil, ref int daposx, ref int daposy, ref int daposz, ref short daang, ref short dacursectnum)
+        {
+	        short numsprites;
+
 	        fil.kreadint( out mapversion );
-	        if (mapversion != 7) 
-                return(-1);
 
             Engine.Printf("...Using mapversion " + mapversion);
 
@@ -5690,6 +5733,43 @@ namespace build
             sector.extra = extra;
         }
 
+        public void Write(ref System.IO.BinaryWriter writer)
+        {
+            writer.Write(wallptr);
+            writer.Write(wallnum);
+
+            writer.Write(ceilingz);
+            writer.Write(floorz);
+
+            writer.Write(ceilingstat);
+            writer.Write(floorstat);
+
+            writer.Write(ceilingpicnum);
+            writer.Write(ceilingheinum);
+
+            writer.Write(ceilingshade);
+
+            writer.Write(ceilingpal);
+            writer.Write(ceilingxpanning);
+            writer.Write(ceilingypanning);
+
+            writer.Write(floorpicnum);
+            writer.Write(floorheinum);
+
+            writer.Write(floorshade);
+
+            writer.Write(floorpal);
+            writer.Write(floorxpanning);
+            writer.Write(floorypanning);
+
+            writer.Write(visibility);
+            writer.Write(filler);
+
+            writer.Write(lotag);
+            writer.Write(hitag);
+            writer.Write(extra);
+        }
+
         public sectortype( ref kFile file )
         {
             wallptr = file.kreadshort();
@@ -5784,6 +5864,32 @@ namespace build
             wall.extra = extra;
         }
 
+        public void Write(ref System.IO.BinaryWriter writer)
+        {
+            writer.Write(x);
+            writer.Write(y);
+
+            writer.Write(point2);
+            writer.Write(nextwall);
+            writer.Write(nextsector);
+            writer.Write(cstat);
+
+            writer.Write(picnum);
+            writer.Write(overpicnum);
+
+            writer.Write(shade);
+
+            writer.Write(pal);
+            writer.Write(xrepeat);
+            writer.Write(yrepeat);
+            writer.Write(xpanning);
+            writer.Write(ypanning);
+
+            writer.Write(lotag);
+            writer.Write(hitag);
+            writer.Write(extra);
+        }
+
         public walltype( ref kFile file )
         {
             x = file.kreadint();
@@ -5846,6 +5952,34 @@ namespace build
         public spritetype()
         {
 
+        }
+
+        public void Write(ref System.IO.BinaryWriter writer)
+        {
+            writer.Write(x);
+            writer.Write(y);
+            writer.Write(z);
+
+            writer.Write(cstat);
+            writer.Write(picnum);
+            writer.Write(shade);
+            writer.Write(pal);
+            writer.Write(clipdist);
+            writer.Write(filler);
+            writer.Write(xrepeat);
+            writer.Write(yrepeat);
+            writer.Write(xoffset);
+            writer.Write(yoffset);
+            writer.Write(sectnum);
+            writer.Write(statnum);
+            writer.Write(ang);
+            writer.Write(owner);
+            writer.Write(xvel);
+            writer.Write(yvel);
+            writer.Write(zvel);
+            writer.Write(lotag);
+            writer.Write(hitag);
+            writer.Write(extra);
         }
 
         public spritetype(ref kFile file)
