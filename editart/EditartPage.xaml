@@ -10,10 +10,5 @@
 		<StackPanel Name="gameviewpanel" Loaded="Page_Loaded" Visibility="Visible" Background="#FF0A0A0A">
 			<Image Height="480"  Visibility="Visible" x:Name="viewportimg" Stretch="Fill" Width="640" HorizontalAlignment="Right" />
 		</StackPanel>
-		<StackPanel Name="edittilemenu" VerticalAlignment="Bottom">
-			<Button Content="Export Tile" HorizontalAlignment="Left" Height="41" Width="149" Click="ExportTileClick"/>
-			<Button Content="Replace Tile" HorizontalAlignment="Left" Height="41" Width="149" Click="ReplaceTileClick"/>
-			<Button Content="Save tile to grp" HorizontalAlignment="Left" Height="41" Width="149" Click="SaveTileToGrpClick"/>
-		</StackPanel>
 	</Grid>
 </UserControl>

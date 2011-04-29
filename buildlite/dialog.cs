@@ -26,12 +26,12 @@ namespace buildlite
             dialog.FilterIndex = 1;
         }
 
-        public void SaveFile(System.IO.Stream file)
+        public bool SaveFile(System.IO.Stream file)
         {
             bool? ret = dialog.ShowDialog();
             if (ret.Value == false)
             {
-                return;
+                return false;
             }
 
             System.IO.Stream stream = dialog.OpenFile();
@@ -44,6 +44,8 @@ namespace buildlite
                 stream.Write(buffer, 0, (int)file.Length);
                 stream.Close();
             }
+
+            return true;
         }
     }
 }
