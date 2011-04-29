@@ -15,12 +15,20 @@ namespace build
     public class kFileWrite
     {
         BinaryWriter _writer;
-        string _ext;
+        string _name;
+        bGrpArchive _grpFile;
 
-        public kFileWrite(string name, string ext)
+        public kFileWrite(string name, bGrpArchive grpFile)
         {
-            _ext = ext;
+            _name = name;
+            _grpFile = grpFile;
             _writer = new BinaryWriter(new MemoryStream());
+        }
+
+        public void Close()
+        {
+            _grpFile.WriteFileToGrp(_name, (MemoryStream)_writer.BaseStream);
+            _writer.Dispose();
         }
 
         public BinaryWriter io
@@ -263,6 +271,14 @@ namespace build
     {
         public bool allowOneGrpFileOnly = false;
         List<bGrpArchive> grpfiles = new List<bGrpArchive>();
+
+        //
+        // OpenFileWrite
+        //
+        public kFileWrite OpenFileWrite(string filename, int grpfilenum)
+        {
+            return new kFileWrite(filename, grpfiles[0]);
+        }
 
         //
         // ReadContentFile
