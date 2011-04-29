@@ -116,7 +116,7 @@ namespace Editor
 
         short[] localartlookup = new short[bMap.MAXTILES];
         short localartlookupnum = -1;
-        public bool inbuildmenu = false;
+       // public bool inbuildmenu = false;
         public bool inloadmenu = false;
         public bool insavemenu = false;
         string loadmenuname = "";
@@ -954,22 +954,7 @@ namespace Editor
                 }
                 return;
             }
-            else if (inbuildmenu)
-            {
-                /*
-                if (key == Key.N)
-                {
-                    initnewboard();
-                }
-                else if (key == Key.L)
-                {
-                    loadmenuname = "";
-                    inloadmenu = true;
-                }
-                */
-                inbuildmenu = !inbuildmenu;
-                return;
-            }
+            
             if (mouseleftdown)
             {
                 if (newnumwalls >= 0)
@@ -1231,8 +1216,7 @@ namespace Editor
                         {
                             newnumwalls = -1;
                         }
-                        if (inloadmenu == false)
-                            inbuildmenu = !inbuildmenu;
+                       
                     }
                     break;
                 case Key.Down:
@@ -2195,11 +2179,6 @@ namespace Editor
             else if (editingState != EditingState.EDITING_NOTHING)
             {
                 printmessage16(editDescription + editValue);
-            }
-            else if (inbuildmenu)
-            {
-                //printmessage16("(N)ew, (L)oad, (S)ave as");
-                printmessage16("Build Options Menu Active");
             }
             else if (inloadmenu)
             {

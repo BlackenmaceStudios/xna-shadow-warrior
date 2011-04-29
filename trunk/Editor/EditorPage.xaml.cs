@@ -10,13 +10,16 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using build;
+using SilverlightMenu.Library;
+
 namespace Editor
 {
     public partial class EditorPage : UserControl
     {
         BuildEditor _editor;
         UserControl _parent;
-
+        Point mousepoint = new Point(-1, -1);
+        private bool clickinmenu = false;
         public static EventHandler openDialogEvent;
         public static EventHandler saveDialogEvent;
         public static EventHandler quitDialogEvent;
@@ -47,52 +50,64 @@ namespace Editor
             _parent.CaptureMouse();
         }
 
+        public void InitMenuBar(ref Menu root)
+        {
+            PageMenuItem rootMenu = new PageMenuItem("mnuRoot", "mnuRoot");
+            PageMenuItem buildFileMenu = new PageMenuItem("mnuFile", "File");
+
+            buildFileMenu.AddItem("mnuNewBoard", "New Board");
+            buildFileMenu.AddItem("mnuSeparator1", "-");
+            buildFileMenu.AddItem("mnuLoadBoard", "Load Board");
+            buildFileMenu.AddItem("mnuLoadBoardFromHD", "Load Board From Harddrive");
+            buildFileMenu.AddItem("mnuSeparator2", "-");
+            buildFileMenu.AddItem("mnuSaveBoard", "Save Board");
+            buildFileMenu.AddItem("mnuSaveBoardToHD", "Save Board To HardDrive");
+            buildFileMenu.AddItem("mnuSaveProject", "Save Project");
+            buildFileMenu.AddItem("mnuSeparator3", "-");
+            buildFileMenu.AddItem("mnuQuit", "Exit");
+
+            root.MenuItem.Add(buildFileMenu.root);
+        }
+
+        public void MenuEvent(string eventname)
+        {
+            switch (eventname)
+            {
+                case "mnuNewBoard":
+                    {
+                         if(MessageBox.Show("Are you sure you want to make a new board?", "New Board", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
+                            _editor.initnewboard();
+                    }
+                    break;
+                case "mnuLoadBoard":
+                    _editor.inloadmenu = true;
+                    break;
+
+                case "mnuLoadBoardFromHD":
+                    EditorPage.openDialogEvent.Method.Invoke(EditorPage.openDialogEvent.Target, new object[] { null, null });
+                    break;
+
+                case "mnuSaveBoard":
+                    _editor.insavemenu = true;
+                    break;
+
+                case "mnuSaveBoardToHD":
+                    System.IO.BinaryWriter stream = new System.IO.BinaryWriter(new System.IO.MemoryStream());
+                    if (Engine.board != null)
+                    {
+                        short sectnum = -1;
+                        Engine.board.updatesector(_editor.startposx, _editor.startposy, ref sectnum);
+                        Engine.board.saveboard(stream, _editor.startposx, _editor.startposy, _editor.startposz, _editor.startang, sectnum);
+                        EditorPage.saveDialogEvent.Method.Invoke(EditorPage.saveDialogEvent.Target, new object[] { stream.BaseStream, null });
+                    }
+                    stream.Dispose();
+                    break;
+            }
+        }
+
         public void OpenMap(System.IO.Stream stream)
         {
             _editor.LoadMapFromStream(stream);
-        }
-
-        void NewBoardClick(object sender, EventArgs e)
-        {
-            _editor.initnewboard();
-            _editor.inbuildmenu = false;
-        }
-
-        void LoadBoardClick(object sender, EventArgs e)
-        {
-            EditorPage.openDialogEvent.Method.Invoke(EditorPage.openDialogEvent.Target, new object[] { null, null });
-            _editor.inbuildmenu = false;
-        }
-
-        void LoadBoardXAPClick(object sender, EventArgs e)
-        {
-            _editor.inbuildmenu = false;
-            _editor.inloadmenu = true;
-        }
-
-        void SaveBoardGrpClick(object sender, EventArgs e)
-        {
-            _editor.insavemenu = true;
-            _editor.inbuildmenu = false;
-        }
-
-        void SaveBoardClick(object sender, EventArgs e)
-        {
-            System.IO.BinaryWriter stream = new System.IO.BinaryWriter(new System.IO.MemoryStream());
-            if (Engine.board != null)
-            {
-                short sectnum = -1;
-                Engine.board.updatesector(_editor.startposx, _editor.startposy, ref sectnum);
-                Engine.board.saveboard(stream, _editor.startposx, _editor.startposy, _editor.startposz, _editor.startang, sectnum);
-                EditorPage.saveDialogEvent.Method.Invoke(EditorPage.saveDialogEvent.Target, new object[] { stream.BaseStream, null });
-            }
-            stream.Dispose();
-            _editor.inbuildmenu = false;
-        }
-
-        void ExitBuildClick(object sender, EventArgs e)
-        {
-            EditorPage.quitDialogEvent.Method.Invoke(EditorPage.quitDialogEvent.Target, new object[] { null, null });
         }
 
         void MainPage_KeyUp(object sender, KeyEventArgs e)
@@ -101,18 +116,25 @@ namespace Editor
             e.Handled = true;
         }
 
-        void SaveGrpClick(object sender, EventArgs e)
-        {
-            EditorPage.saveGrpEvent.Method.Invoke(EditorPage.saveGrpEvent.Target, new object[] { null, null });
-        }
-
         void MainPage_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
+            if (mousepoint.Y < 20)
+                return;
             _editor.editinputkeyup(false, true, Key.None);
         }
 
         void MainPage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (mousepoint.Y < 20)
+            {
+                clickinmenu = true;
+                return;
+            }
+            else if (clickinmenu)
+            {
+                clickinmenu = false;
+                return;
+            }
             _editor.editinputkey(false, true, Key.None);
         }
 
@@ -124,31 +146,16 @@ namespace Editor
 
         void MainPage_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_editor.inbuildmenu || _editor.inloadmenu || _editor.insavemenu)
-                return;
+         //   if (_editor.inbuildmenu || _editor.inloadmenu || _editor.insavemenu)
+          //      return;
 
-            Point p = e.GetPosition(viewportimg);
-            _editor.editinputmouse(p.X, p.Y);
+            mousepoint = e.GetPosition(viewportimg);
+            _editor.editinputmouse(mousepoint.X, mousepoint.Y);
         }
 
         void Page_CompositionTarget_Rendering(object sender, EventArgs e)
         {
-            if (_editor.inbuildmenu)
-            {
-                if (buildmenu.Visibility == System.Windows.Visibility.Collapsed)
-                {
-                    buildmenu.Visibility = System.Windows.Visibility.Visible;
-                    viewportimg.Cursor = Cursors.Arrow;
-                }
-            }
-            else
-            {
-                if (buildmenu.Visibility == System.Windows.Visibility.Visible)
-                {
-                    buildmenu.Visibility = System.Windows.Visibility.Collapsed;
-                    viewportimg.Cursor = Cursors.None;
-                }
-            }
+           
             _editor.Frame();
         }
     }

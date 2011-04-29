@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Browser;
+using SilverlightMenu.Library;
 
 using build;
 using Editor;
@@ -18,6 +19,8 @@ using editart;
 
 namespace buildlite
 {
+    
+
     public partial class MainPage : UserControl
     {
         EditorPage editorPage;
@@ -26,6 +29,72 @@ namespace buildlite
 
         bSaveDialog projectSaveDialog = new bSaveDialog();
         bSaveDialog saveDialog = new bSaveDialog();
+
+        bool projectloaded = false;
+
+        void CreateMainMenuBar()
+        {
+            PageMenuItem rootMenu = new PageMenuItem("mnuRoot", "mnuRoot");
+            PageMenuItem EditorMenu = new PageMenuItem("mnuEditors", "Editors");
+            PageMenuItem GameMenu = new PageMenuItem("mnuGame", "Game");
+
+            EditorMenu.AddItem("mnuLaunchEditArt", "Launch Editart");
+            EditorMenu.AddItem("mnuLaunchBuild", "Launch Build");
+
+            GameMenu.AddItem("mnuLaunchGame", "Run Game");
+            GameMenu.AddItem("mnuLaunchGameCustom", "Run Game Custom Map");
+
+            // Clear out the old menu.
+            Menu.menuDictionary.Clear();
+            mnuTop.MenuItem.Clear();
+            mnuTop.MenuItem.Add(EditorMenu.root);
+            mnuTop.MenuItem.Add(GameMenu.root);
+            mnuTop.Repaint();
+            mnuTop.Visibility = System.Windows.Visibility.Visible;
+        }
+
+        void CreateGameTestMenuBar()
+        {
+            PageMenuItem rootMenu = new PageMenuItem("mnuRoot", "mnuRoot");
+            PageMenuItem fileMenu = new PageMenuItem("mnuFile", "File");
+
+            fileMenu.AddItem("mnuQuit", "Exit");
+
+
+
+            mnuTop.MenuItem.Add(fileMenu.root);
+
+            // Clear out the old menu.
+            Menu.menuDictionary.Clear();
+            mnuTop.MenuItem.Clear();
+            mnuTop.MenuItem.Add(fileMenu.root);
+            mnuTop.Repaint();
+            mnuTop.Visibility = System.Windows.Visibility.Visible;
+        }
+
+        void CreateBuildMenuBar()
+        {
+            // Clear out the old menu.
+            Menu.menuDictionary.Clear();
+            mnuTop.MenuItem.Clear();
+
+            editorPage.InitMenuBar(ref mnuTop);
+            
+            mnuTop.Repaint();
+            mnuTop.Visibility = System.Windows.Visibility.Visible;
+        }
+
+        void CreateEditArtMenuBar()
+        {
+            // Clear out the old menu.
+            Menu.menuDictionary.Clear();
+            mnuTop.MenuItem.Clear();
+
+            editartPage.InitMenuBar(ref mnuTop);    
+            
+            mnuTop.Repaint();
+            mnuTop.Visibility = System.Windows.Visibility.Visible;
+        }
 
         public MainPage()
         {
@@ -43,10 +112,6 @@ namespace buildlite
 
             Engine.filesystem.allowOneGrpFileOnly = true;
 
-            
-            
-            paneloptions.Visibility = System.Windows.Visibility.Collapsed;
-
             System.Windows.Interop.SilverlightHost host = Application.Current.Host;
             // The Settings object, which represents Web browser settings.
             System.Windows.Interop.Settings settings = host.Settings;
@@ -57,57 +122,129 @@ namespace buildlite
             settings.MaxFrameRate = 60;
         }
 
-        public void NewProjectClick(object sender, EventArgs e)
+        private void Menu_MenuItemClicked(object sender, EventArgs e)
         {
-            projectSaveDialog.SaveFile(Application.GetResourceStream(new Uri("base/data.grp", UriKind.RelativeOrAbsolute)).Stream);
-            paneloptions.Visibility = System.Windows.Visibility.Visible;
+            MenuItem clickedItem = (MenuItem)sender;
+
+            if (projectloaded == false)
+            {
+                switch (clickedItem.Name)
+                {
+                    case "mnuNewProject":
+                        if (projectSaveDialog.SaveFile(Application.GetResourceStream(new Uri("base/data.grp", UriKind.RelativeOrAbsolute)).Stream))
+                        {
+                            projectloaded = true;
+                            CreateMainMenuBar();
+                        }
+                        break;
+
+                    case "mnuLoadProject":
+                        OpenFileDialog dialog = new OpenFileDialog();
+
+                        dialog.Filter = "Build Project File" + "|*" + ".grp";
+                        dialog.FilterIndex = 1;
+                        dialog.Multiselect = false;
+
+                        bool? fileopen = dialog.ShowDialog();
+                        if (!fileopen.Value)
+                            return;
+
+                        Engine.filesystem.InitGrpFile(dialog.File.OpenRead());
+                        projectloaded = true;
+                        CreateMainMenuBar();
+                        break;
+
+                    default:
+                        MessageBox.Show("You cannot use this option until you load in a project");
+                        return;
+                }
+            }
+            else
+            {
+                switch (clickedItem.Name)
+                {
+                    case "mnuLaunchGame":
+                        CreateGameTestMenuBar();
+                        gamePage = new GamePage(this, "nukeland.map", null);
+                        viewportpanel.Children.Clear();
+                        viewportpanel.Children.Add(gamePage);
+                        gamePage.Focus();
+                        break;
+
+                    case "mnuLaunchGameCustom":
+                         OpenFileDialog dialog = new OpenFileDialog();
+
+                        dialog.Filter = "Build Map File" + "|*" + ".map";
+                        dialog.FilterIndex = 1;
+                        dialog.Multiselect = false;
+
+                        bool? fileopen = dialog.ShowDialog();
+                        if (!fileopen.Value)
+                            return;
+
+                        CreateGameTestMenuBar();
+                        gamePage = new GamePage(this, "", dialog.File.OpenRead());
+                        viewportpanel.Children.Clear();
+                        viewportpanel.Children.Add(gamePage);
+                        gamePage.Focus();
+                        break;
+
+                    case "mnuLaunchEditArt":
+                        editartPage = new EditartPage(this);
+                        CreateEditArtMenuBar();
+                        viewportpanel.Children.Clear();
+                        viewportpanel.Children.Add(editartPage);
+                        editartPage.Focus();
+                        
+                        break;
+
+                    case "mnuLaunchBuild":
+                        editorPage = new EditorPage(this);
+                        CreateBuildMenuBar();
+                        viewportpanel.Children.Clear();
+                        viewportpanel.Children.Add(editorPage);
+                        editorPage.Focus();
+                        break;
+
+                    case "mnuSaveProject":
+                        projectSaveDialog.SaveFile(Engine.filesystem.GetGrpFileStream(0));
+                        break;
+
+                    case "mnuQuit":
+                        MessageBoxResult result;
+
+                        if (gamePage == null)
+                        {
+                            result = MessageBox.Show("Are you sure you want to quit?\nHave you saved your grp yet?", "Are you sure you want to exit?", MessageBoxButton.OKCancel);
+                        }
+                        else
+                        {
+                            result = MessageBox.Show("Are you sure you want to quit?\n", "Are you sure you want to exit?", MessageBoxButton.OKCancel);
+                        }
+                        if (result == MessageBoxResult.OK)
+                        {
+                            System.Windows.Browser.HtmlPage.Document.Submit();
+                        }
+                        break;
+
+                    default:
+                        if (editartPage != null)
+                        {
+                            editartPage.MenuEvent(clickedItem.Name);
+                        }
+                        else if (editorPage != null)
+                        {
+                            editorPage.MenuEvent(clickedItem.Name);
+                        }
+                        break;
+                }
+            }
         }
 
-        public void LoadProjectClick(object sender, EventArgs e)
-        {
-            OpenFileDialog dialog = new OpenFileDialog();
-
-            dialog.Filter = "Build Project File" + "|*" + ".grp";
-            dialog.FilterIndex = 1;
-            dialog.Multiselect = false;
-
-            bool? fileopen = dialog.ShowDialog();
-            if (!fileopen.Value)
-                return;
-
-            Engine.filesystem.InitGrpFile(dialog.File.OpenRead());
-            paneloptions.Visibility = System.Windows.Visibility.Visible;
-        }
 
         public void SaveProjectClick(object sender, EventArgs e)
         {
             projectSaveDialog.SaveFile(Engine.filesystem.GetGrpFileStream(0));
-        }
-
-        public void LaunchGame(object sender, EventArgs e)
-        {
-            gamePage = new GamePage(this, "nukeland.map", null);
-            LayoutRoot.Children.Clear();
-            LayoutRoot.Children.Add(gamePage);
-            gamePage.Focus();
-        }
-
-        public void LaunchUserMap(object sender, EventArgs e)
-        {
-            OpenFileDialog dialog = new OpenFileDialog();
-
-            dialog.Filter = "Build Map File" + "|*" + ".map";
-            dialog.FilterIndex = 1;
-            dialog.Multiselect = false;
-
-            bool? fileopen = dialog.ShowDialog();
-            if (!fileopen.Value)
-                return;
-
-            gamePage = new GamePage(this, "", dialog.File.OpenRead());
-            LayoutRoot.Children.Clear();
-            LayoutRoot.Children.Add(gamePage);
-            gamePage.Focus();
         }
 
         public void OpenMapEvent(object sender, EventArgs e)
@@ -133,22 +270,6 @@ namespace buildlite
         public void SaveData(object sender, EventArgs e)
         {
             saveDialog.SaveFile((System.IO.Stream)sender);
-        }
-
-        void LaunchEditArtClick(object sender, EventArgs e)
-        {
-            editartPage = new EditartPage(this);
-            LayoutRoot.Children.Clear();
-            LayoutRoot.Children.Add(editartPage);
-            editartPage.Focus();
-        }
-
-        void LaunchEditor(object sender, EventArgs e)
-        {
-            editorPage = new EditorPage(this);
-            LayoutRoot.Children.Clear();
-            LayoutRoot.Children.Add(editorPage);
-            editorPage.Focus();
         }
 
         void Page_Loaded(object sender, RoutedEventArgs e)

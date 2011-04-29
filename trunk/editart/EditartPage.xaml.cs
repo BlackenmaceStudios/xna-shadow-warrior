@@ -13,6 +13,7 @@ using System.Windows.Shapes;
 using System.Windows.Navigation;
 using ImageExportLib.Internals;
 using build;
+using SilverlightMenu.Library;
 
 namespace editart
 {
@@ -29,6 +30,8 @@ namespace editart
             _parent.KeyUp += new KeyEventHandler(MainPage_KeyUp);
         }
 
+        
+
         void Page_Loaded(object sender, RoutedEventArgs e)
         {
             editart.Init(ref viewportimg);
@@ -37,74 +40,97 @@ namespace editart
             CompositionTarget.Rendering += new EventHandler(Page_CompositionTarget_Rendering);
         }
 
-        void ExportTileClick(object sender, EventArgs e)
+        public void InitMenuBar(ref Menu root)
         {
-            
-            int width = Engine.tilesizx[editart.SelectedArtTile];
-            int height = Engine.tilesizy[editart.SelectedArtTile];
+            PageMenuItem rootMenu = new PageMenuItem("mnuRoot", "mnuRoot");
+            PageMenuItem editArtFileMenu = new PageMenuItem("mnuFile", "File");
+            PageMenuItem editArtTileMenu = new PageMenuItem("mnuTile", "Tile");
 
-            SaveFileDialog dialog = new SaveFileDialog();
-            dialog.DefaultExt = ".png";
-            dialog.Filter = "PNG File|*.png";
-            dialog.FilterIndex = 1;
+            editArtFileMenu.AddItem("mnuSaveProject", "Save Project");
+            editArtFileMenu.AddItem("mnuSeparator1", "-");
+            editArtFileMenu.AddItem("mnuQuit", "Exit");
 
-            if (width <= 0 || height <= 0 || Engine.waloff[editart.SelectedArtTile].memory == null)
-            {
-                MessageBox.Show("You can't export a tile that doesn't have any image data");
-                return;
-            }
+            editArtTileMenu.AddItem("mnuReplaceTile", "Replace Tile");
+            editArtTileMenu.AddItem("mnuExportTile", "Export Tile");
 
-            if (!dialog.ShowDialog().Value)
-                return;
-
-            byte[] imagedata = editart.ConvertTileToImage(editart.SelectedArtTile, width, height);
-
-            System.IO.Stream file = dialog.OpenFile();
-            System.IO.MemoryStream png = (System.IO.MemoryStream)PngEncoder.Encode(imagedata, width, height);
-
-            file.Write( png.ToArray(), 0, (int)png.Length );
-            file.Close();
-
-            png.Dispose();
+            root.MenuItem.Add(editArtFileMenu.root);
+            root.MenuItem.Add(editArtTileMenu.root);
         }
 
-        void ReplaceTileClick(object sender, EventArgs e)
+        public void MenuEvent(string eventname)
         {
-            OpenFileDialog dialog = new OpenFileDialog();
-            dialog.Filter = "PNG File|*.png";
-            dialog.FilterIndex = 1;
-
-            if (dialog.ShowDialog().Value == false)
-                return;
-
-            System.IO.Stream fileStream = dialog.File.OpenRead();
-
-            // This is kind of a long way to do this, but doing so we can properly load bmp and pngs,
-            // without any extra code, basically we create a bitmapimage, than we create a WriteableBitmap,
-            // we have to do it that way because writeablebitmap's constructor doesn't take one param,
-            // and writeablebitmap is the only way to get the pixel data out of our bitmapimage.
-            BitmapImage bitmap = new BitmapImage();
-            bitmap.SetSource(fileStream);
-            
-            WriteableBitmap bitmapwrite = new WriteableBitmap(bitmap);
-            if (bitmapwrite.PixelWidth <= 320 && bitmapwrite.PixelHeight <= 200)
+            switch (eventname)
             {
-                editart.ReplaceCurrentTile(bitmapwrite.Pixels, bitmapwrite.PixelWidth, bitmapwrite.PixelHeight);
+                case "mnuExportTile":
+                    {
+                        int width = Engine.tilesizx[editart.SelectedArtTile];
+                        int height = Engine.tilesizy[editart.SelectedArtTile];
+
+                        SaveFileDialog dialog = new SaveFileDialog();
+                        dialog.DefaultExt = ".png";
+                        dialog.Filter = "PNG File|*.png";
+                        dialog.FilterIndex = 1;
+
+                        if (width <= 0 || height <= 0 || Engine.waloff[editart.SelectedArtTile].memory == null)
+                        {
+                            MessageBox.Show("You can't export a tile that doesn't have any image data");
+                            return;
+                        }
+
+                        if (!dialog.ShowDialog().Value)
+                            return;
+
+                        byte[] imagedata = editart.ConvertTileToImage(editart.SelectedArtTile, width, height);
+
+                        System.IO.Stream file = dialog.OpenFile();
+                        System.IO.MemoryStream png = (System.IO.MemoryStream)PngEncoder.Encode(imagedata, width, height);
+
+                        file.Write(png.ToArray(), 0, (int)png.Length);
+                        file.Close();
+
+                        png.Dispose();
+                    }
+                    break;
+                case "mnuReplaceTile":
+                    {
+                        OpenFileDialog dialog = new OpenFileDialog();
+                        dialog.Filter = "PNG File|*.png";
+                        dialog.FilterIndex = 1;
+
+                        if (dialog.ShowDialog().Value == false)
+                            return;
+
+                        System.IO.Stream fileStream = dialog.File.OpenRead();
+
+                        // This is kind of a long way to do this, but doing so we can properly load bmp and pngs,
+                        // without any extra code, basically we create a bitmapimage, than we create a WriteableBitmap,
+                        // we have to do it that way because writeablebitmap's constructor doesn't take one param,
+                        // and writeablebitmap is the only way to get the pixel data out of our bitmapimage.
+                        BitmapImage bitmap = new BitmapImage();
+                        bitmap.SetSource(fileStream);
+
+                        WriteableBitmap bitmapwrite = new WriteableBitmap(bitmap);
+                        if (bitmapwrite.PixelWidth <= 320 && bitmapwrite.PixelHeight <= 200)
+                        {
+                            editart.ReplaceCurrentTile(bitmapwrite.Pixels, bitmapwrite.PixelWidth, bitmapwrite.PixelHeight);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Image size must be less than 320x200!");
+                        }
+
+                        // Close the opened stream.
+                        fileStream.Dispose();
+
+                        // Null out the bitmapmaps we had to create.
+                        bitmap = null;
+                        bitmapwrite = null;
+
+                        // Force the gc to reclaim any unused memory.
+                        GC.Collect();
+                    }
+                    break;
             }
-            else
-            {
-                MessageBox.Show("Image size must be less than 320x200!");
-            }
-
-            // Close the opened stream.
-            fileStream.Dispose();
-
-            // Null out the bitmapmaps we had to create.
-            bitmap = null;
-            bitmapwrite = null;
-
-            // Force the gc to reclaim any unused memory.
-            GC.Collect();
         }
 
         void MainPage_KeyUp(object sender, KeyEventArgs e)
@@ -169,16 +195,6 @@ namespace editart
 
         void Page_CompositionTarget_Rendering(object sender, EventArgs e)
         {
-            if (editart.DrawTileEditMenu && edittilemenu.Visibility == System.Windows.Visibility.Collapsed)
-            {
-                edittilemenu.Visibility = System.Windows.Visibility.Visible;
-                viewportimg.Cursor = Cursors.Arrow;
-            }
-            else if (!editart.DrawTileEditMenu && edittilemenu.Visibility == System.Windows.Visibility.Visible)
-            {
-                edittilemenu.Visibility = System.Windows.Visibility.Collapsed;
-                viewportimg.Cursor = Cursors.None;
-            }
             editart.Frame();
         }
     }
