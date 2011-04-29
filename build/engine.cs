@@ -42,6 +42,7 @@ namespace build
         internal static int[] lookups;
         public static int horizlookup;
         public static int horizlookup2;
+       
         public static tilecontainer[] waloff = new tilecontainer[MAXTILES];
         private static short[] uplc = new short[VgaDevice.MAXXDIM];
         private static short[] dplc = new short[VgaDevice.MAXYDIM];
@@ -590,11 +591,11 @@ palette:
                 //faketimerhandler();
             }
             waloff[tilenume] = new tilecontainer();
-            //byte[] tempbuf = artfil.kread((int)dasiz);
+            byte[] tempbuf = artfil.kread((int)dasiz);
 
-            waloff[tilenume].memory = artfil.kread((int)dasiz); // new byte[tempbuf.Length];
-           // Array.Copy(tempbuf, 0, waloff[tilenume].memory, 0, tempbuf.Length);
-           // Array.Copy(tempbuf, 0, waloff[tilenume].memory, tempbuf.Length, tempbuf.Length);
+            waloff[tilenume].memory =  new byte[tempbuf.Length * 2];
+            Array.Copy(tempbuf, 0, waloff[tilenume].memory, 0, tempbuf.Length);
+            Array.Copy(tempbuf, 0, waloff[tilenume].memory, tempbuf.Length, tempbuf.Length);
 
             //faketimerhandler();
             artfilplc = tilefileoffs[tilenume] + dasiz;

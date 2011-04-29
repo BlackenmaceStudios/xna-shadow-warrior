@@ -158,7 +158,7 @@ namespace editart
                     {
                         Engine.loadtile((short)i);
                     }
-                    fil.io.Write(Engine.waloff[i].memory);
+                    fil.io.Write(Engine.waloff[i].memory, 0, Engine.tilesizx[i] * Engine.tilesizy[i]);
                 }
             }
 
