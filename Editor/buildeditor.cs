@@ -118,6 +118,7 @@ namespace Editor
         short localartlookupnum = -1;
         public bool inbuildmenu = false;
         public bool inloadmenu = false;
+        public bool insavemenu = false;
         string loadmenuname = "";
         int mousx2 = 8;
         int mousy2 = 8;
@@ -911,16 +912,30 @@ namespace Editor
                 }
                 return;
             }
-            else if (inloadmenu)
+            else if (inloadmenu || insavemenu)
             {
                 if (key == Key.Enter)
                 {
-                    Engine.loadboard(loadmenuname + ".map", ref startposx, ref startposy, ref startposz, ref startang, ref cursectnum);
-                    posx = startposx;
-                    posy = startposy;
-                    posz = startposz;
-                    ang = startang;
+                    if (inloadmenu)
+                    {
+                        Engine.loadboard(loadmenuname + ".map", ref startposx, ref startposy, ref startposz, ref startang, ref cursectnum);
+                        posx = startposx;
+                        posy = startposy;
+                        posz = startposz;
+                        ang = startang;
+                    }
+                    else if(insavemenu)
+                    {
+                        short startsector = 0;
+                        kFileWrite fil = Engine.filesystem.OpenFileWrite( loadmenuname + ".map", 0 );
+                        Engine.board.updatesector(startposx, startposy, ref startsector );
+                        Engine.board.saveboard(fil.io, startposx, startposy, startposz, startang, startsector);
+                        fil.Close();
+
+                        
+                    }
                     inloadmenu = false;
+                    insavemenu = false;
                 }
                 else if (key == Key.Escape)
                 {
@@ -2189,6 +2204,10 @@ namespace Editor
             else if (inloadmenu)
             {
                 printmessage16("Board Name: " + loadmenuname + "_");
+            }
+            else if (insavemenu)
+            {
+                printmessage16("Save Board to Grp As: " + loadmenuname + "_");
             }
             else
             {
