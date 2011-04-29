@@ -118,14 +118,14 @@ namespace Editor
 
         void MainPage_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (mousepoint.Y < 20)
+            if (mousepoint.Y < 1)
                 return;
             _editor.editinputkeyup(false, true, Key.None);
         }
 
         void MainPage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (mousepoint.Y < 20)
+            if (mousepoint.Y < 1)
             {
                 clickinmenu = true;
                 return;
