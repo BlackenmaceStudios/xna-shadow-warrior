@@ -13,8 +13,10 @@
 		<StackPanel Name="buildmenu">
 			<Button Content="New Board" HorizontalAlignment="Left" Height="41" Width="149" Click="NewBoardClick"/>
 			<Button Content="Load Board" HorizontalAlignment="Left" Height="41" Width="149" Click="LoadBoardClick"/>
-			<Button Content="Load Board from XAP" HorizontalAlignment="Left" Height="41" Width="149" Click="LoadBoardXAPClick"/>
+			<Button Content="Load Board from GRP" HorizontalAlignment="Left" Height="41" Width="149" Click="LoadBoardXAPClick"/>
 			<Button Content="Save Board As" HorizontalAlignment="Left" Height="41"  Width="149" Click="SaveBoardClick"/>
+			<Button Content="Save Board To Grp" HorizontalAlignment="Left" Height="41"  Width="149" Click="SaveBoardGrpClick"/>
+			<Button Content="Save Grp File" HorizontalAlignment="Left" Height="41"  Width="149" Click="SaveGrpClick"/>
 			<Button Content="Exit Build Editor" HorizontalAlignment="Left" Height="41"  Width="149" Click="ExitBuildClick"/>
 		</StackPanel>
 		

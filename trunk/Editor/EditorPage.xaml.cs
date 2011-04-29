@@ -20,6 +20,7 @@ namespace Editor
         public static EventHandler openDialogEvent;
         public static EventHandler saveDialogEvent;
         public static EventHandler quitDialogEvent;
+        public static EventHandler saveGrpEvent;
 
         public EditorPage(UserControl parent)
         {
@@ -33,6 +34,7 @@ namespace Editor
 
             _editor.Init(ref viewportimg);
 
+           
             _parent.MouseMove += new MouseEventHandler(MainPage_MouseMove);
             _parent.MouseLeftButtonDown += new MouseButtonEventHandler(MainPage_MouseLeftButtonDown);
             _parent.MouseLeftButtonUp += new MouseButtonEventHandler(MainPage_MouseLeftButtonUp);
@@ -68,6 +70,12 @@ namespace Editor
             _editor.inloadmenu = true;
         }
 
+        void SaveBoardGrpClick(object sender, EventArgs e)
+        {
+            _editor.insavemenu = true;
+            _editor.inbuildmenu = false;
+        }
+
         void SaveBoardClick(object sender, EventArgs e)
         {
             System.IO.BinaryWriter stream = new System.IO.BinaryWriter(new System.IO.MemoryStream());
@@ -93,6 +101,11 @@ namespace Editor
             e.Handled = true;
         }
 
+        void SaveGrpClick(object sender, EventArgs e)
+        {
+            EditorPage.saveGrpEvent.Method.Invoke(EditorPage.saveGrpEvent.Target, new object[] { null, null });
+        }
+
         void MainPage_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             _editor.editinputkeyup(false, true, Key.None);
@@ -111,7 +124,7 @@ namespace Editor
 
         void MainPage_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_editor.inbuildmenu)
+            if (_editor.inbuildmenu || _editor.inloadmenu || _editor.insavemenu)
                 return;
 
             Point p = e.GetPosition(viewportimg);
