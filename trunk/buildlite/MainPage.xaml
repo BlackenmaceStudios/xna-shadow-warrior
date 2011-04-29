@@ -29,7 +29,7 @@
                 MenuItem="{StaticResource mnuRoot}"
                 MenuItemClicked="Menu_MenuItemClicked"/>
 		
-        <StackPanel Name="viewportpanel" Loaded="Page_Loaded" Visibility="Visible" HorizontalAlignment="Center" Width="640" Height="480" Background="#000000" >
+        <StackPanel Name="viewportpanel" Loaded="Page_Loaded" Visibility="Visible" HorizontalAlignment="Center" Width="640" Height="480" Background="#000000" Margin="0,22,0,0" >
 			
         </StackPanel>
     </Grid>
