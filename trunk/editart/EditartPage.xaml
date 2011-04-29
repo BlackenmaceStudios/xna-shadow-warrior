@@ -13,6 +13,7 @@
 		<StackPanel Name="edittilemenu" VerticalAlignment="Bottom">
 			<Button Content="Export Tile" HorizontalAlignment="Left" Height="41" Width="149" Click="ExportTileClick"/>
 			<Button Content="Replace Tile" HorizontalAlignment="Left" Height="41" Width="149" Click="ReplaceTileClick"/>
+			<Button Content="Save tile to grp" HorizontalAlignment="Left" Height="41" Width="149" Click="SaveTileToGrpClick"/>
 		</StackPanel>
 	</Grid>
 </UserControl>

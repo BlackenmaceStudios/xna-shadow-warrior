@@ -19,7 +19,7 @@ namespace editart
     public partial class EditartPage : UserControl
     {
         Editart editart = new Editart();
-
+        public static EventHandler saveGrpEvent;
         UserControl _parent;
         public EditartPage(UserControl parent)
         {
@@ -117,6 +117,54 @@ namespace editart
         {
             editart.editinputkey(e.Key);
             e.Handled = true;
+        }
+
+        void SaveTileToGrpClick(object sender, EventArgs e)
+        {
+            int tilefilenum = Engine.tilefilenum[editart.SelectedArtTile];
+            int localtilestart = tilefilenum * 255;
+            int localtileend = localtilestart + 255;
+            
+            string artfilename = "tiles000.art";
+            artfilename = artfilename.Remove(5, 3);
+            artfilename = artfilename.Insert(5, "" + (char)(((tilefilenum / 100) % 10) + 48) + "" + (char)(((tilefilenum / 10) % 10) + 48) + "" + (char)((tilefilenum % 10) + 48));
+
+            kFileWrite fil = Engine.filesystem.OpenFileWrite(artfilename, 0);
+            fil.io.Write((int)1); // art version.
+            fil.io.Write((int)255); // num files - not used.
+            fil.io.Write(localtilestart);
+            fil.io.Write(localtileend);
+
+            for (int i = localtilestart; i < localtileend + 1; i++)
+            {
+                fil.io.Write((short)Engine.tilesizx[i]);
+            }
+
+            for (int i = localtilestart; i < localtileend + 1; i++)
+            {
+                fil.io.Write((short)Engine.tilesizy[i]);
+            }
+
+            for (int i = localtilestart; i < localtileend + 1; i++)
+            {
+                fil.io.Write(Engine.picanm[i]);
+            }
+
+            for (int i = localtilestart; i < localtileend + 1; i++)
+            {
+                if (Engine.tilesizx[i] > 0 && Engine.tilesizy[i] > 0)
+                {
+                    if (Engine.waloff[i].memory == null)
+                    {
+                        Engine.loadtile((short)i);
+                    }
+                    fil.io.Write(Engine.waloff[i].memory);
+                }
+            }
+
+            fil.Close();
+
+            saveGrpEvent.Method.Invoke(saveGrpEvent.Target, new object[] { null, null });
         }
 
         void Page_CompositionTarget_Rendering(object sender, EventArgs e)
