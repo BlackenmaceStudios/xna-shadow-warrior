@@ -38,11 +38,13 @@ namespace buildlite
             EditorPage.saveDialogEvent = new EventHandler(SaveData);
             EditorPage.quitDialogEvent = new EventHandler(QuitBuildEvent);
             EditorPage.openDialogEvent = new EventHandler(OpenMapEvent);
+            EditorPage.saveGrpEvent = new EventHandler(SaveProjectClick);
+            EditartPage.saveGrpEvent = new EventHandler(SaveProjectClick);
 
             Engine.filesystem.allowOneGrpFileOnly = true;
 
-            editorPage = new EditorPage(this);
-            editartPage = new EditartPage(this);
+            
+            
             paneloptions.Visibility = System.Windows.Visibility.Collapsed;
 
             System.Windows.Interop.SilverlightHost host = Application.Current.Host;
@@ -135,6 +137,7 @@ namespace buildlite
 
         void LaunchEditArtClick(object sender, EventArgs e)
         {
+            editartPage = new EditartPage(this);
             LayoutRoot.Children.Clear();
             LayoutRoot.Children.Add(editartPage);
             editartPage.Focus();
@@ -142,6 +145,7 @@ namespace buildlite
 
         void LaunchEditor(object sender, EventArgs e)
         {
+            editorPage = new EditorPage(this);
             LayoutRoot.Children.Clear();
             LayoutRoot.Children.Add(editorPage);
             editorPage.Focus();
