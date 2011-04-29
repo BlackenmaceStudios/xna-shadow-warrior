@@ -53,7 +53,7 @@ namespace build
 
         private static int totalclocklock = 0;
 
-        private static short[] tilefilenum = new short[MAXTILES];
+        public static short[] tilefilenum = new short[MAXTILES];
         private static int[] tilefileoffs = new int[MAXTILES];
         private static int artsize = 0;
         private static short numtilefiles = 0;
@@ -590,11 +590,11 @@ palette:
                 //faketimerhandler();
             }
             waloff[tilenume] = new tilecontainer();
-            byte[] tempbuf = artfil.kread((int)dasiz);
+            //byte[] tempbuf = artfil.kread((int)dasiz);
 
-            waloff[tilenume].memory = new byte[tempbuf.Length * 2];
-            Array.Copy(tempbuf, 0, waloff[tilenume].memory, 0, tempbuf.Length);
-            Array.Copy(tempbuf, 0, waloff[tilenume].memory, tempbuf.Length, tempbuf.Length);
+            waloff[tilenume].memory = artfil.kread((int)dasiz); // new byte[tempbuf.Length];
+           // Array.Copy(tempbuf, 0, waloff[tilenume].memory, 0, tempbuf.Length);
+           // Array.Copy(tempbuf, 0, waloff[tilenume].memory, tempbuf.Length, tempbuf.Length);
 
             //faketimerhandler();
             artfilplc = tilefileoffs[tilenume] + dasiz;
