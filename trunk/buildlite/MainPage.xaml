@@ -20,12 +20,12 @@
 		<l:Menu
                 x:Name="mnuTop"
                 BorderBrush="#FFC0C0C0"
-                TopPanelBrush="White"
-                ImageBackgroundBrush="#FFC0C0C0"
-                FocusBrush="#FFE0E0D0"
-                FocusBorderBrush="#FFC0C0C0"
-                Foreground="Black"
-                Background="#FFF0F0F0"
+                TopPanelBrush="Gray"
+                ImageBackgroundBrush="DarkGray"
+                FocusBrush="DarkGray"
+                FocusBorderBrush="DarkGray"
+                Foreground="White"
+                Background="Gray"
                 MenuItem="{StaticResource mnuRoot}"
                 MenuItemClicked="Menu_MenuItemClicked"/>
 		
