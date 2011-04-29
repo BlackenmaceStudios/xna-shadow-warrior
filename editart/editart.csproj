@@ -54,8 +54,8 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Net" />
     <Reference Include="System.Windows.Browser" />
-    <Reference Include="WriteableBitmapExWinPhone">
-      <HintPath>..\assemblys\WriteableBitmapExWinPhone.dll</HintPath>
+    <Reference Include="WriteableBitmapEx">
+      <HintPath>..\assemblys\WriteableBitmapEx.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -63,6 +63,7 @@
     <Compile Include="EditartPage.xaml.cs">
       <DependentUpon>EditartPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="PngEncoder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

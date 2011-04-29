@@ -20,6 +20,15 @@ namespace editart
         int panyoff = 0;
         int panxdim = 1024;
         byte[] blackmasklookup;
+        byte[] previmage;
+
+        public int SelectedArtTile
+        {
+            get
+            {
+                return localartlookupnum;
+            }
+        }
 
         //
         // Init
@@ -142,6 +151,124 @@ namespace editart
             //Engine.printext256(Engine._device.xdim - (strlen(names[i]) << 3), ydim - 8, 15, -1, names[i], 0);
         }
 
+        struct Pixel
+        {
+            public byte r;
+            public byte g;
+            public byte b;
+            public byte a;
+        }
+
+        private void GetRGBFromPixel(int pixel, ref Pixel colpixel)
+        {
+            byte[] bits = BitConverter.GetBytes(pixel);
+
+            colpixel.r = bits[0];
+            colpixel.g = bits[1];
+            colpixel.b = bits[2];
+            colpixel.a = bits[3];
+        }
+
+
+
+        private byte GetPixelFromPalette(Pixel colpixel)
+        {
+            int dist = int.MaxValue, pixelnum = -1;
+            Pixel palpixel = new Pixel();
+
+
+            for (int i = 0; i < 255; i++)
+            {
+                int paldist;
+
+                GetRGBFromPixel(Engine.palette._palettebuffer[i], ref palpixel);
+
+                paldist = 30 * (colpixel.r - palpixel.r) * (colpixel.r - palpixel.r);
+                paldist += 59 * (colpixel.g - palpixel.g) * (colpixel.g - palpixel.g);
+                paldist += 11 * (colpixel.b - palpixel.b) * (colpixel.b - palpixel.b);
+
+                if (paldist < dist)
+                {
+                    dist = paldist;
+                    pixelnum = i;
+                }
+            }
+
+            return (byte)pixelnum;
+        }
+
+        public byte[] ConvertTileToImage(int tilenum, int width, int height)
+        {
+            byte[] imagedata;
+            int imagesize;
+            int readpos = 0;
+            Pixel colpixel = new Pixel();
+
+            imagesize = Engine.waloff[tilenum].memory.Length;
+            imagedata = new byte[imagesize * 4];
+
+            for (int i = 0; i < width; i++)
+            {
+                for (int j = 0; j < height; j++)
+                {
+                    // widthpos + (heightpos * imgwidth)
+                    readpos = i + (j * width);              
+
+                    byte col = Engine.waloff[tilenum].memory[readpos];
+                    GetRGBFromPixel(Engine.palette._palettebuffer[col], ref colpixel);
+
+                    int _rowLength = width * 4 + 1;
+                    int start = _rowLength * i + j * 4 + 1;
+                    imagedata[start + 2] = colpixel.r;
+                    imagedata[start + 1] = colpixel.g;
+                    imagedata[start + 0] = colpixel.b;
+                    imagedata[start + 3] = 255;
+                }
+            }
+
+            return imagedata;
+        }
+
+        public void ReplaceCurrentTile(int[] pixels, int width, int height)
+        {
+            Pixel colpixel = new Pixel();
+            byte color = 0;
+            int tilemempos = 0, tilerow=0, writepos = 0;
+
+            previmage = Engine.waloff[localartlookupnum].memory;
+
+            Engine.waloff[localartlookupnum].memory = null;
+            Engine.waloff[localartlookupnum].memory = new byte[width * height];
+            Engine.tilesizx[localartlookupnum] = (short)width;
+            Engine.tilesizy[localartlookupnum] = (short)height;
+
+            foreach (int pixel in pixels)
+            {
+                GetRGBFromPixel(pixel, ref colpixel);
+
+                // If the image has an alpha less than 255 than assume its transparent.
+                if (colpixel.a < 255)
+                {
+                    color = 255;
+                }
+                else
+                {
+                    color = GetPixelFromPalette(colpixel);
+                }
+
+                writepos = tilerow + (tilemempos * width);
+                if (writepos >= Engine.waloff[localartlookupnum].memory.Length)
+                {
+                    tilerow++;
+                    tilemempos = 0;
+                    writepos = tilerow + (tilemempos * width);
+                }
+
+                Engine.waloff[localartlookupnum].memory[writepos] = color;
+                tilemempos++;
+            }
+        }
+
         public void editinputkey(Key key)
         {
             if (edittileselect >= 0)
@@ -149,6 +276,7 @@ namespace editart
                 if (key == Key.Escape)
                 {
                     edittileselect = -1;
+                    DrawTileEditMenu = false;
                 }
                 return;
             }
@@ -172,6 +300,7 @@ namespace editart
             else if (key == Key.Enter)
             {
                 edittileselect = localartlookupnum;
+                DrawTileEditMenu = true;
             }
 
             if (localartlookupnum < 0)
@@ -214,10 +343,19 @@ namespace editart
 
         }
 
+        public bool DrawTileEditMenu { get; set; }
+
         public void DrawTileEditScreen()
         {
             Array.Clear(Engine._device._screenbuffer.Pixels, 0, Engine._device._screenbuffer.Pixels.Length);
-            copywalltoscreen(Engine.waloff[localartlookupnum].memory,localartlookupnum, 1, 0);
+            if (Engine.tilesizx[localartlookupnum] > 0 && Engine.tilesizy[localartlookupnum] > 0)
+            {
+                copywalltoscreen(Engine.waloff[localartlookupnum].memory, localartlookupnum, 1, 0);
+            }
+
+            Engine.printext256(0, 0, 15, 0, "Tile " + localartlookupnum + ":", 0);
+            Engine.printext256(0, 15, 15, 0, "   Width: " + Engine.tilesizx[localartlookupnum], 0);
+            Engine.printext256(0, 25, 15, 0, "   Height: " + Engine.tilesizy[localartlookupnum], 0);
         }
 
         public void Frame()
