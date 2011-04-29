@@ -35,11 +35,13 @@ namespace buildlite
         void CreateMainMenuBar()
         {
             PageMenuItem rootMenu = new PageMenuItem("mnuRoot", "mnuRoot");
+            PageMenuItem fileMenu = new PageMenuItem("mnuFile", "File");
             PageMenuItem EditorMenu = new PageMenuItem("mnuEditors", "Editors");
             PageMenuItem GameMenu = new PageMenuItem("mnuGame", "Game");
 
             EditorMenu.AddItem("mnuLaunchEditArt", "Launch Editart");
             EditorMenu.AddItem("mnuLaunchBuild", "Launch Build");
+            fileMenu.AddItem("mnuQuit", "Quit");
 
             GameMenu.AddItem("mnuLaunchGame", "Run Game");
             GameMenu.AddItem("mnuLaunchGameCustom", "Run Game Custom Map");
@@ -47,6 +49,7 @@ namespace buildlite
             // Clear out the old menu.
             Menu.menuDictionary.Clear();
             mnuTop.MenuItem.Clear();
+            mnuTop.MenuItem.Add(fileMenu.root);
             mnuTop.MenuItem.Add(EditorMenu.root);
             mnuTop.MenuItem.Add(GameMenu.root);
             mnuTop.Repaint();
@@ -211,20 +214,21 @@ namespace buildlite
                         break;
 
                     case "mnuQuit":
-                        MessageBoxResult result;
+                     //   MessageBoxResult result;
 
-                        if (gamePage == null)
-                        {
-                            result = MessageBox.Show("Are you sure you want to quit?\nHave you saved your grp yet?", "Are you sure you want to exit?", MessageBoxButton.OKCancel);
-                        }
-                        else
-                        {
-                            result = MessageBox.Show("Are you sure you want to quit?\n", "Are you sure you want to exit?", MessageBoxButton.OKCancel);
-                        }
-                        if (result == MessageBoxResult.OK)
-                        {
-                            System.Windows.Browser.HtmlPage.Document.Submit();
-                        }
+                     //   if (gamePage == null)
+                     //   {
+                      //      result = MessageBox.Show("Are you sure you want to quit?\nHave you saved your grp yet?", "Are you sure you want to exit?", MessageBoxButton.OKCancel);
+                     //   }
+                      //  else
+                     //   {
+                     //       result = MessageBox.Show("Are you sure you want to quit?\n", "Are you sure you want to exit?", MessageBoxButton.OKCancel);
+                     //   }
+                      //  if (result == MessageBoxResult.OK)
+                     //   {
+                            //System.Windows.Browser.HtmlPage.Document.Submit();
+                            HtmlPage.Window.Navigate(HtmlPage.Document.DocumentUri);
+                     //   }
                         break;
 
                     default:
