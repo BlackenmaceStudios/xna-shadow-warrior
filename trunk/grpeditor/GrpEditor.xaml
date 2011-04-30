@@ -1,0 +1,13 @@
+﻿<UserControl x:Class="grpeditor.GrpEditor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="480" d:DesignWidth="640" Background="#FF6E6E6E">
+    
+    <Grid x:Name="LayoutRoot" Background="Gray" Loaded="Page_Loaded" Width="640" Height="480">
+		<ListBox x:Name="filelist" Canvas.Top="10" Canvas.Left="10" Margin="129,42,135,103" Width="126" Height="155"/>
+		<TextBlock Height="19" Margin="40,19,58,0" TextWrapping="Wrap" Text="Files in project" VerticalAlignment="Top" TextAlignment="Center" Foreground="White"/>
+    </Grid>
+</UserControl>

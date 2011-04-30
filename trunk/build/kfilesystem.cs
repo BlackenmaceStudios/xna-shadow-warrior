@@ -115,6 +115,8 @@ namespace build
             _reader.BaseStream.Position = _reader.BaseStream.Position + position;
         }
 
+       
+
         public void kread<T, S>(ref T[] ptr, int ptrbase,  int size) where S : IComparable
         {
             if (typeof(S) == typeof(int))
@@ -280,6 +282,21 @@ namespace build
             return new kFileWrite(filename, grpfiles[0]);
         }
 
+        public string[] FindFilesInGrp(int grpnum)
+        {
+            int i = 0;
+            int numfiles = (int)grpfiles[grpnum].lumps.Count;
+            string[] list = new string[numfiles];
+
+            foreach (bGrpArchive.bGrpLump lump in grpfiles[grpnum].lumps)
+            {
+                list[i] = grpfiles[grpnum].lumps[i].lumpName;
+                i++;
+            }
+
+            return list;
+        }
+
         //
         // ReadContentFile
         //
@@ -338,6 +355,12 @@ namespace build
 
             return null;
         }
+
+        public void DeleteFileFromGrp(string filename, int grpnum)
+        {
+            grpfiles[grpnum].DeleteFileFromGrp(filename);
+        }
+
 
         public kFile kopen4load(string name)
         {
