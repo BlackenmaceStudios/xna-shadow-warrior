@@ -11,14 +11,14 @@ namespace build
 
         
 
-        private List<bGrpLump> lumps;
+        public List<bGrpLump> lumps;
 
         private int KENGRP_HEADERSIZE = 16;
         private int KENGRP_LUMPSIZE = 16;
 
         private const string GRPIDEN = "KenSilverman";
 
-        struct bGrpLump
+        public struct bGrpLump
         {
             public string lumpName; // 12 bytes
             public int lumpOffset;
@@ -80,6 +80,54 @@ namespace build
 
             grpBuffer = null;
             Init(grpwriter.BaseStream, "");
+        }
+
+        private void DeleteLump(int lumpnum)
+        {
+            BinaryWriter grpwriter = new BinaryWriter(new MemoryStream());
+
+            grpwriter.Write(GRPIDEN.ToCharArray());
+            grpwriter.Write((int)lumps.Count-1);
+
+            // Write out all the lumps
+            for (int i = 0; i < lumps.Count; i++)
+            {
+                if (i == lumpnum)
+                {
+                    continue;
+                }
+                else
+                {
+                    WriteLump(grpwriter, lumps[i]);
+                }
+            }
+
+            for (int i = 0; i < lumps.Count; i++)
+            {
+                if (i == lumpnum)
+                {
+                    continue;
+                }
+                else
+                {
+                    grpBuffer.BaseStream.Position = lumps[i].lumpOffset;
+                    grpwriter.Write(grpBuffer.ReadBytes(lumps[i].lumpSize));
+                }
+            }
+
+            grpBuffer = null;
+            Init(grpwriter.BaseStream, "");
+        }
+
+        public void DeleteFileFromGrp(string filename)
+        {
+            for (int i = 0; i < lumps.Count; i++)
+            {
+                if (lumps[i].lumpName == filename)
+                {
+                    DeleteLump(i);
+                }
+            }
         }
 
         public void WriteFileToGrp(string filename, MemoryStream stream)
@@ -161,7 +209,11 @@ namespace build
 
             int offset = KENGRP_HEADERSIZE + (KENGRP_LUMPSIZE * numFilesInGrp);
 
-            lumps = new List<bGrpLump>();
+            if (lumps == null)
+            {
+                lumps = new List<bGrpLump>();
+            }
+            lumps.Clear();
             for (int i = 0; i < numFilesInGrp; i++)
             {
                 bGrpLump newlump = new bGrpLump();

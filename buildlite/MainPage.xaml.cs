@@ -16,16 +16,16 @@ using build;
 using Editor;
 using game;
 using editart;
+using grpeditor;
 
 namespace buildlite
 {
-    
-
     public partial class MainPage : UserControl
     {
         EditorPage editorPage;
         GamePage gamePage;
         EditartPage editartPage;
+        GrpEditor grpeditPage;
 
         bSaveDialog projectSaveDialog = new bSaveDialog();
         bSaveDialog saveDialog = new bSaveDialog();
@@ -39,8 +39,9 @@ namespace buildlite
             PageMenuItem EditorMenu = new PageMenuItem("mnuEditors", "Editors");
             PageMenuItem GameMenu = new PageMenuItem("mnuGame", "Game");
 
-            EditorMenu.AddItem("mnuLaunchEditArt", "Launch Editart");
             EditorMenu.AddItem("mnuLaunchBuild", "Launch Build");
+            EditorMenu.AddItem("mnuLaunchEditArt", "Launch Editart");
+            EditorMenu.AddItem("mnuLaunchGrpEditor", "Launch Grp Editor");
             fileMenu.AddItem("mnuQuit", "Quit");
 
             GameMenu.AddItem("mnuLaunchGame", "Run Game");
@@ -83,6 +84,18 @@ namespace buildlite
 
             editorPage.InitMenuBar(ref mnuTop);
             
+            mnuTop.Repaint();
+            mnuTop.Visibility = System.Windows.Visibility.Visible;
+        }
+
+        void CreateGrpEditMenuBar()
+        {
+            // Clear out the old menu.
+            Menu.menuDictionary.Clear();
+            mnuTop.MenuItem.Clear();
+
+            grpeditPage.InitMenuBar(ref mnuTop);
+
             mnuTop.Repaint();
             mnuTop.Visibility = System.Windows.Visibility.Visible;
         }
@@ -208,7 +221,13 @@ namespace buildlite
                         viewportpanel.Children.Add(editorPage);
                         editorPage.Focus();
                         break;
-
+                    case "mnuLaunchGrpEditor":
+                        grpeditPage = new GrpEditor();
+                        CreateGrpEditMenuBar();
+                        viewportpanel.Children.Clear();
+                        viewportpanel.Children.Add(grpeditPage);
+                        grpeditPage.Focus();
+                        break;
                     case "mnuSaveProject":
                         projectSaveDialog.SaveFile(Engine.filesystem.GetGrpFileStream(0));
                         break;
@@ -239,6 +258,10 @@ namespace buildlite
                         else if (editorPage != null)
                         {
                             editorPage.MenuEvent(clickedItem.Name);
+                        }
+                        else if (grpeditPage != null)
+                        {
+                            grpeditPage.MenuEvent(clickedItem.Name);
                         }
                         break;
                 }
