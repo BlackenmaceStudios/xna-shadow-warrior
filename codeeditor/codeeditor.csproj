@@ -5,33 +5,18 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{1172FAE9-3DA2-4862-9D7C-28A376E70B71}</ProjectGuid>
+    <ProjectGuid>{64EB5465-6E1E-44F4-9DB0-BAD67938BCA2}</ProjectGuid>
     <ProjectTypeGuids>{A1591282-1198-4647-A2B1-27E5FF5F6F3B};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>buildlite</RootNamespace>
-    <AssemblyName>buildlite</AssemblyName>
+    <RootNamespace>codeeditor</RootNamespace>
+    <AssemblyName>codeeditor</AssemblyName>
     <TargetFrameworkIdentifier>Silverlight</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <SilverlightVersion>$(TargetFrameworkVersion)</SilverlightVersion>
-    <SilverlightApplication>true</SilverlightApplication>
-    <SupportedCultures>
-    </SupportedCultures>
-    <XapOutputs>true</XapOutputs>
-    <GenerateSilverlightManifest>true</GenerateSilverlightManifest>
-    <XapFilename>buildlite.xap</XapFilename>
-    <SilverlightManifestTemplate>Properties\AppManifest.xml</SilverlightManifestTemplate>
-    <SilverlightAppEntry>buildlite.App</SilverlightAppEntry>
-    <TestPageFileName>buildliteTestPage.html</TestPageFileName>
-    <CreateTestPage>true</CreateTestPage>
+    <SilverlightApplication>false</SilverlightApplication>
     <ValidateXaml>true</ValidateXaml>
-    <EnableOutOfBrowser>false</EnableOutOfBrowser>
-    <OutOfBrowserSettingsFile>Properties\OutOfBrowserSettings.xml</OutOfBrowserSettingsFile>
-    <UsePlatformExtensions>false</UsePlatformExtensions>
     <ThrowErrorsInValidation>true</ThrowErrorsInValidation>
-    <LinkedServerProject>
-    </LinkedServerProject>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <!-- This property group is only here to support building this project using the 
        MSBuild 3.5 toolset. In order to work correctly with this older toolset, it needs 
@@ -61,6 +46,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Codexcite.SyntaxHighlighting">
+      <HintPath>..\assemblys\Codexcite.SyntaxHighlighting.dll</HintPath>
+    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="SilverlightMenu.Library">
       <HintPath>..\assemblys\SilverlightMenu.Library.dll</HintPath>
@@ -68,79 +56,29 @@
     <Reference Include="System.Windows" />
     <Reference Include="system" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Net" />
-    <Reference Include="System.Windows.Controls.Navigation, Version=2.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Net" />
     <Reference Include="System.Windows.Browser" />
-    <Reference Include="WriteableBitmapExWinPhone">
-      <HintPath>..\assemblys\WriteableBitmapExWinPhone.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="App.xaml.cs">
-      <DependentUpon>App.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="dialog.cs" />
-    <Compile Include="MainPage.xaml.cs">
-      <DependentUpon>MainPage.xaml</DependentUpon>
+    <Compile Include="CodeEditorPage.xaml.cs">
+      <DependentUpon>CodeEditorPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ApplicationDefinition Include="App.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </ApplicationDefinition>
-    <Page Include="MainPage.xaml">
+    <Page Include="CodeEditorPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="base\ASCBOARD.MAP" />
-    <Content Include="base\BOARDS.MAP" />
-    <Content Include="base\EVILAL.MAP" />
-    <Content Include="base\GAME.C" />
-    <Content Include="base\KENSIG.MAP" />
-    <Content Include="base\NSNOAL.MAP" />
-    <Content Include="base\NUKELAND.MAP" />
-    <Content Include="base\DATA.GRP" />
-    <None Include="Properties\AppManifest.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\build\build.csproj">
       <Project>{6794C26C-4A8B-440C-A73E-32E8C98421AA}</Project>
       <Name>build</Name>
     </ProjectReference>
-    <ProjectReference Include="..\codeeditor\codeeditor.csproj">
-      <Project>{64EB5465-6E1E-44F4-9DB0-BAD67938BCA2}</Project>
-      <Name>codeeditor</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\editart\editart.csproj">
-      <Project>{42733BF4-D8A4-429D-B95B-49087F78ABCD}</Project>
-      <Name>editart</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Editor\Editor.csproj">
-      <Project>{268BA90D-6BDC-4C15-A6F0-4BE101FEE68A}</Project>
-      <Name>Editor</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\game\game.csproj">
-      <Project>{444546E6-84F0-49A2-9405-4BEA3FE159CB}</Project>
-      <Name>game</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\grpeditor\grpeditor.csproj">
-      <Project>{01A7628D-0FDD-48D7-A912-945F8517CDE1}</Project>
-      <Name>grpeditor</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
   <ProjectExtensions>
     <VisualStudio>
       <FlavorProperties GUID="{A1591282-1198-4647-A2B1-27E5FF5F6F3B}">
@@ -148,4 +86,11 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
 </Project>

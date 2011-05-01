@@ -17,6 +17,7 @@ using Editor;
 using game;
 using editart;
 using grpeditor;
+using codeeditor;
 
 namespace buildlite
 {
@@ -26,6 +27,7 @@ namespace buildlite
         GamePage gamePage;
         EditartPage editartPage;
         GrpEditor grpeditPage;
+        CodeEditorPage codeeditPage;
 
         bSaveDialog projectSaveDialog = new bSaveDialog();
         bSaveDialog saveDialog = new bSaveDialog();
@@ -42,6 +44,7 @@ namespace buildlite
             EditorMenu.AddItem("mnuLaunchBuild", "Launch Build");
             EditorMenu.AddItem("mnuLaunchEditArt", "Launch Editart");
             EditorMenu.AddItem("mnuLaunchGrpEditor", "Launch Grp Editor");
+            EditorMenu.AddItem("mnuLaunchCodeEditor", "Launch Code Editor");
             fileMenu.AddItem("mnuQuit", "Quit");
 
             GameMenu.AddItem("mnuLaunchGame", "Run Game");
@@ -94,7 +97,19 @@ namespace buildlite
             Menu.menuDictionary.Clear();
             mnuTop.MenuItem.Clear();
 
-            grpeditPage.InitMenuBar(ref mnuTop);
+            codeeditPage.InitMenuBar(ref mnuTop);
+
+            mnuTop.Repaint();
+            mnuTop.Visibility = System.Windows.Visibility.Visible;
+        }
+
+        void CreateCodeEditMenuBar()
+        {
+            // Clear out the old menu.
+            Menu.menuDictionary.Clear();
+            mnuTop.MenuItem.Clear();
+
+            codeeditPage.InitMenuBar(ref mnuTop);
 
             mnuTop.Repaint();
             mnuTop.Visibility = System.Windows.Visibility.Visible;
@@ -227,6 +242,13 @@ namespace buildlite
                         viewportpanel.Children.Clear();
                         viewportpanel.Children.Add(grpeditPage);
                         grpeditPage.Focus();
+                        break;
+                    case "mnuLaunchCodeEditor":
+                        codeeditPage = new CodeEditorPage();
+                        CreateGrpEditMenuBar();
+                        viewportpanel.Children.Clear();
+                        viewportpanel.Children.Add(codeeditPage);
+                        codeeditPage.Focus();
                         break;
                     case "mnuSaveProject":
                         projectSaveDialog.SaveFile(Engine.filesystem.GetGrpFileStream(0));

@@ -317,6 +317,16 @@ namespace build
             return buffer;
         }
 
+        public string ReadContentFileString(string filepath)
+        {
+            BinaryReader reader = new BinaryReader(Application.GetResourceStream(new Uri("base/" + filepath, UriKind.RelativeOrAbsolute)).Stream);
+
+            char[] buffer = reader.ReadChars((int)reader.BaseStream.Length);
+
+            reader.Dispose();
+            return new string(buffer);
+        }
+
         public Stream ReadContentFileStream(string filepath)
         {
             return Application.GetResourceStream(new Uri("base/" + filepath, UriKind.RelativeOrAbsolute)).Stream;
