@@ -12,13 +12,15 @@ using System.Windows.Shapes;
 using SilverlightMenu.Library;
 using Codexcite.SyntaxHighlighting;
 using build;
+using System.Reflection.Emit;
+using System.CodeDom.Compiler;
+
 namespace codeeditor
 {
     public partial class CodeEditorPage : UserControl
     {
         SyntaxHighlightingTextBox codeEditorTextbox;
-        string codeEditString;
-        string[] codeEditStringLines;
+        ListBox codeProjectList;
         double codeEditpos = 0;
         int linepos = 0;
 
@@ -30,30 +32,26 @@ namespace codeeditor
 
         private void CreateCodeEditor()
         {
-            codeEditString = Engine.filesystem.ReadContentFileString("game.c");
-            codeEditStringLines = codeEditString.Split('\r', '\n');
             codeEditorTextbox = new SyntaxHighlightingTextBox();
             codeEditorTextbox.Width = 640;
             codeEditorTextbox.Height = 480;
-            codeEditorTextbox.SourceLanguage = SourceLanguageType.Cpp;
+            codeEditorTextbox.SourceLanguage = SourceLanguageType.CSharp;
             codeEditorTextbox.UseLayoutRounding = true;
+            codeEditorTextbox.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
 
 
-            string code = "";
-            for (int i = 0; i < codeEditorTextbox.Width; i++)
-            {
-                if (codeEditStringLines[i].Length <= 0)
-                {
-                    code += '\n';
-                }
-                else
-                {
-                    code += codeEditStringLines[i];
-                }
-            }
-            codeEditorTextbox.SourceCode = codeEditString;
+            codeProjectList = new ListBox();
+            codeProjectList.Width = 160;
+            codeProjectList.Height = 480;
+            codeProjectList.HorizontalAlignment = System.Windows.HorizontalAlignment.Right;
+            codeProjectList.Items.Add("Project List:");
+
+            Thickness margin = codeProjectList.Margin;
+            margin.Left = 640;
+            codeProjectList.Margin = margin;
             
             LayoutRoot.Children.Add(codeEditorTextbox);
+            LayoutRoot.Children.Add(codeProjectList);
         }
 
        
@@ -62,9 +60,6 @@ namespace codeeditor
         {
             // Create the code editor
             CreateCodeEditor();
-
-            // Game loop.
-            CompositionTarget.Rendering += new EventHandler(Page_CompositionTarget_Rendering);
         }
 
         public void InitMenuBar(ref Menu root)
@@ -84,50 +79,7 @@ namespace codeeditor
            
         }
         bool refreshed = false;
-        void Page_CompositionTarget_Rendering(object sender, EventArgs e)
-        {
-            int scrollpos = (int)codeEditorTextbox.GetPosition();
-            if (codeEditpos != scrollpos)
-            {
-                if (refreshed)
-                {
-                    codeEditpos = scrollpos;
-                    refreshed = false;
-                    return;
-                }
-                refreshed = true;
-                double scrollamt = scrollpos - codeEditpos;
-                if (codeEditpos < scrollpos)
-                {
-                    linepos += (int)((scrollamt / 16.0f));
-                }
-                else
-                    linepos -= (int)((scrollamt / 16.0f));
-
-                
-
-                if (linepos < 0)
-                    linepos = 0;
-
-                codeEditpos = scrollpos;
-                string code = "";
-                for (int i = linepos; i < linepos + codeEditorTextbox.Width; i++)
-                {
-                    if (i > codeEditStringLines.Length)
-                        break;
-                    if (codeEditStringLines[i].Length <= 0)
-                    {
-                        code += '\n';
-                    }
-                    else
-                    {
-                        code += codeEditStringLines[i];
-                    }
-                }
-                codeEditorTextbox.SourceCode = code;
-                codeEditorTextbox.SetScrollbarPosition(scrollpos);
-            }
-        }
+       
         public void MenuEvent(string eventname)
         {
             

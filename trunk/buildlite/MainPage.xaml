@@ -5,7 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:l="clr-namespace:SilverlightMenu.Library;assembly=SilverlightMenu.Library"
     mc:Ignorable="d"
-    d:DesignHeight="520" d:DesignWidth="640" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#00000000">
+    d:DesignHeight="520" d:DesignWidth="800" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#00000000">
 
 	<UserControl.Resources>
 		<l:MenuItem x:Key="mnuRoot" Name="mnuRoot">
@@ -29,8 +29,8 @@
                 MenuItem="{StaticResource mnuRoot}"
                 MenuItemClicked="Menu_MenuItemClicked"/>
 		
-        <StackPanel Name="viewportpanel" Loaded="Page_Loaded" Visibility="Visible" HorizontalAlignment="Center" Width="640" Height="480" Background="#000000" Margin="0,22,0,0" >
-			
+        <StackPanel Name="viewportpanel" Loaded="Page_Loaded" Visibility="Visible" Width="Auto" Height="Auto" Background="#000000" Margin="0,22,0,0" >
+			<StackPanel Name="PlaceHolder" Width="640" Height="480"> </StackPanel>
         </StackPanel>
     </Grid>
 </UserControl>
