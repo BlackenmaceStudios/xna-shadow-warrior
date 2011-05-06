@@ -1,0 +1,50 @@
+﻿<phone:PhoneApplicationPage 
+    x:Class="duke3d.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:phone="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone"
+    xmlns:shell="clr-namespace:Microsoft.Phone.Shell;assembly=Microsoft.Phone"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    FontFamily="{StaticResource PhoneFontFamilyNormal}"
+    FontSize="{StaticResource PhoneFontSizeNormal}"
+    Foreground="{StaticResource PhoneForegroundBrush}"
+    SupportedOrientations="Landscape" Orientation="Landscape"
+    shell:SystemTray.IsVisible="True" mc:Ignorable="d" d:DesignHeight="480" d:DesignWidth="728">
+
+    <!--LayoutRoot is the root grid where all page content is placed-->
+    <!--Sample code showing usage of ApplicationBar-->
+    <!--<phone:PhoneApplicationPage.ApplicationBar>
+        <shell:ApplicationBar IsVisible="True" IsMenuEnabled="True">
+            <shell:ApplicationBarIconButton IconUri="/Images/appbar_button1.png" Text="Button 1"/>
+            <shell:ApplicationBarIconButton IconUri="/Images/appbar_button2.png" Text="Button 2"/>
+            <shell:ApplicationBar.MenuItems>
+                <shell:ApplicationBarMenuItem Text="MenuItem 1"/>
+                <shell:ApplicationBarMenuItem Text="MenuItem 2"/>
+            </shell:ApplicationBar.MenuItems>
+        </shell:ApplicationBar>
+    </phone:PhoneApplicationPage.ApplicationBar>-->
+    <Grid Background="#000000">
+        <Grid Name="lowangpanel" Width="160" Margin="-1,0,569,234"></Grid>
+
+        <StackPanel Name="gameviewpanel" Loaded="Page_Loaded" Visibility="Visible" Margin="113,0,0,70" Background="#FF0A0A0A">
+            <Image Height="394"  Visibility="Visible" Name="viewportimg" Stretch="Fill" Width="596" HorizontalAlignment="Right" />
+            
+        </StackPanel>
+        <Canvas Height="61" Name="canvas1" Width="423" HorizontalAlignment="Left" Margin="304,416,0,3">
+            <Button Content="Escape" Height="59" Name="escapebutton" Width="111" BorderThickness="0" FontSize="20" Canvas.Top="6" HorizontalAlignment="Center" />
+            <Button Content="Fire" Height="59" Name="firebutton" Width="111" BorderThickness="0" FontSize="20" Canvas.Left="306" Canvas.Top="6" HorizontalAlignment="Right" />
+            <Button BorderThickness="0" Canvas.Left="189" Canvas.Top="6" Content="Jump" FontSize="20" Height="59" Name="jumpbutton" Width="111" HorizontalAlignment="Left" />
+        </Canvas>
+        <Grid Height="155" Name="controlspanel" Margin="-2,329,569,-4">
+            <Image Name="image3" Source="base/ui/wp7movement.png" Stretch="Fill" Margin="0,-6,-24,-14" />
+            <Button Height="57" HorizontalAlignment="Left" Margin="68,11,0,0" Name="moveup_button" VerticalAlignment="Top" Width="49" BorderThickness="0" />
+            <Button Height="47" HorizontalAlignment="Left" Margin="107,57,0,0" Name="straferight_button" VerticalAlignment="Top" Width="74" BorderThickness="0" />
+            <Button Height="63" HorizontalAlignment="Left" Margin="68,88,0,0" Name="moveback_button" VerticalAlignment="Top" Width="48" BorderThickness="0" />
+            <Button Height="37" HorizontalAlignment="Left" Margin="29,19,0,0" Name="turnleft_button" VerticalAlignment="Top" Width="43" BorderThickness="0" />
+            <Button Height="44" HorizontalAlignment="Left" Margin="115,21,0,0" Name="turnright_button" VerticalAlignment="Top" Width="46" BorderThickness="0" />
+            <Button Height="47" HorizontalAlignment="Left" Margin="0,55,0,0" Name="strafeleft_button" VerticalAlignment="Top" Width="74" BorderThickness="0" />
+            
+        </Grid>
+    </Grid>
+</phone:PhoneApplicationPage>
