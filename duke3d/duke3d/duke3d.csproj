@@ -41,7 +41,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
+    <Optimize>true</Optimize>
     <OutputPath>Bin\Debug</OutputPath>
     <DefineConstants>TRACE;DEBUG;SILVERLIGHT;VOLUMEALL;PLUTOPAK</DefineConstants>
     <NoStdLib>true</NoStdLib>
@@ -60,6 +60,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="mscorlib" />
     <Reference Include="System.Windows" />
     <Reference Include="system" />
@@ -75,14 +76,18 @@
     <Compile Include="game\actor.cs" />
     <Compile Include="game\anim.cs" />
     <Compile Include="game\controller.cs" />
+    <Compile Include="game\Flags.cs" />
     <Compile Include="game\globals.cs" />
     <Compile Include="game\game.cs" />
     <Compile Include="game\keys.cs" />
     <Compile Include="game\lookuptable.cs" />
     <Compile Include="game\menu.cs" />
+    <Compile Include="game\MyTypes.cs" />
     <Compile Include="game\names.cs" />
     <Compile Include="game\player.cs" />
     <Compile Include="game\script\gamescript.cs" />
+    <Compile Include="game\script\gamescript_assembly.cs" />
+    <Compile Include="game\script\gamescript_interface.cs" />
     <Compile Include="game\soundid.cs" />
     <Compile Include="game\sounds.cs" />
     <Compile Include="mact\soundmanager.cs" />
@@ -104,12 +109,19 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="atomicgame.dll" />
     <Content Include="base\DUKE3D.GRP" />
     <Content Include="base\music\grabbag.mp3" />
     <Content Include="base\music\stalker.mp3" />
+    <None Include="base\DEFS.CON" />
+    <None Include="base\GAME.CON" />
+    <Content Include="base\USER.CON" />
+    <None Include="base\EFFECTORS.CON" />
     <None Include="Properties\AppManifest.xml" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\build\build.csproj">
       <Project>{6794C26C-4A8B-440C-A73E-32E8C98421AA}</Project>
@@ -131,4 +143,8 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
 </Project>

@@ -131,6 +131,13 @@ namespace duke3d.game
 
         public const int NUM_SOUNDS = 450;
 
+
+        private static Random random = new Random();
+        public static int rand( int max )
+        {
+            return random.Next(0, max);
+        }
+
 //        public const int    ALT_IS_PRESSED ( KB_KeyPressed( sc_RightAlt ) || KB_KeyPressed( sc_LeftAlt ) )
         //public const int    SHIFTS_IS_PRESSED ( KB_KeyPressed( sc_RightShift ) || KB_KeyPressed( sc_LeftShift ) )
  //       public const int    RANDOMSCRAP EGS(s->sectnum,s->x+(TRAND&255)-128,s->y+(TRAND&255)-128,s->z-(8<<8)-(TRAND&8191),SCRAP6+(TRAND&15),-8,48,48,TRAND&2047,(TRAND&63)+64,-512-(TRAND&2047),i,5)

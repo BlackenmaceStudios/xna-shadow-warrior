@@ -1,7 +1,7 @@
-﻿<Deployment xmlns="http://schemas.microsoft.com/client/2007/deployment" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" EntryPointAssembly="duke3dphone" EntryPointType="duke3d.App" RuntimeVersion="3.0.40624.0">
+﻿<Deployment xmlns="http://schemas.microsoft.com/client/2007/deployment" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" EntryPointAssembly="duke3d" EntryPointType="duke3d.App" RuntimeVersion="5.0.60401.0">
   <Deployment.Parts>
-    <AssemblyPart x:Name="duke3dphone" Source="duke3dphone.dll" />
+    <AssemblyPart x:Name="duke3d" Source="duke3d.dll" />
     <AssemblyPart x:Name="build" Source="build.dll" />
-    <AssemblyPart x:Name="Microsoft.Xna.Framework" Source="Microsoft.Xna.Framework.dll" />
+    <AssemblyPart x:Name="Microsoft.CSharp" Source="Microsoft.CSharp.dll" />
   </Deployment.Parts>
 </Deployment>

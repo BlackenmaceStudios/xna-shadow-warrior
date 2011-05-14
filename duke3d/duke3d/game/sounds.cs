@@ -186,7 +186,7 @@ namespace duke3d.game
             ResetMusicDevice();
         }
 
-        public static bool loadsound(ushort num)
+        public static bool loadsound(short num)
         {
             int   fp, l;
 
@@ -424,7 +424,7 @@ namespace duke3d.game
             Sound[num].lock--;
 #else
             if (Globals.Sound[num].sndeffect == null)
-                loadsound((ushort)num);
+                loadsound(num);
             Globals.Sound[num].sndeffect.PlaySound();
 #endif
         }
