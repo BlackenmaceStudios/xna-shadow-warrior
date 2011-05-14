@@ -10,7 +10,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 
 using build;
-
+using duke3d.game.script;
 namespace duke3d.game
 {
     public enum GameState
@@ -39,6 +39,7 @@ namespace duke3d.game
         private Anim playingAnm;
         private static Menu menus = new Menu();
         public const int MAXPLAYERS = 16;
+        private static System.Collections.Generic.List<Actor> actors = new System.Collections.Generic.List<Actor>();
 
         public static bool[] keysdown = new bool[256];
         public static LookupTable lookupTable = new LookupTable();
@@ -60,14 +61,7 @@ namespace duke3d.game
 
         private void InitScripts()
         {
-            kFile fil = Engine.filesystem.kopen4load("game.con");
-            if (fil == null)
-                throw new Exception("Failed to load GAME.CON");
-
-            string conbuf = fil.ReadFile();
-
-            fil.Close();
-            Globals.script.Init(conbuf);
+            Globals.script.Init("atomicgame.dll");
         }
 
         public void vscrn()
@@ -90,8 +84,25 @@ namespace duke3d.game
                 throw new Exception("Map not found!");
             }
 
+            // Spawn each entity that has an actor
+            foreach (spritetype spr in Engine.board.sprite)
+            {
+                if (spr == null)
+                    continue;
+
+                Gamescript.ActorScriptFunction sprfunc = Globals.script.GetFunctionForActor(spr.picnum);
+
+                if (sprfunc != null)
+                {
+                    Actor actor = new Actor();
+                    actor.SetAIScript(sprfunc);
+                    actor.Spawn(spr);
+                    actors.Add(actor);
+                }
+            }
+
             localplayer.SetPosition(posx, posy, posz, ang, cursectnum);
-            localplayer.Spawn();
+            localplayer.Spawn(null);
 
             Globals.ps[0] = localplayer;
         }
@@ -619,6 +630,12 @@ namespace duke3d.game
                 GameKeys.KB_FlushKeyboardQueue();
             }
 
+            // Run all the actor frame.
+            for (int i = 0; i < actors.Count; i++)
+            {
+                actors[i].Frame();
+            }
+
             // Run the player frame.
             Globals.ps[0].Frame();
 
@@ -645,6 +662,9 @@ namespace duke3d.game
             }
         }
 
+#if WINDOWS_PHONE
+        private bool _refreshpage = false;
+#endif
         //
         // Frame
         //
@@ -681,6 +701,10 @@ namespace duke3d.game
                     Game.newgame(Globals.ud.m_volume_number, Globals.ud.m_level_number, Globals.ud.m_player_skill);
                     Game.enterlevel(GameState.GAMESTATE_INGAME);
                     gameState = GameState.GAMESTATE_INGAME;
+
+#if WINDOWS_PHONE
+                    _refreshpage = true;
+#endif
                 }
             }
             else if (gameState == GameState.GAMESTATE_INGAME || gameState == GameState.GAMESTATE_INGAMEMENU)
@@ -688,11 +712,16 @@ namespace duke3d.game
                 GameFrame();
             }
             
-            Engine.NextPage();
-#if !WINDOWS_PHONE
-            totalclock += 2;
+#if WINDOWS_PHONE
+            if(_refreshpage)
+                Engine.NextPage();
+
+            _refreshpage = !_refreshpage;
+
+            totalclock += 6;
 #else
-            totalclock += 10;
+            Engine.NextPage();
+            totalclock += 2;
 #endif
         }
     }

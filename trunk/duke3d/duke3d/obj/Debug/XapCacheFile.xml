@@ -1,13 +1,11 @@
-﻿<xapCache source="C:\dev\duke3d\duke3d\Bin\Debug\duke3d.xap" wasSigned="False" certificateThumbprint="" TimeStampUrl="" lastWriteTime="5/6/2011 12:20:17 AM">
-  <file source="C:\dev\duke3d\duke3d\Properties\WMAppManifest.xml" archivePath="WMAppManifest.xml" lastWriteTime="5/5/2011 11:35:06 PM" />
-  <file source="C:\dev\duke3d\duke3d\obj\Debug\duke3dphone.dll" archivePath="duke3dphone.dll" lastWriteTime="5/6/2011 12:20:02 AM" />
-  <file source="C:\dev\duke3d\build\Bin\Debug\build.dll" archivePath="build.dll" lastWriteTime="5/5/2011 11:30:41 PM" />
-  <file source="C:\Program Files (x86)\Microsoft XNA\XNA Game Studio\v4.0\Windows Phone Extensions\Microsoft.Xna.Framework.dll" archivePath="Microsoft.Xna.Framework.dll" lastWriteTime="8/23/2010 12:41:16 PM" />
-  <file source="C:\dev\duke3d\duke3d\ApplicationIcon.png" archivePath="ApplicationIcon.png" lastWriteTime="5/5/2011 11:25:22 PM" />
-  <file source="C:\dev\duke3d\duke3d\Background.png" archivePath="Background.png" lastWriteTime="5/5/2011 11:25:27 PM" />
-  <file source="C:\dev\duke3d\duke3d\base\DUKE3D.GRP" archivePath="base\DUKE3D.GRP" lastWriteTime="12/11/1996 10:50:00 AM" />
-  <file source="C:\dev\duke3d\duke3d\base\music\grabbag.mp3" archivePath="base\music\grabbag.mp3" lastWriteTime="5/5/2011 2:02:40 PM" />
-  <file source="C:\dev\duke3d\duke3d\base\music\stalker.mp3" archivePath="base\music\stalker.mp3" lastWriteTime="5/5/2011 8:21:26 PM" />
-  <file source="C:\dev\duke3d\duke3d\SplashScreenImage.png" archivePath="SplashScreenImage.png" lastWriteTime="5/5/2011 11:23:40 PM" />
-  <file source="C:\dev\duke3d\duke3d\Bin\Debug\AppManifest.xaml" archivePath="AppManifest.xaml" lastWriteTime="5/6/2011 12:20:02 AM" />
+﻿<xapCache source="c:\dev\duke3d\duke3d\Bin\Debug\duke3d.xap" wasSigned="False" certificateThumbprint="" TimeStampUrl="" lastWriteTime="5/13/2011 5:17:37 PM">
+  <file source="c:\dev\duke3d\duke3d\obj\Debug\duke3d.dll" archivePath="duke3d.dll" lastWriteTime="5/13/2011 5:17:22 PM" />
+  <file source="c:\dev\duke3d\build\Bin\Debug\build.dll" archivePath="build.dll" lastWriteTime="5/13/2011 3:37:22 PM" />
+  <file source="c:\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\Microsoft.CSharp.dll" archivePath="Microsoft.CSharp.dll" lastWriteTime="4/1/2011 1:58:00 AM" />
+  <file source="c:\dev\duke3d\duke3d\atomicgame.dll" archivePath="atomicgame.dll" lastWriteTime="5/13/2011 4:56:32 PM" />
+  <file source="c:\dev\duke3d\duke3d\base\DUKE3D.GRP" archivePath="base\DUKE3D.GRP" lastWriteTime="12/11/1996 10:50:00 AM" />
+  <file source="c:\dev\duke3d\duke3d\base\music\grabbag.mp3" archivePath="base\music\grabbag.mp3" lastWriteTime="5/5/2011 2:02:40 PM" />
+  <file source="c:\dev\duke3d\duke3d\base\music\stalker.mp3" archivePath="base\music\stalker.mp3" lastWriteTime="5/5/2011 8:21:26 PM" />
+  <file source="c:\dev\duke3d\duke3d\base\USER.CON" archivePath="base\USER.CON" lastWriteTime="5/11/2011 5:47:08 PM" />
+  <file source="c:\dev\duke3d\duke3d\Bin\Debug\AppManifest.xaml" archivePath="AppManifest.xaml" lastWriteTime="5/13/2011 3:37:23 PM" />
 </xapCache>

@@ -60,6 +60,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="game\Flags.cs" />
+    <Compile Include="game\MyTypes.cs" />
+    <Compile Include="game\script\gamescriptassembly.cs" />
     <Compile Include="phoneApp.xaml.cs">
       <DependentUpon>phoneApp.xaml</DependentUpon>
     </Compile>

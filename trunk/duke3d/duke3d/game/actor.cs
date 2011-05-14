@@ -9,6 +9,8 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 
+using build;
+using duke3d.game.script;
 namespace duke3d.game
 {
     public class Actor
@@ -18,8 +20,31 @@ namespace duke3d.game
         internal short _cursectnum;
         internal int _health;
         internal int _armor;
+        internal Gamescript.ActorScriptFunction _script;
 
         internal int _fvel = 0, _svel = 0, _angvel = 0;
+        internal spritetype _sprite;
+
+        public void SetAIScript(Gamescript.ActorScriptFunction script)
+        {
+            _script = script;
+        }
+
+        public virtual void Spawn(spritetype sprite)
+        {
+            _sprite = sprite;
+        }
+
+        public virtual void Frame()
+        {
+            if (_script != null)
+                _script.Invoke(this);
+        }
+
+        public void Hide()
+        {
+            _sprite.cstat = MyTypes.SET(_sprite.cstat, Flags.CSTAT_SPRITE_INVISIBLE);
+        }
 
         //
         // MoveActor
