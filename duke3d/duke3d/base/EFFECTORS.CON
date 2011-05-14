@@ -1,0 +1,73 @@
+// Effectors.Con (c) 2011 JV Software
+//
+
+define player_visible 0
+define player_insector 1
+define hitag 0
+
+/*
+======================
+Effectors:
+
+This includes code for all the effector sprites.
+======================
+*/
+
+/*
+==========================
+Sector Effector Code
+==========================
+*/
+define SECTOREFFECTOR_TELEPORTER 7
+
+actorspawn SECTOREFFECTOR
+	hidesprite
+	setstateawake
+enda
+
+int SECTOREFFECTOR_CHILD 0
+actor SECTOREFFECTOR
+	iflotag SECTOREFFECTOR_TELEPORTER
+	{
+		ifp player_insector
+		{
+			ifspritepal 0
+			{
+				ifpdistl 170
+				{
+					findchildsprite SECTOREFFECTOR_CHILD
+					moveactortosprite SECTOREFFECTOR_CHILD
+					spritepal SECTOREFFECTOR_CHILD 1
+				}
+			}
+			else
+			{
+				ifpdistg 170
+				{
+					spritepal SECTOREFFECTOR_CHILD 0
+				}
+			}
+		}
+	}
+enda
+
+/*
+==========================
+Music and SFX Code.
+==========================
+*/
+actorspawn MUSICANDSFX
+	hidesprite
+	setstateawake
+enda
+
+actor MUSICANDSFX
+	ifp player_visible
+	{
+		ifcount -1 hitag
+		{
+			playlotagsound
+			killit
+		}
+	}
+enda

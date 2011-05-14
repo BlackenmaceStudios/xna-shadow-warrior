@@ -109,10 +109,11 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="atomicgame.dll" />
     <Content Include="base\DUKE3D.GRP" />
+    <Content Include="base\game.dll" />
     <Content Include="base\music\grabbag.mp3" />
     <Content Include="base\music\stalker.mp3" />
+    <None Include="base\SPRITES.CON" />
     <None Include="base\DEFS.CON" />
     <None Include="base\GAME.CON" />
     <Content Include="base\USER.CON" />

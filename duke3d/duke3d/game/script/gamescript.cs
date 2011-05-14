@@ -70,6 +70,19 @@ namespace duke3d.game.script
         }
 
         //
+        // GetSpawnFunctionForActor
+        //
+        public ActorScriptFunction GetSpawnFunctionForActor(int spritepicnum)
+        {
+            MethodInfo method = _assembly.FindMethod("ScriptFunctionSpawn_" + spritepicnum);
+
+            if (method == null)
+                return null;
+
+            return (ActorScriptFunction)_assembly.CreateDelegate(typeof(ActorScriptFunction), method);
+        }
+
+        //
         // InitScriptHooks
         //
         private void InitScriptHooks()

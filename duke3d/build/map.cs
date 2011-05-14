@@ -289,6 +289,9 @@ namespace build
 		        prevspritesect[headspritesect[sectnum]] = blanktouse;
 	        headspritesect[sectnum] = blanktouse;
 
+            if (sprite[blanktouse] == null)
+                sprite[blanktouse] = new spritetype();
+
 	        sprite[blanktouse].sectnum = sectnum;
 
 	        return(blanktouse);
@@ -364,6 +367,20 @@ namespace build
 		        cnt--;
 	        } while (cnt > 0);
 	        return(point);
+        }
+
+        public void deletespritebyhandle(spritetype spr)
+        {
+            for (int i = 0; i < sprite.Length; i++)
+            {
+                if (sprite[i] == spr)
+                {
+                    deletesprite((short)i);
+                    return;
+                }
+            }
+
+            throw new Exception("Sprite not in list");
         }
 
         public int deletespritesect(short deleteme)

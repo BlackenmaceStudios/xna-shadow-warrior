@@ -71,7 +71,7 @@ namespace duke3d.game
         //
         // ProcessMovement
         //
-        private void ProcessMovement(int xvect, int yvect)
+        internal override void ProcessMovement(int xvect, int yvect)
         {
             int i = 40;
             int fz = 0, cz = 0, hz = 0, lz = 0;
@@ -127,36 +127,6 @@ namespace duke3d.game
             _posz += poszv;
 
             Engine.board.clipmove(ref _posx, ref _posy, ref _posz, ref _cursectnum, xvect, yvect, 164, (4 << 8), (4 << 8), Engine.CLIPMASK0);
-        }
-
-        //
-        // InputThink
-        //
-        private void InputThink()
-        {
-            int xvect = 0, yvect = 0;
-
-            _ang += (short)_angvel;
-
-            int doubvel = 3;
-
-            xvect = 0; yvect = 0;
-            if (_fvel != 0)
-            {
-                xvect += ((((int)_fvel) * doubvel * (int)Engine.table.sintable[(_ang + 512) & 2047]) >> 3);
-                yvect += ((((int)_fvel) * doubvel * (int)Engine.table.sintable[_ang & 2047]) >> 3);
-            }
-            if (_svel != 0)
-            {
-                xvect += ((((int)_svel) * doubvel * (int)Engine.table.sintable[_ang & 2047]) >> 3);
-                yvect += ((((int)_svel) * doubvel * (int)Engine.table.sintable[(_ang + 1536) & 2047]) >> 3);
-            }
-
-            ProcessMovement(xvect, yvect);
-
-            _svel = 0;
-            _fvel = 0;
-            _angvel = 0;
         }
 
         private void getinput()
