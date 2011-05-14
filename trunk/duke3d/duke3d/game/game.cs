@@ -61,7 +61,7 @@ namespace duke3d.game
 
         private void InitScripts()
         {
-            Globals.script.Init("atomicgame.dll");
+            Globals.script.Init("game.dll");
         }
 
         public void vscrn()
@@ -97,6 +97,11 @@ namespace duke3d.game
                     Actor actor = new Actor();
                     actor.SetAIScript(sprfunc);
                     actor.Spawn(spr);
+
+                    Gamescript.ActorScriptFunction spawnfunc = Globals.script.GetSpawnFunctionForActor(spr.picnum);
+                    if(spawnfunc != null)
+                        spawnfunc.Invoke(actor);
+
                     actors.Add(actor);
                 }
             }
@@ -105,6 +110,42 @@ namespace duke3d.game
             localplayer.Spawn(null);
 
             Globals.ps[0] = localplayer;
+        }
+
+        public static void SpawnActor(int x, int y, int z, short sectornum, short picnum)
+        {
+            int spritenum = Engine.board.insertsprite(sectornum, bMap.MAXSTATUS);
+            spritetype sprite = Engine.board.sprite[spritenum];
+
+            sprite.x = x;
+            sprite.y = y;
+            sprite.z = z;
+            sprite.sectnum = sectornum;
+            sprite.picnum = picnum;
+            sprite.xrepeat = 47;
+            sprite.yrepeat = 47;
+
+            Gamescript.ActorScriptFunction sprfunc = Globals.script.GetFunctionForActor(sprite.picnum);
+
+            Actor actor = new Actor();
+            actor.SetAIScript(sprfunc);
+            actor.Spawn(sprite);
+            actor.ForceAwake();
+
+            Gamescript.ActorScriptFunction spawnfunc = Globals.script.GetSpawnFunctionForActor(sprite.picnum);
+            if (spawnfunc != null)
+                spawnfunc.Invoke(actor);
+
+            actors.Add(actor);
+        }
+
+        //
+        // KillActor
+        //
+        public static void KillActor(Actor actor)
+        {
+            actor.Destroy();
+            actors.Remove(actor);
         }
 
         public static void newgame(int vn, int ln, int sk)
@@ -631,9 +672,12 @@ namespace duke3d.game
             }
 
             // Run all the actor frame.
-            for (int i = 0; i < actors.Count; i++)
+            if (Game.State != GameState.GAMESTATE_INGAMEMENU)
             {
-                actors[i].Frame();
+                for (int i = 0; i < actors.Count; i++)
+                {
+                    actors[i].Frame();
+                }
             }
 
             // Run the player frame.

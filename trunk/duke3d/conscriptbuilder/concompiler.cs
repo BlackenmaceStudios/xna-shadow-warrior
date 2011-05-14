@@ -171,6 +171,16 @@ namespace conscriptbuilder
 
             // jv
             hidesprite,
+            actorspawn,
+            playlotagsound,
+            movevel,
+            setstateawake,
+            animate,
+            iflotag,
+            ifxrepeatl,
+            findchildsprite,
+            moveactortosprite,
+            _int,
          //   seekplayer,
             // jv end
             NUMKEYWORDS
@@ -192,6 +202,9 @@ namespace conscriptbuilder
                     return (int)i;
 
                 if (i == Scriptkeyword._closebracket && token == "}")
+                    return (int)i;
+
+                if (i == Scriptkeyword._int && token == "int")
                     return (int)i;
 
                 if (token == Enum.GetName(keywordtype, i))
@@ -286,19 +299,21 @@ namespace conscriptbuilder
 
                 if (int.TryParse(token, out val))
                 {
-                    parms.Add("\"" + val + "\"");
+                    //parms.Add(val);
+                    codeline += "," + val;
                 }
                 else
                 {
-                    parms.Add(token);
+                    //parms.Add(token);
+                    codeline += "," + token;
                 }
             }
-
+            /*
             for (int i = 0; i < parms.Count; i++)
             {
                 codeline += ',' + parms[i];
             }
-
+            */
             if (_ifstatement)
             {
                 codeline += "))";
@@ -357,6 +372,20 @@ namespace conscriptbuilder
                     }
                     break;
 
+                case Scriptkeyword._int:
+                    WriteCodeLine("public static int[] " + parser.NextToken + " = new int[] {");
+                        while (true)
+                        {
+                            string token = parser.NextToken;
+                            if (isKeyword(token) != -1)
+                            {
+                                parser.UngetToken();
+                                break;
+                            }
+                            WriteCodeLine(token + ",");
+                        }
+                        WriteCodeLine("};");
+                    break;
                 case Scriptkeyword.gamestartup:
                     {
                         WriteCodeLine("public int[] gamestartupvals = new int[] {");
@@ -537,6 +566,13 @@ namespace conscriptbuilder
                     }
                     break;
 
+                case Scriptkeyword.actorspawn:
+                    {
+                        int picnum = _defines[parser.NextToken];
+                        WriteCodeLine("public void ScriptFunctionSpawn_" + picnum + " (object actor) { ");
+                        _infunction = true;
+                    }
+                    break;
                 case Scriptkeyword.actor:
                     {
                         int picnum = _defines[parser.NextToken];
@@ -557,7 +593,14 @@ namespace conscriptbuilder
                                 break;
                             }
 
-                            WriteCodeLine("string arg_" + argnum + " = \"" + token + "\";");
+                            if (argnum == 1)
+                            {
+                                WriteCodeLine("animate( actor, " + token + " );");
+                            }
+                            else
+                            {
+                                WriteCodeLine("string arg_" + argnum + " = \"" + token + "\";");
+                            }
                             argnum++;
                         }
                         _infunction = true;
@@ -775,7 +818,7 @@ namespace conscriptbuilder
 
             _buildparms.WarningLevel = 0;
             //_buildparms.GenerateInMemory = true;
-            _buildparms.OutputAssembly = "../atomicgame.dll";
+            _buildparms.OutputAssembly = "game.dll";
             _buildparms.IncludeDebugInformation = true;
             _buildparms.CompilerOptions = " /nostdlib ";
             _buildparms.ReferencedAssemblies.AddRange(_DefaultReferencedAssembliesSilverlight);

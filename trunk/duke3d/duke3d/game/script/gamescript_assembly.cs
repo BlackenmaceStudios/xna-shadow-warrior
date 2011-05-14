@@ -22,11 +22,15 @@ namespace duke3d.game.script
 
         public void Init(string filename)
         {
-            Stream stream = Application.GetResourceStream(new Uri(filename, UriKind.Relative)).Stream;
+#if !WINDOWS_PHONE
+            Stream stream = build.Engine.filesystem.ReadContentFileStream(filename);
 
             AssemblyPart ap = new AssemblyPart();
 
             _scriptassembly = ap.Load(stream);
+#else
+            _scriptassembly = Assembly.Load("game");
+#endif
             _scriptclasstype = _scriptassembly.GetType(_scriptclassname);
             _scriptclass = Activator.CreateInstance(_scriptclasstype);
         }

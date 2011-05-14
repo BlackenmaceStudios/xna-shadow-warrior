@@ -51,6 +51,7 @@ include DEFS.CON
 include USER.CON
 // jv
 include EFFECTORS.CON
+include SPRITES.CON
 // jv end
 
 action ANULLACTION 0

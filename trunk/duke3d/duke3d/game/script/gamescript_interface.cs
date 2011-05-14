@@ -9,11 +9,11 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 
+using build;
 namespace duke3d.game.script
 {
     static class GameScriptInterface
     {
-        public static bool definelevelname(object actor, params object[] parms ) { return false; } // 
         public static bool actor(object actor, params object[] parms ) { return false; }        // 1    [#]
         public static bool addammo(object actor, params object[] parms ) { return false; }   // 2    [#]
         public static bool ifrnd(object actor, params object[] parms ) { return false; }        // 3    [C]
@@ -21,20 +21,99 @@ namespace duke3d.game.script
         public static bool ifcansee(object actor, params object[] parms ) { return false; }         // 5    [C]
         public static bool ifhitweapon(object actor, params object[] parms ) { return false; }      // 6    [#]
         public static bool action(object actor, params object[] parms ) { return false; }           // 7    [#]
-        public static bool ifpdistl(object actor, params object[] parms ) { return false; }         // 8    [#]
-        public static bool ifpdistg(object actor, params object[] parms ) { return false; }         // 9    [#]
-        public static bool _else(object actor, params object[] parms ) { return false; }        // 10   [#]
+        public static bool ifpdistl(object actor, params object[] parms ) { 
+            Actor _actor = actor as Actor;
+
+            if (_actor.Distance(Globals.ps[0]) < (int)parms[0])
+                return true;
+
+            return false; 
+        }
+
+        //
+        // moveactortosprite
+        //
+        public static bool moveactortosprite(object actor, params object[] parms)
+        {
+            spritetype childactor = Engine.board.sprite[((int[])parms[0])[0]];
+
+            Globals.ps[0].SetPosition(childactor.x, childactor.y, childactor.z, -9999, childactor.sectnum);
+
+            return false;
+        }
+
+        public static bool findchildsprite(object actor, params object[] parms)
+        {
+            Actor _actor = actor as Actor;
+            int[] var = parms[0] as int[];
+
+            for (int i = 0; i < Engine.board.sprite.Length; i++)
+            {
+                spritetype spr = Engine.board.sprite[i];
+                if (spr != _actor._sprite && spr.picnum == _actor._sprite.picnum && spr.lotag == _actor._sprite.lotag && spr.hitag == _actor._sprite.hitag)
+                {
+                    var[0] = i;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        public static bool ifpdistg(object actor, params object[] parms) {
+            Actor _actor = actor as Actor;
+
+            if (_actor.Distance(Globals.ps[0]) > (int)parms[0])
+                return true;
+
+            return false; 
+        }         // 9    [#]
+        
         public static bool strength(object actor, params object[] parms ) { return false; }         // 11   [#]
-        public static bool _break(object actor, params object[] parms ) { return false; }        // 12   [#]
         public static bool shoot(object actor, params object[] parms ) { return false; }       // 13   [#]
         public static bool palfrom(object actor, params object[] parms ) { return false; }          // 14   [#]
-        public static bool sound(object actor, params object[] parms ) { return false; }       // 15   [filename.voc]
+        public static bool sound(object actor, params object[] parms ) 
+        {
+            int p = (int)parms[0];
+            SoundSystem.sound((short)p);
+            return false; 
+        }       // 15   [filename.voc]
+        public static bool setstateawake(object actor, params object[] parms)
+        {
+            Actor _actor = actor as Actor;
+            _actor.ForceAwake();
+            return false;
+        }
         public static bool fall(object actor, params object[] parms ) { return false; }          // 16   []
         public static bool state(object actor, params object[] parms ) { return false; }        // 17
         public static bool ends(object actor, params object[] parms ) { return false; }         // 18
         public static bool define(object actor, params object[] parms ) { return false; }           // 19
         public static bool ifai(object actor, params object[] parms ) { return false; }         // 21
-        public static bool killit(object actor, params object[] parms ) { return false; }           // 22
+        public static bool killit(object actor, params object[] parms ) 
+        {
+            Game.KillActor((Actor)actor);
+            return false; 
+        }
+
+        public static bool ifxrepeatl(object actor, params object[] parms)
+        {
+            Actor _actor = actor as Actor;
+
+            if (_actor._sprite.xrepeat < (int)parms[0])
+                return true;
+
+            return false;
+        }
+
+        public static bool iflotag(object actor, params object[] parms)
+        {
+            Actor _actor = actor as Actor;
+
+            if(_actor.Lotag == (int)parms[0])
+                return true;
+
+            return false;
+        }
+
         public static bool addweapon(object actor, params object[] parms ) { return false; }        // 23
         public static bool ai(object actor, params object[] parms ) { return false; }          // 24
         public static bool addphealth(object actor, params object[] parms ) { return false; }       // 25
@@ -43,11 +122,36 @@ namespace duke3d.game.script
         public static bool sizeto(object actor, params object[] parms ) { return false; }           // 28
         public static bool _openbracket(object actor, params object[] parms ) { return false; }            // 29
         public static bool _closebracket(object actor, params object[] parms ) { return false; }            // 30
-        public static bool spawn(object actor, params object[] parms ) { return false; }         // 31
+        public static bool spawn(object actor, params object[] parms ) {
+            Actor _actor = actor as Actor;
+            int picnum = (int)parms[0];
+
+            if(_actor.frameskip == 0)
+                Game.SpawnActor(_actor._sprite.x, _actor._sprite.y, _actor._sprite.z, _actor._sprite.sectnum, (short)picnum);
+
+            _actor.frameskip++;
+
+            if (_actor.frameskip > 2)
+                _actor.frameskip = 0;
+
+            return false; 
+        }         // 31
         public static bool move(object actor, params object[] parms ) { return false; }         // 32
         public static bool ifwasweapon(object actor, params object[] parms ) { return false; }      // 33
         public static bool ifaction(object actor, params object[] parms ) { return false; }         // 34
-        public static bool ifactioncount(object actor, params object[] parms ) { return false; }    // 35
+        public static bool ifactioncount(object actor, params object[] parms ) {
+            Actor _actor = actor as Actor;
+            if (((int)parms[0]) == _actor.Tics)
+                return true;
+
+            return false;
+        }    // 35
+        public static bool animate(object actor, params object[] parms)
+        {
+            Actor _actor = actor as Actor;
+            _actor.AnimateFrame(((int[])parms[0])[1]);
+            return false;
+        }
         public static bool resetactioncount(object actor, params object[] parms ) { return false; } // 36
         public static bool debris(object actor, params object[] parms ) { return false; }           // 37
         public static bool pstomp(object actor, params object[] parms ) { return false; }           // 38
@@ -57,12 +161,55 @@ namespace duke3d.game.script
         public static bool ifonwater(object actor, params object[] parms ) { return false; }        // 43
         public static bool ifinwater(object actor, params object[] parms ) { return false; }        // 44
         public static bool ifcanshoottarget(object actor, params object[] parms ) { return false; } // 45
-        public static bool ifcount(object actor, params object[] parms ) { return false; }          // 46
         public static bool resetcount(object actor, params object[] parms ) { return false; }       // 47
         public static bool addinventory(object actor, params object[] parms ) { return false; }     // 48
         public static bool ifactornotstayput(object actor, params object[] parms ) { return false; }// 49
         public static bool hitradius(object actor, params object[] parms ) { return false; }        // 50
-        public static bool ifp(object actor, params object[] parms ) { return false; }           // 51
+        public static bool ifp(object actor, params object[] parms ) {
+            Actor _actor = (Actor)actor;
+            if (((int)parms[0]) == 0)
+            {
+                if(_actor.cansee(Globals.ps[0]))
+                    return true;
+            }
+            else if (((int)parms[0]) == 1)
+            {
+                if (_actor._sprite.sectnum == Globals.ps[0].SectorNum)
+                    return true;
+            }
+            return false; 
+        }
+        public static bool ifcount(object actor, params object[] parms) {
+            Actor _actor = actor as Actor;
+            if (parms.Length > 1)
+            {
+                if (((int)parms[1]) == 0)
+                {
+                    if (((int)parms[0]) == -1)
+                    {
+                        if (_actor.Hitag < _actor.Tics)
+                            return true;
+                    }
+                    else if (((int)parms[0]) == 0)
+                    {
+                        if (_actor.Hitag == _actor.Tics)
+                            return true;
+                    }
+                    else if (((int)parms[0]) == 1)
+                    {
+                        if (_actor.Hitag > _actor.Tics)
+                            return true;
+                    }
+                }
+            }
+            else
+            {
+                if (((int)parms[0]) == _actor.Tics)
+                    return true;
+            }
+            return false; 
+        }
+
         public static bool count(object actor, params object[] parms ) { return false; }         // 52
         public static bool ifactor(object actor, params object[] parms ) { return false; }          // 53
         public static bool music(object actor, params object[] parms ) { return false; }         // 54
@@ -85,7 +232,21 @@ namespace duke3d.game.script
         public static bool ifrespawn(object actor, params object[] parms ) { return false; }        // 71
         public static bool iffloordistl(object actor, params object[] parms ) { return false; }     // 72
         public static bool ifceilingdistl(object actor, params object[] parms ) { return false; }   // 73
-        public static bool spritepal(object actor, params object[] parms ) { return false; }        // 74
+        public static bool spritepal(object actor, params object[] parms ) {
+            if (parms.Length > 1)
+            {
+                int spritenum = ((int[])parms[0])[0];
+                Actor _actor = (Actor)Engine.board.sprite[spritenum].obj;
+                int pal = (int)parms[1];
+                _actor._sprite.pal = (byte)pal;
+            }
+            else
+            {
+                Actor _actor = actor as Actor;
+                _actor._sprite.pal = (byte)parms[0];
+            }
+            return false; 
+        }        // 74
         public static bool ifpinventory(object actor, params object[] parms ) { return false; }     // 75
         public static bool betaname(object actor, params object[] parms ) { return false; }         // 76
         public static bool cactor(object actor, params object[] parms ) { return false; }           // 77
@@ -96,7 +257,23 @@ namespace duke3d.game.script
         public static bool ifnotmoving(object actor, params object[] parms ) { return false; }      // 82
         public static bool respawnhitag(object actor, params object[] parms ) { return false; }        // 83
         public static bool tip(object actor, params object[] parms ) { return false; }          // 84
-        public static bool ifspritepal(object actor, params object[] parms ) { return false; }      // 85
+        public static bool ifspritepal(object actor, params object[] parms) {
+            Actor _actor = (Actor)actor;
+
+            if (_actor.GetCurrentPalette() == (int)parms[0])
+                return true;
+
+            return false; 
+        }      // 85
+
+        public static bool movevel(object actor, params object[] parms)
+        {
+            Actor _actor = (Actor)actor;
+
+            _actor.SetVelocity((int)parms[0], (int)parms[1], (int)parms[2]);
+            return false;
+        }
+
         public static bool money(object actor, params object[] parms ) { return false; }         // 86
         public static bool soundonce(object actor, params object[] parms ) { return false; }         // 87
         public static bool addkills(object actor, params object[] parms ) { return false; }         // 88
@@ -130,6 +307,13 @@ namespace duke3d.game.script
             _actor.Hide();
 
             return false; 
+        }
+
+        public static bool playlotagsound(object actor, params object[] parms)
+        {
+            Actor _actor = actor as Actor;
+            SoundSystem.sound((short)_actor.Lotag);
+            return false;
         }
     }
 }

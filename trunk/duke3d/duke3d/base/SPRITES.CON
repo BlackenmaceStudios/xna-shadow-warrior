@@ -1,0 +1,77 @@
+// Sprites.Con (c) 2011 JV Software
+//
+
+define PLAYERSPAWNPOINT APLAYER
+
+/*
+==========================
+Seenine Explosives
+==========================
+*/
+actorspawn SEENINE
+	setstateawake
+
+	// Hide seenine sprites that are supposed to hidden and called by another trigger.
+	ifxrepeatl 7
+	{
+		hidesprite
+	}
+enda
+
+actor SEENINE
+
+enda
+
+/*
+==========================
+E1L1 Duke Car
+==========================
+*/
+actorspawn DUKECAR
+	setstateawake
+enda
+
+actor DUKECAR
+	movevel 292 0 360 // Move down 360 units each frame.
+	ifcount 4
+	{
+		sound WAR_AMBIENCE2
+	}
+
+	ifcount 208
+	{
+		sound RPG_EXPLODE
+		killit
+		break
+	}
+
+	spawn EXPLOSION2
+enda
+
+/*
+==========================
+Player Spawn Point Code
+==========================
+*/
+actorspawn PLAYERSPAWNPOINT
+	hidesprite
+enda
+
+/*
+==========================
+Weapon sprites spawn code.
+==========================
+*/
+actorspawn SHOTGUNSPRITE
+	ifspritepal 1
+	{
+		killit
+	}
+enda
+
+actorspawn HEAVYHBOMB
+	ifspritepal 1
+    {
+		killit
+    }
+enda
