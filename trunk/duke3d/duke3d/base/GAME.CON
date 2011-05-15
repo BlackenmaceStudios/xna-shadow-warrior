@@ -52,6 +52,7 @@ include USER.CON
 // jv
 include EFFECTORS.CON
 include SPRITES.CON
+include PLAYER.CON
 // jv end
 
 action ANULLACTION 0

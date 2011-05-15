@@ -181,6 +181,18 @@ namespace conscriptbuilder
             findchildsprite,
             moveactortosprite,
             _int,
+            function,
+            endf,
+            ifpweapon,
+            weaponanimate,
+            setfiredelay,
+            removebullets,
+            ifpclipcnt,
+            ifweaponframe,
+            ifpammol,
+            setpweapon,
+            ifpwselectkeydown,
+            ifpselectedweapon,
          //   seekplayer,
             // jv end
             NUMKEYWORDS
@@ -573,6 +585,38 @@ namespace conscriptbuilder
                         _infunction = true;
                     }
                     break;
+                case Scriptkeyword.function:
+                    {
+                        WriteCodeLine("public void ScriptFunction_" + parser.NextToken + " (object actor) { ");
+                        int argnum = 0;
+                        while (true)
+                        {
+                            string token = parser.GetNextTokenFromLine();
+
+                            if (token == null || token.Length <= 0)
+                            {
+                                break;
+                            }
+
+                            if (isKeyword(token) != -1)
+                            {
+                                parser.UngetToken();
+                                break;
+                            }
+
+                            if (argnum == 1)
+                            {
+                                WriteCodeLine("animate( actor, " + token + " );");
+                            }
+                            else
+                            {
+                                WriteCodeLine("string arg_" + argnum + " = \"" + token + "\";");
+                            }
+                            argnum++;
+                        }
+                        _infunction = true;
+                    }
+                    break;
                 case Scriptkeyword.actor:
                     {
                         int picnum = _defines[parser.NextToken];
@@ -608,6 +652,10 @@ namespace conscriptbuilder
                     break;
 
                 case Scriptkeyword.enda:
+                    WriteCodeLine("}");
+                    _infunction = false;
+                    break;
+                case Scriptkeyword.endf:
                     WriteCodeLine("}");
                     _infunction = false;
                     break;
