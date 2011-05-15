@@ -299,7 +299,7 @@ namespace build
             byte ch;
 	        gbuf = bufplc;
             gbufpos = bufplcbase;
-	        for(;cnt>2;cnt--)
+	        for(;cnt>1;cnt--)
 	        {
                 ch = gbuf[gbufpos + ((bx >> 16) * glogy + (by >> 16))];
 
@@ -329,7 +329,7 @@ namespace build
 
 	        gbuf = bufplc;
             gbufpos = bufplcbase;
-	        for(;cnt>2;cnt--)
+	        for(;cnt>1;cnt--)
 	        {
                 ch = gbuf[gbufpos + ((bx >> 16) * glogy + (by >> 16))];
                 if (ch != 255)
