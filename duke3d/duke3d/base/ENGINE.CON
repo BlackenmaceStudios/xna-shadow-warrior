@@ -1,0 +1,40 @@
+// Engine.Con (c) 2011 JV Software
+//
+
+definebadguy SHARK
+definebadguy RECON
+definebadguy DRONE
+definebadguy LIZTROOPONTOILET
+definebadguy LIZTROOPJUSTSIT
+definebadguy LIZTROOPSTAYPUT
+definebadguy LIZTROOPSHOOT
+definebadguy LIZTROOPJETPACK
+definebadguy LIZTROOPDUCKING
+definebadguy LIZTROOPRUNNING
+definebadguy LIZTROOP
+definebadguy OCTABRAIN
+definebadguy COMMANDER
+definebadguy COMMANDERSTAYPUT
+definebadguy PIGCOP
+definebadguy EGG
+definebadguy PIGCOPSTAYPUT
+definebadguy PIGCOPDIVE
+definebadguy LIZMAN
+definebadguy LIZMANSPITTING
+definebadguy LIZMANFEEDING
+definebadguy LIZMANJUMP
+definebadguy ORGANTIC
+definebadguy BOSS1
+definebadguy BOSS2
+definebadguy BOSS3
+definebadguy BOSS4
+definebadguy GREENSLIME
+definebadguy GREENSLIME+1
+definebadguy GREENSLIME+2
+definebadguy GREENSLIME+3
+definebadguy GREENSLIME+4
+definebadguy GREENSLIME+5
+definebadguy GREENSLIME+6
+definebadguy GREENSLIME+7
+definebadguy RAT
+definebadguy ROTATEGUN

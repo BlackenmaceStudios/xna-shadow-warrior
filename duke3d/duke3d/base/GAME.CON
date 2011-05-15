@@ -50,6 +50,7 @@ any .CON files before making any changes.
 include DEFS.CON
 include USER.CON
 // jv
+include ENGINE.CON
 include EFFECTORS.CON
 include SPRITES.CON
 include PLAYER.CON

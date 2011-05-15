@@ -112,7 +112,64 @@ namespace duke3d.game
             Globals.ps[0] = localplayer;
         }
 
-        public static void SpawnActor(int x, int y, int z, short sectornum, short picnum)
+        public static spritetype EGS(short whatsect,int s_x,int s_y,int s_z,short s_pn, sbyte s_s, byte s_xr,byte s_yr,short s_a,short s_ve,short s_zv,short s_ow, sbyte s_ss)
+        {
+            spritetype s = SpawnActor(s_x, s_y, s_z, s_ss, s_pn);
+
+           // Globals.hittype[i].bposx = s_x;
+           // Globals.hittype[i].bposy = s_y;
+           // Globals.hittype[i].bposz = s_z;
+
+            s.x = s_x;
+            s.y = s_y;
+            s.z = s_z;
+            s.cstat = 0;
+            s.picnum = s_pn;
+            s.shade = s_s;
+            s.xrepeat = s_xr;
+            s.yrepeat = s_yr;
+            s.pal = 0;
+
+            s.ang = s_a;
+            s.xvel = s_ve;
+            s.zvel = s_zv;
+            s.owner = s_ow;
+            s.xoffset = 0;
+            s.yoffset = 0;
+            s.yvel = 0;
+            s.clipdist = 0;
+            s.pal = 0;
+            s.lotag = 0;
+            /*
+            Globals.hittype[i].picnum = sprite[s_ow].picnum;
+
+            Globals.hittype[i].lastvx = 0;
+            Globals.hittype[i].lastvy = 0;
+
+            Globals.hittype[i].timetosleep = 0;
+            Globals.hittype[i].actorstayput = -1;
+            Globals.hittype[i].extra = -1;
+            Globals.hittype[i].owner = s_ow;
+            Globals.hittype[i].cgg = 0;
+            Globals.hittype[i].movflag = 0;
+            Globals.hittype[i].tempang = 0;
+            Globals.hittype[i].dispicnum = 0;
+            Globals.hittype[i].floorz = Globals.hittype[s_ow].floorz;
+            Globals.hittype[i].ceilingz = Globals.hittype[s_ow].ceilingz;
+            */
+           // if (show2dsector[SECT>>3]&(1<<(SECT&7))) show2dsprite[i>>3] |= (1<<(i&7));
+        //    else show2dsprite[i>>3] &= ~(1<<(i&7));
+        /*
+            if(s->sectnum < 0)
+            {
+                s->xrepeat = s->yrepeat = 0;
+                changespritestat(i,5);
+            }
+        */
+            return s;
+        }
+
+        public static spritetype SpawnActor(int x, int y, int z, short sectornum, short picnum)
         {
             int spritenum = Engine.board.insertsprite(sectornum, bMap.MAXSTATUS);
             spritetype sprite = Engine.board.sprite[spritenum];
@@ -137,6 +194,7 @@ namespace duke3d.game
                 spawnfunc.Invoke(actor);
 
             actors.Add(actor);
+            return sprite;
         }
 
         //

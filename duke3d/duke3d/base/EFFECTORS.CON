@@ -23,9 +23,10 @@ define SECTOREFFECTOR_TELEPORTER 7
 actorspawn SECTOREFFECTOR
 	hidesprite
 	setstateawake
+	strength 1
 enda
 
-int SECTOREFFECTOR_CHILD 0
+var SECTOREFFECTOR_CHILD 0
 actor SECTOREFFECTOR
 	iflotag SECTOREFFECTOR_TELEPORTER
 	{
@@ -35,9 +36,11 @@ actor SECTOREFFECTOR
 			{
 				ifpdistl 700
 				{
-					findchildsprite SECTOREFFECTOR_CHILD
-					moveactortosprite SECTOREFFECTOR_CHILD
-					spritepal SECTOREFFECTOR_CHILD 1
+					iffindchildsprite SECTOREFFECTOR_CHILD 1 1 1
+					{
+						moveactortosprite SECTOREFFECTOR_CHILD
+						spritepal SECTOREFFECTOR_CHILD 1
+					}
 				}
 			}
 			else
