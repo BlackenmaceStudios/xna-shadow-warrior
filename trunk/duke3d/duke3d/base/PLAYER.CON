@@ -40,6 +40,7 @@ function PLAYER_SPAWN
 	strength MAXPLAYERHEALTH
 
 	addweapon PISTOL_WEAPON 47
+	setpweapon PISTOL_WEAPON
 /*
 	// Give all weapons initially - for testing only!
 	addweapon PISTOL_WEAPON       999
@@ -186,7 +187,7 @@ function PLAYER_FIREWEAPON
 		{
 			weaponanimate 0 4
 			sound PISTOL_FIRE
-			shoot SHOTSPARK1
+			shoot SHOTSPARK1 PISTOL_WEAPON_STRENGTH
 			setfiredelay 10
 		}
 

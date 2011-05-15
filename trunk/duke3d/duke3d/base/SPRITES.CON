@@ -2,6 +2,105 @@
 //
 
 define PLAYERSPAWNPOINT APLAYER
+define POLICETAPE	930
+
+/*
+============
+PANNEL1
+============
+*/
+actorspawn PANNEL1
+	setstateawake
+	strength 1
+	setspritehittestenabled
+enda
+
+actor PANNEL1
+	ifhealthl -600
+	{
+		iffindchildsprite SEENINE_CHILDSPRITE 0 0 1
+		{
+			damagesprite SEENINE_CHILDSPRITE 999
+		}
+
+		iflotag 0
+		{
+			//spawn EXPLOSION2
+			sound RPG_EXPLODE
+			killit
+			break
+		}
+
+		declotag
+	}
+enda
+
+/*
+============
+FANSPRITE
+============
+*/
+actorspawn FANSPRITE
+	setstateawake
+	strength 1
+	setspritehittestenabled
+enda
+
+actor FANSPRITE
+	ifhealthl -600
+	{
+		iffindchildsprite SEENINE_CHILDSPRITE 0 0 1
+		{
+			damagesprite SEENINE_CHILDSPRITE 999
+		}
+
+		iflotag 0
+		{
+			//spawn EXPLOSION2
+			sound RPG_EXPLODE
+			killit
+			break
+		}
+
+		declotag
+	}
+	else ifhealthl 0
+	{
+		setpicnum FANSPRITEBROKE
+		setspritehittestdisabled
+	}
+enda
+
+/*
+==========================
+Police Tape Sprite
+==========================
+*/
+actorspawn POLICETAPE
+	setstateawake
+	strength 1
+	setspritehittestenabled
+enda
+
+actor POLICETAPE
+	ifhealthl -600
+	{
+		iffindchildsprite SEENINE_CHILDSPRITE 0 0 1
+		{
+			damagesprite SEENINE_CHILDSPRITE 999
+		}
+
+		iflotag 0
+		{
+			spawn EXPLOSION2
+			sound RPG_EXPLODE
+			killit
+			break
+		}
+
+		declotag
+	}
+enda
 
 /*
 ==========================
@@ -16,10 +115,33 @@ actorspawn SEENINE
 	{
 		hidesprite
 	}
+	else
+	{
+		setspritehittestenabled
+	}
+
+	strength 4
 enda
 
+var SEENINE_CHILDSPRITE 0
 actor SEENINE
+	ifhealthl 0
+	{
+		iffindchildsprite SEENINE_CHILDSPRITE 0 0 1
+		{
+			damagesprite SEENINE_CHILDSPRITE 999
+		}
 
+		iflotag 0
+		{
+			spawn EXPLOSION2
+			sound RPG_EXPLODE
+			killit
+			break
+		}
+
+		declotag
+	}
 enda
 
 /*

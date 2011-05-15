@@ -21,6 +21,7 @@ namespace duke3d.game
         internal int _health;
         internal int _armor;
         internal Gamescript.ActorScriptFunction _script;
+        public int curr_weapon;
 
         internal int _fvel = 0, _svel = 0, _angvel = 0;
         public spritetype _sprite;
@@ -28,6 +29,15 @@ namespace duke3d.game
         internal int basepic = -1;
         internal bool awake = false;
         public int frameskip = 0;
+        public Type ActorType = typeof(Actor);
+
+        public void GetActorPosition(out int posx, out int posy, out int posz, out short ang)
+        {
+            posx = _posx;
+            posy = _posy;
+            posz = _posz;
+            ang = _ang;
+        }
         
         public int GetCurrentPalette()
         {
@@ -75,10 +85,128 @@ namespace duke3d.game
                 _sprite.x = _posx;
                 _sprite.y = _posy;
                 _sprite.z = _posz;
+                _sprite.ang = _ang;
             }
         }
 
+        public virtual void Damage(Actor inflictor, int damage)
+        {
+            _health -= damage;
+        }
 
+        private short[] aimstats = new short[] { 10, 13, 1, 2 };
+
+        public short aim(short aang)
+        {
+            bool gotshrinker,gotfreezer;
+            short j, a, k;
+            bool cans = false;
+            int i, dx1, dy1, dx2, dy2, dx3, dy3, smax, sdist;
+            int xv, yv;
+
+            a = _sprite.ang;
+
+            j = -1;
+        //    if(s->picnum == APLAYER && ps[s->yvel].aim_mode) return -1;
+
+            gotshrinker = curr_weapon == Globals.SHRINKER_WEAPON;
+            gotfreezer = curr_weapon == Globals.FREEZE_WEAPON;
+
+            smax = 0x7fffffff;
+
+            dx1 = Engine.table.sintable[(a+512-aang)&2047];
+            dy1 = Engine.table.sintable[(a - aang) & 2047];
+            dx2 = Engine.table.sintable[(a + 512 + aang) & 2047];
+            dy2 = Engine.table.sintable[(a + aang) & 2047];
+
+            dx3 = Engine.table.sintable[(a + 512) & 2047];
+            dy3 = Engine.table.sintable[a & 2047];
+
+            for(k=0;k<4;k++)
+            {
+                if( j >= 0 )
+                    break;
+                for (i = Engine.board.headspritestat[aimstats[k]]; i >= 0; i = Engine.board.nextspritestat[i])
+                {
+                    int SX = Engine.board.sprite[i].x;
+                    int SY = Engine.board.sprite[i].y;
+                    int SZ = Engine.board.sprite[i].z;
+                    short SECT = Engine.board.sprite[i].sectnum;
+                    if (Engine.board.sprite[i].xrepeat > 0 && Engine.board.sprite[i].extra >= 0 && (Engine.board.sprite[i].cstat & (257 + 32768)) == 257)
+                        if (Globals.badguy(Engine.board.sprite[i]) || k < 2)
+                        {
+                            if (Globals.badguy(Engine.board.sprite[i]) /* || PN == APLAYER || PN == SHARK */)
+                            {
+                                /*
+                                if( PN == APLAYER &&
+            //                        ud.ffire == 0 &&
+                                    ud.coop == 1 &&
+                                    s->picnum == APLAYER &&
+                                    s != &sprite[i])
+                                        continue;
+
+                                if(gotshrinker && sprite[i].xrepeat < 30 )
+                                {
+                                    switch(PN)
+                                    {
+                                        case SHARK:
+                                            if(sprite[i].xrepeat < 20) continue;
+                                                continue;
+                                        case GREENSLIME:
+                                        case GREENSLIME+1:
+                                        case GREENSLIME+2:
+                                        case GREENSLIME+3:
+                                        case GREENSLIME+4:
+                                        case GREENSLIME+5:
+                                        case GREENSLIME+6:
+                                        case GREENSLIME+7:
+                                            break;
+                                        default:
+                                            continue;
+                                    }
+                                }
+                                if(gotfreezer && sprite[i].pal == 1) continue;
+                                */
+                            }
+
+                            xv = (SX - _sprite.x);
+                            yv = (SY - _sprite.y);
+
+                            if ((dy1 * xv) <= (dx1 * yv))
+                                if ((dy2 * xv) >= (dx2 * yv))
+                                {
+                                    sdist = pragmas.mulscale(dx3, xv, 14) + pragmas.mulscale(dy3, yv, 14);
+                                    if (sdist > 512 && sdist < smax)
+                                    {
+                                        a = 0;
+                                        if (ActorType == typeof(Player))
+                                        {
+                                            if ((pragmas.klabs(pragmas.scale(SZ - _sprite.z, 10, sdist) - 0) < 100))
+                                                a = 1;
+                                        }
+                                        else
+                                        {
+                                            a = 1;
+                                        }
+
+                                        //if(PN == ORGANTIC || PN == ROTATEGUN )
+                                        //  cans = cansee(SX,SY,SZ,SECT,s->x,s->y,s->z-(32<<8),s->sectnum);
+                                        //else cans = cansee(SX,SY,SZ-(32<<8),SECT,s->x,s->y,s->z-(32<<8),s->sectnum);
+                                        cans = Engine.board.cansee(SX, SY, SZ - (32 << 8), SECT, _sprite.x, _sprite.y, _sprite.z - (32 << 8), _sprite.sectnum);
+
+                                        if (a == 1 && cans)
+                                        {
+                                            smax = sdist;
+                                            j = (short)i;
+                                        }
+                                    }
+                                }
+                        }
+                }
+            }
+
+            return j;
+        }
 
         //
         // InputThink

@@ -19,7 +19,6 @@ namespace duke3d.game.script
             return false; 
         }   // 2    [#]
         public static bool ifrnd(object actor, params object[] parms ) { return false; }        // 3    [C]
-        public static bool enda(object actor, params object[] parms ) { return false; }         // 4    [:]
         public static bool ifcansee(object actor, params object[] parms ) { return false; }         // 5    [C]
         public static bool ifhitweapon(object actor, params object[] parms ) { return false; }      // 6    [#]
         public static bool action(object actor, params object[] parms ) { return false; }           // 7    [#]
@@ -44,7 +43,20 @@ namespace duke3d.game.script
             return false;
         }
 
-        public static bool findchildsprite(object actor, params object[] parms)
+        public static bool damagesprite(object actor, params object[] parms)
+        {
+            int spritenum = ((int[])parms[0])[0];
+            int damage = (int)parms[1];
+
+            Actor _actor = Engine.board.sprite[spritenum].obj as Actor;
+
+            if(_actor._health > -999)
+                _actor.Damage((Actor)actor, damage);
+
+            return false;
+        }
+
+        public static bool iffindchildsprite(object actor, params object[] parms)
         {
             Actor _actor = actor as Actor;
             int[] var = parms[0] as int[];
@@ -52,11 +64,37 @@ namespace duke3d.game.script
             for (int i = 0; i < Engine.board.sprite.Length; i++)
             {
                 spritetype spr = Engine.board.sprite[i];
-                if (spr != _actor._sprite && spr.picnum == _actor._sprite.picnum && spr.lotag == _actor._sprite.lotag && spr.hitag == _actor._sprite.hitag)
+                
+
+                if (spr == null)
+                    continue;
+
+                Actor spractor = (Actor)spr.obj;
+                if (spractor == null)
+                    continue;
+
+                if (spr.picnum != _actor._sprite.picnum && ((int)parms[1]) == 1)
                 {
-                    var[0] = i;
-                    return true;
+                    continue;
                 }
+
+                if (spr.lotag != _actor._sprite.lotag && ((int)parms[2]) == 1)
+                {
+                    continue;
+                }
+
+                if (spr.hitag != _actor._sprite.hitag && ((int)parms[3]) == 1)
+                {
+                    continue;
+                }
+
+                if (spr == _actor._sprite || spractor._health <= 0)
+                {
+                    continue;
+                }
+
+                var[0] = i;
+                return true;
             }
 
             return false;
@@ -88,14 +126,316 @@ namespace duke3d.game.script
             _actor.SetHealth((int)parms[0]);
             return false; 
         }         // 11   [#]
-        public static bool shoot(object actor, params object[] parms ) { return false; }       // 13   [#]
-        public static bool palfrom(object actor, params object[] parms ) { return false; }          // 14   [#]
+
+        public static bool ifhealthl(object actor, params object[] parms)
+        {
+            Actor _actor = actor as Actor;
+
+            if (_actor._health <= (int)parms[0])
+                return true;
+
+            return false;
+        }
+
+
+
+        public static bool setpicnum(object actor, params object[] parms)
+        {
+            Actor _actor = actor as Actor;
+            int picnum = (int)parms[0];
+            _actor._sprite.picnum = (short)picnum;
+
+            return false;
+        }
+
+        public static bool setspritehittestdisabled(object actor, params object[] parms)
+        {
+            Actor _actor = actor as Actor;
+
+            _actor._sprite.cstat = MyTypes.RESET(_actor._sprite.cstat, Flags.CSTAT_SPRITE_BLOCK);
+            _actor._sprite.cstat = MyTypes.RESET(_actor._sprite.cstat, Flags.CSTAT_SPRITE_BLOCK_HITSCAN);
+            _actor._sprite.cstat = MyTypes.RESET(_actor._sprite.cstat, Flags.CSTAT_SPRITE_BLOCK_MISSILE);
+
+            return false;
+        }
+
+        public static bool setspritehittestenabled(object actor, params object[] parms)
+        {
+            Actor _actor = actor as Actor;
+
+            _actor._sprite.cstat = MyTypes.SET(_actor._sprite.cstat, Flags.CSTAT_SPRITE_BLOCK);
+            _actor._sprite.cstat = MyTypes.SET(_actor._sprite.cstat, Flags.CSTAT_SPRITE_BLOCK_HITSCAN);
+            _actor._sprite.cstat = MyTypes.SET(_actor._sprite.cstat, Flags.CSTAT_SPRITE_BLOCK_MISSILE);
+
+            return false;
+        }
+
+        public static bool declotag(object actor, params object[] parms)
+        {
+            Actor _actor = actor as Actor;
+
+            _actor._sprite.lotag -= 1;
+
+            return false;
+        }
+
+        public static bool shoot(object actor, params object[] parms ) {
+            Actor _actor = actor as Actor;
+            spritetype s = _actor._sprite;
+            spritetype k = null;
+            Player player = null;
+            int atwith = (int)parms[0];
+            short sect = 0, hitspr = 0, hitwall = 0, l, sa = 0, j, scount;
+            int hitsect = 0;
+            int sx = 0, sy = 0, sz = 0, vel, zvel = 0, hitx = 0, hity = 0, hitz = 0, x, oldzvel, dal;
+            byte sizx,sizy;
+            int damage = 10;
+
+            if (parms.Length > 1)
+                damage = (int)parms[1];
+
+            if (_actor.ActorType == typeof(Player))
+            {
+                player = _actor as Player;
+                _actor.GetActorPosition(out sx, out sy, out sz, out sa);
+                Engine.board.updatesector(sx, sy, ref sect);
+                //p = s->yvel;
+                sz += player.pyoff + (4 << 8);
+            }
+            else
+            {
+
+            }
+            if (atwith == Names.SHOTSPARK1 || atwith == Names.SHOTGUN || atwith == Names.CHAINGUN)
+            {
+                if (s.extra >= 0) s.shade = -96;
+
+                if (player != null)
+                {
+                    j = _actor.aim(Globals.AUTO_AIM_ANGLE);
+                    if (j >= 0)
+                    {
+                        dal = ((Engine.board.sprite[j].xrepeat * Engine.tilesizy[Engine.board.sprite[j].picnum]) << 1) + (5 << 8);
+                        switch (Engine.board.sprite[j].picnum)
+                        {
+                            case Names.GREENSLIME:
+                            case Names.GREENSLIME + 1:
+                            case Names.GREENSLIME + 2:
+                            case Names.GREENSLIME + 3:
+                            case Names.GREENSLIME + 4:
+                            case Names.GREENSLIME + 5:
+                            case Names.GREENSLIME + 6:
+                            case Names.GREENSLIME + 7:
+                            case Names.ROTATEGUN:
+                                dal -= (8 << 8);
+                                break;
+                        }
+                        zvel = ((Engine.board.sprite[j].z - sz - dal) << 8) / Globals.ldist(player._sprite, Engine.board.sprite[j]);
+                        sa = (short)Engine.getangle(Engine.board.sprite[j].x - sx, Engine.board.sprite[j].y - sy);
+                    }
+
+                    if (atwith == Names.SHOTSPARK1)
+                    {
+                        if (j == -1)
+                        {
+                            sa += (short)(16 - (Globals.TRAND() & 31));
+                            zvel = (100 - 100) << 5;
+                            zvel += (short)(128 - (Globals.TRAND() & 255));
+                        }
+                    }
+                    else
+                    {
+                        sa += (short)(16 - (Globals.TRAND() & 31));
+                        if (j == -1) zvel = (100 - 100) << 5;
+                        zvel += (short)(128 - (Globals.TRAND() & 255));
+                    }
+                    sz -= (2 << 8);
+                }
+                    /*
+                else
+                {
+                    j = findplayer(s, &x);
+                    sz -= (4 << 8);
+                    zvel = ((ps[j].posz - sz) << 8) / (ldist(&sprite[ps[j].i], s));
+                    if (s->picnum != BOSS1)
+                    {
+                        zvel += 128 - (TRAND & 255);
+                        sa += 32 - (TRAND & 63);
+                    }
+                    else
+                    {
+                        zvel += 128 - (TRAND & 255);
+                        sa = getangle(ps[j].posx - sx, ps[j].posy - sy) + 64 - (TRAND & 127);
+                    }
+                }
+                */
+
+                _actor._sprite.cstat &= ~257;
+                Engine.board.hitscan(sx, sy, sz, sect,
+                    Engine.table.sintable[(sa + 512) & 2047],
+                    Engine.table.sintable[sa & 2047],
+                    zvel << 6, ref hitsect, ref hitwall, ref hitspr, ref hitx, ref hity, ref hitz, Engine.CLIPMASK1);
+                _actor._sprite.cstat |= 257;
+
+                if (hitsect < 0) return false;
+
+                //if ((TRAND & 15) == 0 && sector[hitsect].lotag == 2)
+                //    tracers(hitx, hity, hitz, sx, sy, sz, 8 - (ud.multimode >> 1));
+
+                if ( true )
+                {
+                    k = Game.EGS((short)hitsect, hitx, hity, hitz, Names.SHOTSPARK1, -15, 10, 10, sa, 0, 0, 0, 4);
+                   // sprite[k].extra = *actorscrptr[atwith];
+                   // sprite[k].extra += (TRAND % 6);
+
+                    if (hitwall == -1 && hitspr == -1)
+                    {
+                        if (zvel < 0)
+                        {
+                            if ((Engine.board.sector[hitsect].ceilingstat & 1) != 0)
+                            {
+                                k.xrepeat = 0;
+                                k.yrepeat = 0;
+                                return false;
+                            }
+                           // else
+                            //    checkhitceiling(hitsect);
+                        }
+                        spawn(k, Names.SMALLSMOKE);
+                    }
+
+                    if (hitspr >= 0)
+                    {
+                        Actor _hitactor = Engine.board.sprite[hitspr].obj as Actor;
+                        _hitactor.Damage(_actor, damage);
+                        /*
+                        checkhitsprite(hitspr, k);
+                        if (sprite[hitspr].picnum == APLAYER && (ud.coop != 1 || ud.ffire == 1))
+                        {
+                            l = spawn(k, JIBS6);
+                            sprite[k].xrepeat = sprite[k].yrepeat = 0;
+                            sprite[l].z += (4 << 8);
+                            sprite[l].xvel = 16;
+                            sprite[l].xrepeat = sprite[l].yrepeat = 24;
+                            sprite[l].ang += 64 - (TRAND & 127);
+                        }
+                        else spawn(k, SMALLSMOKE);
+
+                        if (p >= 0 && (
+                            sprite[hitspr].picnum == DIPSWITCH ||
+                            sprite[hitspr].picnum == DIPSWITCH + 1 ||
+                            sprite[hitspr].picnum == DIPSWITCH2 ||
+                            sprite[hitspr].picnum == DIPSWITCH2 + 1 ||
+                            sprite[hitspr].picnum == DIPSWITCH3 ||
+                            sprite[hitspr].picnum == DIPSWITCH3 + 1 ||
+                            sprite[hitspr].picnum == HANDSWITCH ||
+                            sprite[hitspr].picnum == HANDSWITCH + 1))
+                        {
+                            checkhitswitch(p, hitspr, 1);
+                            return;
+                        }
+                        */
+                    }
+#if false
+                    else if (hitwall >= 0)
+                    {
+                        spawn(_actor, Names.SMALLSMOKE);
+
+                        //if (isadoorwall(wall[hitwall].picnum) == 1)
+                        //    goto SKIPBULLETHOLE;
+                        /*
+                        if (p >= 0 && (
+                            wall[hitwall].picnum == DIPSWITCH ||
+                            wall[hitwall].picnum == DIPSWITCH + 1 ||
+                            wall[hitwall].picnum == DIPSWITCH2 ||
+                            wall[hitwall].picnum == DIPSWITCH2 + 1 ||
+                            wall[hitwall].picnum == DIPSWITCH3 ||
+                            wall[hitwall].picnum == DIPSWITCH3 + 1 ||
+                            wall[hitwall].picnum == HANDSWITCH ||
+                            wall[hitwall].picnum == HANDSWITCH + 1))
+                        {
+                            checkhitswitch(p, hitwall, 0);
+                            return;
+                        }
+
+                        if (wall[hitwall].hitag != 0 || (wall[hitwall].nextwall >= 0 && wall[wall[hitwall].nextwall].hitag != 0))
+                            goto SKIPBULLETHOLE;
+                        */
+                        if (hitsect >= 0 && Engine.board.sector[hitsect].lotag == 0)
+                            if (Engine.board.wall[hitwall].overpicnum != Names.BIGFORCE)
+                                if ((Engine.board.wall[hitwall].nextsector >= 0 && Engine.board.sector[Engine.board.wall[hitwall].nextsector].lotag == 0) ||
+                                    (Engine.board.wall[hitwall].nextsector == -1 && Engine.board.sector[hitsect].lotag == 0))
+                                    if ((Engine.board.wall[hitwall].cstat & 16) == 0)
+                                    {
+                                        if (Engine.board.wall[hitwall].nextsector >= 0)
+                                        {
+                                            l = (short)Engine.board.headspritesect[Engine.board.wall[hitwall].nextsector];
+                                            while (l >= 0)
+                                            {
+                                                if (Engine.board.sprite[l].statnum == 3 && Engine.board.sprite[l].lotag == 13)
+                                                    goto SKIPBULLETHOLE;
+                                                l = (short)Engine.board.nextspritesect[l];
+                                            }
+                                        }
+
+                                        l = (short)Engine.board.headspritestat[5];
+                                        /*
+                                        while (l >= 0)
+                                        {
+                                            if (Engine.board.sprite[l].picnum == BULLETHOLE)
+                                                if (dist(&sprite[l], &sprite[k]) < (12 + (TRAND & 7)))
+                                                    goto SKIPBULLETHOLE;
+                                            l = nextspritestat[l];
+                                        }
+                                        */
+                                        spawn(_actor, Names.BULLETHOLE);
+                                        Globals.lastspawnedsprite.xvel = -1;
+                                        Globals.lastspawnedsprite.ang = (short)(Engine.getangle(Engine.board.wall[hitwall].x - Engine.board.wall[Engine.board.wall[hitwall].point2].x,
+                                            Engine.board.wall[hitwall].y - Engine.board.wall[Engine.board.wall[hitwall].point2].y) + 512);
+                                       // ssp(l, CLIPMASK0);
+                                    }
+
+                    SKIPBULLETHOLE:
+
+                        if ((Engine.board.wall[hitwall].cstat & 2) != 0)
+                            if (Engine.board.wall[hitwall].nextsector >= 0)
+                                if (hitz >= (Engine.board.sector[Engine.board.wall[hitwall].nextsector].floorz))
+                                    hitwall = Engine.board.wall[hitwall].nextwall;
+
+                        //checkhitwall(k, hitwall, hitx, hity, hitz, Names.SHOTSPARK1);
+                    }
+#endif
+                }
+                /*
+                else
+                {
+                    k = EGS(hitsect, hitx, hity, hitz, SHOTSPARK1, -15, 24, 24, sa, 0, 0, i, 4);
+                    sprite[k].extra = *actorscrptr[atwith];
+
+                    if (hitspr >= 0)
+                    {
+                        checkhitsprite(hitspr, k);
+                        if (sprite[hitspr].picnum != APLAYER)
+                            spawn(k, SMALLSMOKE);
+                        else sprite[k].xrepeat = sprite[k].yrepeat = 0;
+                    }
+                    else if (hitwall >= 0)
+                        checkhitwall(k, hitwall, hitx, hity, hitz, SHOTSPARK1);
+                }
+                */
+                if ((Globals.TRAND() & 255) < 4)
+                    SoundSystem.sound(SoundId.PISTOL_RICOCHET/*, k, hitx, hity, hitz*/);
+            }
+
+            return false; 
+        }   
+        public static bool palfrom(object actor, params object[] parms ) { return false; }   
         public static bool sound(object actor, params object[] parms ) 
         {
             int p = (int)parms[0];
             SoundSystem.sound((short)p);
             return false; 
-        }       // 15   [filename.voc]
+        }
         public static bool setstateawake(object actor, params object[] parms)
         {
             Actor _actor = actor as Actor;
@@ -150,7 +490,7 @@ namespace duke3d.game.script
             int picnum = (int)parms[0];
 
             if(_actor.frameskip == 0)
-                Game.SpawnActor(_actor._sprite.x, _actor._sprite.y, _actor._sprite.z, _actor._sprite.sectnum, (short)picnum);
+                Globals.lastspawnedsprite = Game.SpawnActor(_actor._sprite.x, _actor._sprite.y, _actor._sprite.z, _actor._sprite.sectnum, (short)picnum);
 
             _actor.frameskip++;
 

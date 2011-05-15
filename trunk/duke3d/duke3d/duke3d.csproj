@@ -90,6 +90,7 @@
     <Compile Include="game\script\gamescript_interface.cs" />
     <Compile Include="game\soundid.cs" />
     <Compile Include="game\sounds.cs" />
+    <Compile Include="mact\mathutility.cs" />
     <Compile Include="mact\soundmanager.cs" />
     <Compile Include="mact\sound\music.cs" />
     <Compile Include="mact\sound\vocsound.cs" />
@@ -113,6 +114,7 @@
     <Content Include="base\game.dll" />
     <Content Include="base\music\grabbag.mp3" />
     <Content Include="base\music\stalker.mp3" />
+    <None Include="base\ENGINE.CON" />
     <None Include="base\PLAYER.CON" />
     <None Include="base\SPRITES.CON" />
     <None Include="base\DEFS.CON" />

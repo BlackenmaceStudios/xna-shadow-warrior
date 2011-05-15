@@ -11,6 +11,7 @@ using System.Windows.Shapes;
 
 using build;
 using mact;
+using duke3d.mact;
 using duke3d.game.script;
 namespace duke3d.game
 {
@@ -206,6 +207,33 @@ namespace duke3d.game
         public static int SLT(int spritenum) {return Engine.board.sprite[spritenum].lotag; }
         public static int SHT(int spritenum) {return Engine.board.sprite[spritenum].hitag; }
         public static int SECT(int spritenum) {return Engine.board.sprite[spritenum].sectnum; }
+        private static int[] _badguylist;
+
+        public static void SetBadguyList(int[] list)
+        {
+            _badguylist = list;
+        }
+
+        public static bool badguy(spritetype s)
+        {
+            int picnum = s.picnum;
+
+            for (int i = 0; i < _badguylist.Length; i++)
+            {
+                if (_badguylist[i] == picnum)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static int ldist(spritetype s1, spritetype s2)
+        {
+            int vx, vy;
+            vx = s1.x - s2.x;
+            vy = s1.y - s2.y;
+            return (MathUtility.FindDistance2D(vx, vy) + 1);
+        }
 
         public const int face_player = 1;
         public const int geth = 2;
@@ -240,7 +268,7 @@ namespace duke3d.game
 
 
         public static weaponhit[] hittype = new weaponhit[bMap.MAXSPRITES];
-
+        public static spritetype lastspawnedsprite;
         public static int T1(int i) { return hittype[i].temp_data[0]; }
         public static int T2(int i) { return hittype[i].temp_data[1]; }
         public static int T3(int i) { return hittype[i].temp_data[2]; }

@@ -120,6 +120,9 @@ namespace duke3d.game.script
             // Init our script hooks.
             InitScriptHooks();
 
+            // Get the bad guy list.
+            Globals.SetBadguyList(_assembly.GetIntArrayFromAssembly("badguys"));
+
             // Pre-load anything static that we can bind right away to avoid reflection during game time.
             _quotes = (string[])_assembly.GetObjectFromAssembly("quotes");
             _titlesong = _assembly.GetStringValueFromAssembly("titlesong");

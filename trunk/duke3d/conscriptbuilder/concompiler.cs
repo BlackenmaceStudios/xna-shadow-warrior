@@ -40,6 +40,7 @@ namespace conscriptbuilder
         private List<string> _mapnames = new List<string>();
         private List<string> _mappartimes = new List<string>();
         private List<string> _mapdesignertimes = new List<string>();
+        private List<int> _badguys = new List<int>();
         private Dictionary<string, int> _defines = new Dictionary<string, int>();
 
         //private string _mapblock = "";
@@ -178,9 +179,9 @@ namespace conscriptbuilder
             animate,
             iflotag,
             ifxrepeatl,
-            findchildsprite,
+            iffindchildsprite,
             moveactortosprite,
-            _int,
+            var,
             function,
             endf,
             ifpweapon,
@@ -193,6 +194,13 @@ namespace conscriptbuilder
             setpweapon,
             ifpwselectkeydown,
             ifpselectedweapon,
+            definebadguy,
+            ifhealthl,
+            setspritehittestenabled,
+            setspritehittestdisabled,
+            declotag,
+            damagesprite,
+            setpicnum,
          //   seekplayer,
             // jv end
             NUMKEYWORDS
@@ -216,7 +224,7 @@ namespace conscriptbuilder
                 if (i == Scriptkeyword._closebracket && token == "}")
                     return (int)i;
 
-                if (i == Scriptkeyword._int && token == "int")
+                if (i == Scriptkeyword.var && token == "var")
                     return (int)i;
 
                 if (token == Enum.GetName(keywordtype, i))
@@ -384,7 +392,7 @@ namespace conscriptbuilder
                     }
                     break;
 
-                case Scriptkeyword._int:
+                case Scriptkeyword.var:
                     WriteCodeLine("public static int[] " + parser.NextToken + " = new int[] {");
                         while (true)
                         {
@@ -617,6 +625,17 @@ namespace conscriptbuilder
                         _infunction = true;
                     }
                     break;
+                case Scriptkeyword.definebadguy:
+                    {
+                        string[] vars = parser.NextToken.Split('+');
+                        int picnum = _defines[vars[0]];
+
+                        if (vars.Length > 1)
+                            picnum += int.Parse(vars[1]);
+
+                        _badguys.Add(picnum);
+                    }
+                    break;
                 case Scriptkeyword.actor:
                     {
                         int picnum = _defines[parser.NextToken];
@@ -729,6 +748,22 @@ namespace conscriptbuilder
             }
 
             return true;
+        }
+
+        private void CreateIntArray(string name, int[] values)
+        {
+            int num = 0;
+
+            WriteCodeLine("public int[] " + name + " = new int[] { ");
+            foreach (int s in values)
+            {
+                if (num > 0)
+                    codebuffer += "," + '\n';
+
+                codebuffer += s;
+                num++;
+            }
+            WriteCodeLine(" }; ");
         }
 
         private void CreateStringArray(string name, string[] values)
@@ -943,6 +978,8 @@ namespace conscriptbuilder
             CreateGetMusicFunction();
 
             DefineSoundList();
+
+            CreateIntArray("badguys", _badguys.ToArray());
 
             CompileToAssembly();
 

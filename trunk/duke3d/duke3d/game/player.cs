@@ -33,6 +33,7 @@ namespace duke3d.game
         private int look_ang = 0;
         private int hbomb_hold_delay = 0;
         public int firedelay = 0;
+        private int _pyoff = 0;
 
         private const int TURBOTURNTIME = (Globals.TICRATE/8); // 7
         private const int NORMALTURN  =  15;
@@ -44,7 +45,7 @@ namespace duke3d.game
         private const int MAXHORIZ  =   127;
 
         private int subweapon = 0;
-        public int curr_weapon = Globals.PISTOL_WEAPON;
+        
         public int[] ammo_amount = new int[Globals.MAX_WEAPONS];
         public bool[] gotweapon = new bool[Globals.MAX_WEAPONS];
         public int weaponselected = -1;
@@ -62,6 +63,26 @@ namespace duke3d.game
             endkickback = endframe;
         }
 
+        private void UpdatePlayerSprite()
+        {
+            if (_sprite == null)
+            {
+                int spritenum = Engine.board.insertsprite(_cursectnum, bMap.MAXSTATUS);
+                _sprite = Engine.board.sprite[spritenum];
+                _sprite.cstat = MyTypes.SET(_sprite.cstat, Flags.CSTAT_SPRITE_INVISIBLE);
+
+                _sprite.picnum = Names.APLAYER;
+                _sprite.xrepeat = 47;
+                _sprite.yrepeat = 47;
+            }
+
+            _sprite.x = _posx;
+            _sprite.y = _posx;
+            _sprite.z = _posx;
+            _sprite.sectnum = _cursectnum;
+            
+        }
+
         //
         // Spawn
         //
@@ -72,7 +93,18 @@ namespace duke3d.game
             script_spawn = Globals.script.GetFunction("PLAYER_SPAWN");
             script_chooseweapon = Globals.script.GetFunction("PLAYER_CHOOSEWEAPON");
 
+            UpdatePlayerSprite();
+
             script_spawn(this);
+            ActorType = typeof(Player);
+        }
+
+        public int pyoff
+        {
+            get
+            {
+                return _pyoff;
+            }
         }
 
         public void GiveWeapon(int weaponnum, int ammo)
@@ -957,6 +989,8 @@ namespace duke3d.game
                     script_chooseweapon.Invoke(this);
                     weaponselected = -1;
                 }
+
+                UpdatePlayerSprite();
             }
 
             // Draw the board and the sprites
