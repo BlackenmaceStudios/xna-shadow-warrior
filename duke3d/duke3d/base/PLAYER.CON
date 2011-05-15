@@ -1,0 +1,202 @@
+// Player.Con (c) 2011 JV Software
+//
+
+/*
+========================
+Code that handles the local player
+========================
+*/
+
+//
+// PLAYER_WEAPONANIM
+// Called if the weapon is animating.
+//
+function PLAYER_WEAPONANIM
+	ifpweapon PISTOL_WEAPON
+	{
+		ifweaponframe 5
+		{
+			sound EJECT_CLIP
+		}
+		ifweaponframe 8
+		{
+			sound INSERT_CLIP
+		}
+	}
+	else ifpweapon SHOTGUN_WEAPON
+	{
+		ifweaponframe 15
+		{
+			//sound SHOTGUN_COCK
+		}
+	}
+endf
+
+//
+// PLAYER_SPAWN
+// Called when a player starts a new game, this isn't called when a player loads a saved game!
+//
+function PLAYER_SPAWN
+	strength MAXPLAYERHEALTH
+
+	addweapon PISTOL_WEAPON 47
+/*
+	// Give all weapons initially - for testing only!
+	addweapon PISTOL_WEAPON       999
+	addweapon SHOTGUN_WEAPON      999
+	addweapon CHAINGUN_WEAPON     999
+	addweapon RPG_WEAPON          999
+	addweapon HANDBOMB_WEAPON     999
+	addweapon SHRINKER_WEAPON     999
+	addweapon DEVISTATOR_WEAPON   999
+	addweapon TRIPBOMB_WEAPON     999
+	addweapon FREEZE_WEAPON       999
+	addweapon HANDREMOTE_WEAPON   999
+	addweapon GROW_WEAPON         999
+*/
+endf
+
+//
+// PLAYER_CHOOSEWEAPON
+// Called when the player is trying to switch weapons.
+//
+function PLAYER_CHOOSEWEAPON
+	ifpwselectkeydown 1
+	{
+		setpweapon KNEE_WEAPON
+	}
+	else ifpwselectkeydown 2
+	{
+		ifpammol PISTOL_WEAPON 0
+		{
+			break
+		}
+		
+		setpweapon PISTOL_WEAPON
+	}
+	else ifpwselectkeydown 3
+	{
+		ifpammol SHOTGUN_WEAPON 0
+		{
+			break
+		}
+		
+		setpweapon SHOTGUN_WEAPON
+	}
+	else ifpwselectkeydown 4
+	{
+		ifpammol CHAINGUN_WEAPON 0
+		{
+			break
+		}
+		
+		setpweapon CHAINGUN_WEAPON
+	}
+	else ifpwselectkeydown 5
+	{
+		ifpammol RPG_WEAPON 0
+		{
+			break
+		}
+		
+		setpweapon RPG_WEAPON
+	}
+	else ifpwselectkeydown 6
+	{
+		ifpammol HANDBOMB_WEAPON 0
+		{
+			break
+		}
+		
+		setpweapon HANDBOMB_WEAPON
+	}
+	else ifpwselectkeydown 7
+	{
+		ifpselectedweapon SHRINKER_WEAPON
+		{
+			ifpammol GROW_WEAPON 0
+			{
+				break
+			}
+
+			setpweapon GROW_WEAPON
+			break
+		}
+
+		ifpammol SHRINKER_WEAPON 0
+		{
+			break
+		}
+		
+		setpweapon SHRINKER_WEAPON
+	}
+	else ifpwselectkeydown 8
+	{
+		ifpammol TRIPBOMB_WEAPON 0
+		{
+			break
+		}
+		
+		setpweapon TRIPBOMB_WEAPON
+	}
+	else ifpwselectkeydown 9
+	{
+		ifpammol FREEZE_WEAPON 0
+		{
+			break
+		}
+		
+		setpweapon FREEZE_WEAPON
+	}
+
+	else ifpwselectkeydown 0
+	{
+		ifpammol HANDREMOTE_WEAPON 0
+		{
+			break
+		}
+		
+		setpweapon HANDREMOTE_WEAPON
+	}
+endf
+
+//
+// PLAYER_FIREWEAPON
+// Called when the weapon is supposed to fire.
+//
+function PLAYER_FIREWEAPON
+	ifpammol 0
+	{
+		setpweapon KNEE_WEAPON
+		break
+	}
+
+	ifpweapon KNEE_WEAPON
+	{
+		weaponanimate 0 8
+		setfiredelay  8
+	}
+	else ifpweapon PISTOL_WEAPON
+	{
+		ifpclipcnt PISTOL_WEAPON 12
+		{
+			weaponanimate 5 26
+		}
+		else
+		{
+			weaponanimate 0 4
+			sound PISTOL_FIRE
+			shoot SHOTSPARK1
+			setfiredelay 10
+		}
+
+		removebullets PISTOL_WEAPON 1
+	}
+	else ifpweapon SHOTGUN_WEAPON
+	{
+		weaponanimate 0 30
+		//sound SHOTGUN_FIRE
+		setfiredelay 30
+		removebullets SHOTGUN_WEAPON 1
+	}
+endf

@@ -15,7 +15,9 @@ namespace duke3d.game.script
     static class GameScriptInterface
     {
         public static bool actor(object actor, params object[] parms ) { return false; }        // 1    [#]
-        public static bool addammo(object actor, params object[] parms ) { return false; }   // 2    [#]
+        public static bool addammo(object actor, params object[] parms ) { 
+            return false; 
+        }   // 2    [#]
         public static bool ifrnd(object actor, params object[] parms ) { return false; }        // 3    [C]
         public static bool enda(object actor, params object[] parms ) { return false; }         // 4    [:]
         public static bool ifcansee(object actor, params object[] parms ) { return false; }         // 5    [C]
@@ -59,6 +61,19 @@ namespace duke3d.game.script
 
             return false;
         }
+
+        public static bool ifpwselectkeydown(object actor, params object[] parms)
+        {
+            Player player = actor as Player;
+
+            if (player.weaponselected == (int)parms[0])
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public static bool ifpdistg(object actor, params object[] parms) {
             Actor _actor = actor as Actor;
 
@@ -68,7 +83,11 @@ namespace duke3d.game.script
             return false; 
         }         // 9    [#]
         
-        public static bool strength(object actor, params object[] parms ) { return false; }         // 11   [#]
+        public static bool strength(object actor, params object[] parms ) {
+            Actor _actor = actor as Actor;
+            _actor.SetHealth((int)parms[0]);
+            return false; 
+        }         // 11   [#]
         public static bool shoot(object actor, params object[] parms ) { return false; }       // 13   [#]
         public static bool palfrom(object actor, params object[] parms ) { return false; }          // 14   [#]
         public static bool sound(object actor, params object[] parms ) 
@@ -114,7 +133,11 @@ namespace duke3d.game.script
             return false;
         }
 
-        public static bool addweapon(object actor, params object[] parms ) { return false; }        // 23
+        public static bool addweapon(object actor, params object[] parms ) {
+            Player player = actor as Player;
+            player.GiveWeapon((int)parms[0], (int)parms[1]);
+            return false; 
+        }        // 23
         public static bool ai(object actor, params object[] parms ) { return false; }          // 24
         public static bool addphealth(object actor, params object[] parms ) { return false; }       // 25
         public static bool ifdead(object actor, params object[] parms ) { return false; }           // 26
@@ -179,6 +202,107 @@ namespace duke3d.game.script
             }
             return false; 
         }
+
+        public static bool ifpweapon(object actor, params object[] parms)
+        {
+            Player player = actor as Player;
+
+            if (player.curr_weapon == (int)parms[0])
+                return true;
+
+            return false;
+        }
+
+        public static bool ifpselectedweapon(object actor, params object[] parms)
+        {
+            Player player = actor as Player;
+
+            if (player.curr_weapon == (int)parms[0])
+                return true;
+
+            return false;
+        }
+
+        public static bool ifpammol(object actor, params object[] parms)
+        {
+            Player player = actor as Player;
+            if (parms.Length > 1)
+            {
+                int weaponnum = (int)parms[0];
+                if (weaponnum > 0 && player.gotweapon[weaponnum] == false)
+                    return false;
+
+                if ((player.ammo_amount[weaponnum] <= (int)parms[1]))
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                if (player.curr_weapon == 0)
+                    return false;
+
+                if ((player.ammo_amount[player.curr_weapon] <= (int)parms[0]))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool setpweapon(object actor, params object[] parms)
+        {
+            Player player = actor as Player;
+            player.curr_weapon = (int)parms[0];
+            return false;
+        }
+
+        public static bool ifweaponframe(object actor, params object[] parms)
+        {
+            Player player = actor as Player;
+
+            if (player.kickback_pic == (int)parms[0])
+                return true;
+
+            return false;
+        }
+
+        public static bool ifpclipcnt(object actor, params object[] parms)
+        {
+            Player player = actor as Player;
+            if ((player.ammo_amount[(int)parms[0]] % (int)parms[1]) == 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool removebullets(object actor, params object[] parms)
+        {
+            Player player = actor as Player;
+            player.ammo_amount[(int)parms[0]] -= (int)parms[1];
+
+            return false;
+        }
+
+        public static bool setfiredelay(object actor, params object[] parms)
+        {
+            Player player = actor as Player;
+            player.firedelay = (int)parms[0];
+
+            return false;
+        }
+
+        public static bool weaponanimate(object actor, params object[] parms)
+        {
+            Player player = actor as Player;
+
+            player.AnimateFirstPersonWeapon((int)parms[0], (int)parms[1]);
+
+            return false;
+        }
+
         public static bool ifcount(object actor, params object[] parms) {
             Actor _actor = actor as Actor;
             if (parms.Length > 1)

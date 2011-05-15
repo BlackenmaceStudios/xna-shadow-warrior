@@ -58,6 +58,11 @@ namespace duke3d.game
             }
         }
 
+        public void SetHealth(int amt)
+        {
+            _health = amt;
+        }
+
         public double Distance(Actor actor)
         {
             return Math.Sqrt(((actor._posx - _posx) * (actor._posx - _posx)) + ((actor._posy - _posy) * (actor._posy - _posy)));
@@ -72,6 +77,8 @@ namespace duke3d.game
                 _sprite.z = _posz;
             }
         }
+
+
 
         //
         // InputThink

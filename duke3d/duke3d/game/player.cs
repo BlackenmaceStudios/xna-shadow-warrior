@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
+using duke3d.game.script;
 
 using build;
 
@@ -24,12 +25,14 @@ namespace duke3d.game
         private int jumping_counter = 0, poszv = 0;
         private int turnheldtime = 0;
         private bool on_ground = false;
-        private byte kickback_pic = 0;
+        public byte kickback_pic = 0;
+        private int endkickback = 0;
         private short weapon_ang = 0;
         private int weapon_sway = 0, bobcounter = 0;
         private int weapon_pos = 6;
         private int look_ang = 0;
         private int hbomb_hold_delay = 0;
+        public int firedelay = 0;
 
         private const int TURBOTURNTIME = (Globals.TICRATE/8); // 7
         private const int NORMALTURN  =  15;
@@ -41,21 +44,38 @@ namespace duke3d.game
         private const int MAXHORIZ  =   127;
 
         private int subweapon = 0;
-        private int curr_weapon = Globals.PISTOL_WEAPON;
-        private int[] ammo_amount = new int[Globals.MAX_WEAPONS];
-        private bool[] gotweapon = new bool[Globals.MAX_WEAPONS];
+        public int curr_weapon = Globals.PISTOL_WEAPON;
+        public int[] ammo_amount = new int[Globals.MAX_WEAPONS];
+        public bool[] gotweapon = new bool[Globals.MAX_WEAPONS];
+        public int weaponselected = -1;
+
+        private Gamescript.ActorScriptFunction script_fireweapon = null;
+        private Gamescript.ActorScriptFunction script_weaponanim = null;
+        private Gamescript.ActorScriptFunction script_spawn = null;
+        private Gamescript.ActorScriptFunction script_chooseweapon = null;
+        //
+        // AnimateFirstPeraonWeapon
+        //
+        public void AnimateFirstPersonWeapon(int startframe, int endframe)
+        {
+            kickback_pic = (byte)startframe;
+            endkickback = endframe;
+        }
 
         //
         // Spawn
         //
         public override void Spawn(spritetype sprite)
         {
-            _health = 100;
-            _armor = 0;
-            GiveWeapon(Globals.PISTOL_WEAPON, 48);
+            script_fireweapon = Globals.script.GetFunction("PLAYER_FIREWEAPON");
+            script_weaponanim = Globals.script.GetFunction("PLAYER_WEAPONANIM");
+            script_spawn = Globals.script.GetFunction("PLAYER_SPAWN");
+            script_chooseweapon = Globals.script.GetFunction("PLAYER_CHOOSEWEAPON");
+
+            script_spawn(this);
         }
 
-        private void GiveWeapon(int weaponnum, int ammo)
+        public void GiveWeapon(int weaponnum, int ammo)
         {
             ammo_amount[weaponnum] += ammo;
             gotweapon[weaponnum] = true;
@@ -853,6 +873,90 @@ namespace duke3d.game
                     else weapon_sway = 1024;
                 }
                 else weapon_sway = bobcounter;
+
+                if (endkickback == 0)
+                {
+                    if (Controller.BUTTON(Controller.Buttons.gamefunc_Fire))
+                    {
+                        script_fireweapon.Invoke(this);
+                    }
+                }
+
+                if (kickback_pic < endkickback)
+                {
+                    kickback_pic++;
+                    script_weaponanim.Invoke(this);
+                }
+                else
+                {
+                    if (firedelay <= 0)
+                    {
+                        kickback_pic = 0;
+                        endkickback = 0;
+                    }
+                    else
+                    {
+                        firedelay--;
+                    }
+                }
+
+                if (Controller.BUTTON(Controller.Buttons.gamefunc_Weapon_0))
+                {
+                    weaponselected = 0;
+                    GameKeys.KB_ClearLastScanCode();
+                }
+                else if (Controller.BUTTON(Controller.Buttons.gamefunc_Weapon_1))
+                {
+                    weaponselected = 1;
+                    GameKeys.KB_ClearLastScanCode();
+                }
+                else if (Controller.BUTTON(Controller.Buttons.gamefunc_Weapon_2))
+                {
+                    weaponselected = 2;
+                    GameKeys.KB_ClearLastScanCode();
+                }
+                else if (Controller.BUTTON(Controller.Buttons.gamefunc_Weapon_3))
+                {
+                    weaponselected = 3;
+                    GameKeys.KB_ClearLastScanCode();
+                }
+                else if (Controller.BUTTON(Controller.Buttons.gamefunc_Weapon_4))
+                {
+                    weaponselected = 4;
+                    GameKeys.KB_ClearLastScanCode();
+                }
+                else if (Controller.BUTTON(Controller.Buttons.gamefunc_Weapon_5))
+                {
+                    weaponselected = 5;
+                    GameKeys.KB_ClearLastScanCode();
+                }
+                else if (Controller.BUTTON(Controller.Buttons.gamefunc_Weapon_6))
+                {
+                    weaponselected = 6;
+                    GameKeys.KB_ClearLastScanCode();
+                }
+                else if (Controller.BUTTON(Controller.Buttons.gamefunc_Weapon_7))
+                {
+                    weaponselected = 7;
+                    GameKeys.KB_ClearLastScanCode();
+                }
+                else if (Controller.BUTTON(Controller.Buttons.gamefunc_Weapon_8))
+                {
+                    weaponselected = 8;
+                    GameKeys.KB_ClearLastScanCode();
+                }
+                else if (Controller.BUTTON(Controller.Buttons.gamefunc_Weapon_9))
+                {
+                    weaponselected = 9;
+                    GameKeys.KB_ClearLastScanCode();
+                }
+
+
+                if (weaponselected != -1)
+                {
+                    script_chooseweapon.Invoke(this);
+                    weaponselected = -1;
+                }
             }
 
             // Draw the board and the sprites
