@@ -27,7 +27,7 @@ namespace duke3d.game
         public spritetype _sprite;
         internal int ticks = 0;
         internal int basepic = -1;
-        internal bool awake = false;
+        public bool awake = false;
         public int frameskip = 0;
         public Type ActorType = typeof(Actor);
 
@@ -336,7 +336,7 @@ namespace duke3d.game
             }
         }
 
-        public void SetPosition(int posx, int posy, int posz, short ang, short sectnum)
+        public virtual void SetPosition(int posx, int posy, int posz, short ang, short sectnum)
         {
             _posx = posx;
             _posy = posy;

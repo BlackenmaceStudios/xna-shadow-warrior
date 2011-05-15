@@ -235,6 +235,15 @@ namespace duke3d.game
             return (MathUtility.FindDistance2D(vx, vy) + 1);
         }
 
+        public static int ldist3d(spritetype s1, spritetype s2)
+        {
+            int vx, vy, vz;
+            vx = s1.x - s2.x;
+            vy = s1.y - s2.y;
+            vz = s1.z - s2.z;
+            return (MathUtility.FindDistance3D(vx, vy, vz) + 1);
+        }
+
         public const int face_player = 1;
         public const int geth = 2;
         public const int getv = 4;

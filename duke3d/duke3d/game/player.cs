@@ -34,6 +34,7 @@ namespace duke3d.game
         private int hbomb_hold_delay = 0;
         public int firedelay = 0;
         private int _pyoff = 0;
+        private int falling_counter = 0;
 
         private const int TURBOTURNTIME = (Globals.TICRATE/8); // 7
         private const int NORMALTURN  =  15;
@@ -155,14 +156,62 @@ namespace duke3d.game
                     poszv = 0;
                 }
             }
-            else if (_posz < (fz - (i << 8)))
+            
+            else if (_posz < (fz - (i << 8))) //falling
             {
-                poszv += (176 + 80);
-
-                if ((_posz + poszv) >= (fz - (i << 8))) // hit the ground
+                if (on_ground && (Engine.board.sector[_cursectnum].floorstat & 2) != 0 && _posz >= (fz - (i << 8) - (16 << 8)))
+                    _posz = fz - (i << 8);
+                else
                 {
-                    poszv = 0;
-                    on_ground = true;
+                    on_ground = false;
+                    poszv += (Globals.script.gameStartup.gc + 80); // (TICSPERFRAME<<6);
+                    if (poszv >= (4096 + 2048)) poszv = (4096 + 2048);
+                    if (poszv > 2400 && falling_counter < 255)
+                    {
+                        falling_counter++;
+                        if (falling_counter == 38)
+                            SoundSystem.sound(SoundId.DUKE_SCREAM);
+                    }
+
+                    if ((_posz + poszv) >= (fz - (i << 8))) // hit the ground
+                    {
+                        if (Engine.board.sector[_cursectnum].lotag != 1)
+                        {
+                            //if (falling_counter > 62) quickkill(p);
+
+                            if (falling_counter > 9)
+                            {
+                                int j = falling_counter;
+                                _sprite.extra -= (short)(j - (Globals.TRAND() & 3));
+                                if (false /*_sprite.extra <= 0*/)
+                                {
+                                    SoundSystem.sound(SoundId.SQUISHED);
+                                    //p->pals[0] = 63;
+                                    //p->pals[1] = 0;
+                                    //p->pals[2] = 0;
+                                    //p->pals_time = 63;
+
+                                    
+                                }
+                                else
+                                {
+                                    SoundSystem.sound(SoundId.DUKE_LAND);
+                                    SoundSystem.sound(SoundId.DUKE_LAND_HURT);
+                                }
+
+                                //   p->pals[0] = 16;
+                                //   p->pals[1] = 0;
+                                //     p->pals[2] = 0;
+                                //   p->pals_time = 32;
+                            }
+                            else if (poszv > 2048) SoundSystem.sound(SoundId.DUKE_LAND);
+                        }
+                        if (falling_counter > 4)
+                        {
+                            _health -= falling_counter * 2;
+                        }
+                        falling_counter = 0;
+                    }
                 }
             }
             else
@@ -179,6 +228,12 @@ namespace duke3d.game
             _posz += poszv;
 
             Engine.board.clipmove(ref _posx, ref _posy, ref _posz, ref _cursectnum, xvect, yvect, 164, (4 << 8), (4 << 8), Engine.CLIPMASK0);
+        }
+
+        public override void SetPosition(int posx, int posy, int posz, short ang, short sectnum)
+        {
+            falling_counter = 0;
+            base.SetPosition(posx, posy, posz, ang, sectnum);
         }
 
         private void getinput()

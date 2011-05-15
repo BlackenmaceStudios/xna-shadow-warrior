@@ -34,7 +34,7 @@ actor SECTOREFFECTOR
 		{
 			ifspritepal 0
 			{
-				ifpdistl 700
+				ifpdistl 19300
 				{
 					iffindchildsprite SECTOREFFECTOR_CHILD 1 1 1
 					{
@@ -45,7 +45,7 @@ actor SECTOREFFECTOR
 			}
 			else
 			{
-				ifpdistg 800
+				ifpdistg 22000
 				{
 					spritepal SECTOREFFECTOR_CHILD 0
 				}
