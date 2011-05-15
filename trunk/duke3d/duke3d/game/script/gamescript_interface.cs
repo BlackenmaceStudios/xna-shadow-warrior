@@ -10,6 +10,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 
 using build;
+using duke3d.mact;
 namespace duke3d.game.script
 {
     static class GameScriptInterface
@@ -25,7 +26,7 @@ namespace duke3d.game.script
         public static bool ifpdistl(object actor, params object[] parms ) { 
             Actor _actor = actor as Actor;
 
-            if (_actor.Distance(Globals.ps[0]) < (int)parms[0])
+            if (Globals.ldist3d(_actor._sprite, Globals.ps[0]._sprite) < (int)parms[0])
                 return true;
 
             return false; 
@@ -60,7 +61,7 @@ namespace duke3d.game.script
         {
             Actor _actor = actor as Actor;
             int[] var = parms[0] as int[];
-
+            
             for (int i = 0; i < Engine.board.sprite.Length; i++)
             {
                 spritetype spr = Engine.board.sprite[i];
@@ -88,7 +89,7 @@ namespace duke3d.game.script
                     continue;
                 }
 
-                if (spr == _actor._sprite || spractor._health <= 0)
+                if (spr == _actor._sprite || spractor._health <= 0 )
                 {
                     continue;
                 }

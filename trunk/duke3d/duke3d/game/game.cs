@@ -174,6 +174,8 @@ namespace duke3d.game
             int spritenum = Engine.board.insertsprite(sectornum, bMap.MAXSTATUS);
             spritetype sprite = Engine.board.sprite[spritenum];
 
+            sprite.cstat = MyTypes.RESET(sprite.cstat, Flags.CSTAT_SPRITE_WALL);
+
             sprite.x = x;
             sprite.y = y;
             sprite.z = z;
