@@ -464,13 +464,15 @@ palette:
             yres = pragmas.mulscale14(y, zoome);
         }
 
+        private static Random rand = new Random(233);
+
         //
         // krand
         //
         public static uint krand()
         {
-	        randomseed = (randomseed*27584621)+1;
-	        return(((uint)randomseed)>>16);
+	        //randomseed = (randomseed*27584621)+1;
+            return (uint)rand.Next(50);
         }
 
         //

@@ -6,6 +6,24 @@ define POLICETAPE	930
 
 /*
 ============
+SIXPAK
+============
+*/
+actorspawn SIXPAK
+	setstateawake
+enda
+
+/*
+============
+FIRE2
+============
+*/
+actorspawn FIRE2
+	setstateawake
+enda
+
+/*
+============
 PANNEL1
 ============
 */

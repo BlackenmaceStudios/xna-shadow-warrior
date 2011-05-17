@@ -28,7 +28,7 @@ namespace duke3d.game.script
 
         string _titlesong, _endsong;
         private int numUserSounds = 396;
-        
+
         public GameStartup gameStartup;
         public delegate void ActorScriptFunction(object actor);
 

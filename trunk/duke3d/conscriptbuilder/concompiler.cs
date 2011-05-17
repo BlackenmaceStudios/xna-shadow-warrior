@@ -201,6 +201,10 @@ namespace conscriptbuilder
             declotag,
             damagesprite,
             setpicnum,
+            setaistate,
+            ifshot,
+            ifanimcomplete,
+            updateviewoffset,
          //   seekplayer,
             // jv end
             NUMKEYWORDS
@@ -319,8 +323,22 @@ namespace conscriptbuilder
 
                 if (int.TryParse(token, out val))
                 {
-                    //parms.Add(val);
-                    codeline += "," + val;
+                    if (keyword == Scriptkeyword.ifai)
+                    {
+                        if (val == 0)
+                        {
+                            codeline += ", null";
+                        }
+                        else
+                        {
+                            throw new Exception("ifai doesn't take a integer paremeter!");
+                        }
+                    }
+                    else
+                    {
+                        //parms.Add(val);
+                        codeline += ", " + val;
+                    }
                 }
                 else
                 {
@@ -503,7 +521,16 @@ namespace conscriptbuilder
                 case Scriptkeyword.ai:
                     if (_infunction)
                     {
-                        CreateFunctionCall(parser, keyword);
+                        string token = parser.NextToken;
+                        if (token == "0")
+                            token = "null";
+
+                        WriteCodeLine("{");
+                        WriteCodeLine("setaistate(actor, " + token + ");");
+                        WriteCodeLine("animate( actor, (int[])" + token + "[0] );");
+                        WriteCodeLine("}");
+                        //parser.UngetToken();
+                        //CreateFunctionCall(parser, keyword);
                     }
                     else
                     {
@@ -914,7 +941,7 @@ namespace conscriptbuilder
             _writer.Write(_buffer);
             _writer.Close();
 
-            _results = codeprovider.CompileAssemblyFromSource(_buildparms, _buffer);
+            _results = codeprovider.CompileAssemblyFromFile(_buildparms, "atomicscript.cs");
 
             if (_results.Errors.Count > 0)
             {

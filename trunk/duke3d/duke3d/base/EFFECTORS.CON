@@ -1,9 +1,7 @@
 // Effectors.Con (c) 2011 JV Software
 //
 
-define player_visible 0
-define player_insector 1
-define hitag 0
+
 
 /*
 ======================
@@ -34,7 +32,7 @@ actor SECTOREFFECTOR
 		{
 			ifspritepal 0
 			{
-				ifpdistl 19300
+				ifpdistl 19005
 				{
 					iffindchildsprite SECTOREFFECTOR_CHILD 1 1 1
 					{
@@ -43,13 +41,10 @@ actor SECTOREFFECTOR
 					}
 				}
 			}
-			else
-			{
-				ifpdistg 22000
-				{
-					spritepal SECTOREFFECTOR_CHILD 0
-				}
-			}
+		}
+		else
+		{
+			spritepal 0
 		}
 	}
 enda

@@ -40,6 +40,8 @@ namespace duke3d
             this.KeyDown += keyHandler;
             this.KeyUp += keyUpHandler;
 
+          //  game.EnterUsermap("testbox");
+
             // Game loop.
             CompositionTarget.Rendering += new EventHandler(Page_CompositionTarget_Rendering);
         }
