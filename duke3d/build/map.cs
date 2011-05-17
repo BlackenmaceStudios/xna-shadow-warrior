@@ -371,11 +371,19 @@ namespace build
 
         public void deletespritebyhandle(spritetype spr)
         {
+            if (spr == null)
+                return;
+
             for (int i = 0; i < sprite.Length; i++)
             {
                 if (sprite[i] == spr)
                 {
                     deletesprite((short)i);
+                   // sprite[i] = null;
+                    spr.xrepeat = 0;
+                    spr.yrepeat = 0;
+                    spr.cstat = 0;
+                    spr.picnum = 0;
                     return;
                 }
             }
@@ -554,7 +562,7 @@ namespace build
 	        for(dacnt=0;dacnt<danum;dacnt++)
 	        {
 		        dasectnum = clipsectorlist[dacnt]; sec = sector[dasectnum];
-                int wallnum = sec.wallnum;
+                int wallnum = sec.wallptr;
                 for (cnt = sec.wallnum; cnt > 0; cnt--, wallnum++)
 		        {
                     wal = wall[wallnum];

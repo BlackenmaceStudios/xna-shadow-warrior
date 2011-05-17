@@ -22,7 +22,14 @@ namespace duke3d.game
         internal int _armor;
         internal Gamescript.ActorScriptFunction _script;
         public int curr_weapon;
+        public int _maxframes = 0;
+        public int _animatestride = 0;
+        public int animstartframe = 0;
+        public float _framenum = 0;
+        public Actor target;
+        public bool inpain = false;
 
+        public bool animcomplete = false;
         internal int _fvel = 0, _svel = 0, _angvel = 0;
         public spritetype _sprite;
         internal int ticks = 0;
@@ -30,6 +37,13 @@ namespace duke3d.game
         public bool awake = false;
         public int frameskip = 0;
         public Type ActorType = typeof(Actor);
+        public object[] aistate;
+        private short _viewanglepic = 0;
+
+        public void UpdateViewAnglePic(int viewanglepic)
+        {
+            _viewanglepic = (short)viewanglepic;
+        }
 
         public void GetActorPosition(out int posx, out int posy, out int posz, out short ang)
         {
@@ -92,6 +106,7 @@ namespace duke3d.game
         public virtual void Damage(Actor inflictor, int damage)
         {
             _health -= damage;
+            inpain = true;
         }
 
         private short[] aimstats = new short[] { 10, 13, 1, 2 };
@@ -266,12 +281,27 @@ namespace duke3d.game
             
         }
 
-        public void AnimateFrame( int maxframes )
+        public void AnimateFrame( int baseframe, int maxframes, int stride )
         {
-            _sprite.picnum++;
+            //maxframes += baseframe;
+           // if (_maxframes <= maxframes)
+            animcomplete = false;
+            {
+                animstartframe = baseframe;
+                _sprite.picnum += (short)baseframe;
+                _maxframes = maxframes;
+                _animatestride = stride;
+                if (_animatestride <= 0)
+                    _animatestride = 1;
+            }
+        }
 
-            if (_sprite.picnum >= basepic + maxframes)
-                _sprite.picnum = (short)basepic;
+        public bool isActorMoving()
+        {
+            if (_fvel == 0 && _svel == 0)
+                return false;
+
+            return true;
         }
 
         public virtual void Spawn(spritetype sprite)
@@ -300,15 +330,35 @@ namespace duke3d.game
                     if (cansee(Globals.ps[0]))
                     {
                         awake = true;
+                        target = Globals.ps[0];
                     }
                 }
                 else
                 {
                     _script.Invoke(this);
                 }
+
+                if (_framenum > 1)
+                {
+                    _sprite.picnum += (short)_animatestride;
+                    _framenum = 0;
+                }
+                else
+                {
+                    _framenum += 0.3f;
+                }
+
+                animcomplete = false;
+                if (_sprite.picnum > basepic + (animstartframe + _maxframes))
+                {
+                    _sprite.picnum = (short)((basepic + animstartframe) + _viewanglepic);
+                    animcomplete = true;
+                }
             }
 
             InputThink();
+
+            Engine.board.updatesector(_posx, _posy, ref _cursectnum);
 
             ticks++;
         }
@@ -341,6 +391,8 @@ namespace duke3d.game
             _posx = posx;
             _posy = posy;
             _posz = posz;
+
+            Engine.board.updatesector(_posx, _posy, ref sectnum);
 
             if(ang != -9999)
                 _ang = ang;

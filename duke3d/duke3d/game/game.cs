@@ -77,11 +77,22 @@ namespace duke3d.game
 
             Player localplayer = new Player();
 
-            SoundSystem.playmusic(Globals.script.volumes[Globals.ud.volume_number][Globals.ud.level_number].musicfilename);
-
-            if (Engine.loadboard(Globals.script.volumes[Globals.ud.volume_number][Globals.ud.level_number].filename, ref posx, ref posy, ref posz, ref ang, ref cursectnum) == -1)
+            if (Globals.usermapboard == null)
             {
-                throw new Exception("Map not found!");
+                SoundSystem.playmusic(Globals.script.volumes[Globals.ud.volume_number][Globals.ud.level_number].musicfilename);
+
+                if (Engine.loadboard(Globals.script.volumes[Globals.ud.volume_number][Globals.ud.level_number].filename, ref posx, ref posy, ref posz, ref ang, ref cursectnum) == -1)
+                {
+                    throw new Exception("Map not found!");
+                }
+            }
+            else
+            {
+                SoundSystem.playmusic(Globals.script.volumes[0][0].musicfilename);
+                if (Engine.loadboard(Globals.usermapboard, ref posx, ref posy, ref posz, ref ang, ref cursectnum) == -1)
+                {
+                    throw new Exception("Map not found!");
+                }
             }
 
             // Spawn each entity that has an actor
@@ -756,19 +767,49 @@ namespace duke3d.game
             {
                 //for (j = 0; j < 63; j += 7) palto(0, 0, 0, j);
                 //i = ud.screen_size;
-                Globals.ud.screen_size = 0;
-                Engine.clearview();
+                if (Globals.usermapboard == null)
+                {
+                    Globals.ud.screen_size = 0;
+                    Engine.clearview();
 
-                Engine.rotatesprite(320 << 15, 200 << 15, 65536, 0, Names.LOADSCREEN, 0, 0, 2 + 8 + 64, 0, 0, Engine._device.xdim - 1, Engine._device.ydim - 1);
+                    Engine.rotatesprite(320 << 15, 200 << 15, 65536, 0, Names.LOADSCREEN, 0, 0, 2 + 8 + 64, 0, 0, Engine._device.xdim - 1, Engine._device.ydim - 1);
 
-                menus.menutext(160, 90, 0, 0, "ENTERING");
-                menus.menutext(160, 90 + 16 + 8, 0, 0, Globals.script.volumes[Globals.ud.volume_number][Globals.ud.level_number].mapname);
+                    menus.menutext(160, 90, 0, 0, "ENTERING");
+                    menus.menutext(160, 90 + 16 + 8, 0, 0, Globals.script.volumes[Globals.ud.volume_number][Globals.ud.level_number].mapname);
+                }
+                else
+                {
+                    Globals.ud.screen_size = 0;
+                    Engine.clearview();
+
+                    Engine.rotatesprite(320 << 15, 200 << 15, 65536, 0, Names.LOADSCREEN, 0, 0, 2 + 8 + 64, 0, 0, Engine._device.xdim - 1, Engine._device.ydim - 1);
+
+                    menus.menutext(160, 90, 0, 0, "LOADING USER MAP");
+                    menus.menutext(160, 90 + 16 + 8, 0, 0, Globals.usermapboard);
+                }
             }
         }
 
 #if WINDOWS_PHONE
         private bool _refreshpage = false;
 #endif
+        public void EnterUsermap(string name)
+        {
+            Globals.ud.m_player_skill = 1;
+            Globals.ud.m_respawn_monsters = 0;
+
+            Globals.ud.m_monsters_off = Globals.ud.monsters_off = 0;
+
+            Globals.ud.m_respawn_items = 0;
+            Globals.ud.m_respawn_inventory = 0;
+
+            Globals.ud.multimode = 1;
+
+            Globals.usermapboard = name + ".map";
+            Game.SetGameState(GameState.GAMESTATE_LOADING);
+            playingAnm = null;
+        }
+
         //
         // Frame
         //

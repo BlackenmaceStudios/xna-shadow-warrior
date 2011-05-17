@@ -54,6 +54,7 @@ include ENGINE.CON
 include EFFECTORS.CON
 include SPRITES.CON
 include PLAYER.CON
+include MONSTER_LIZTROOP.CON
 // jv end
 
 action ANULLACTION 0
@@ -2220,7 +2221,9 @@ actor SIXPAK
     else
       ifp palive
         ifpdistl RETRIEVEDISTANCE
-          ifcount 6
+		// jv
+          //ifcount 6
+		// jv end
             ifphealthl MAXPLAYERHEALTH
               ifcanseetarget
       {
@@ -4027,13 +4030,25 @@ state rf
     cstat 0
 ends
 
+state checksquished
+  ifsquished
+  {
+    addkills 1
+    sound SQUISHED
+    state standard_jibs
+    state random_ooz
+    killit
+  }
+ends
+
+move SHRUNKVELS 32
 
 //
 //
 //    TROOP/LIZTROOP CODE
 //
 //
-
+/*
 action ATROOPSTAND     0  1  5  1  1
 action ATROOPGROW    0  1  5  1  1
 action ATROOPSTAYSTAND  -2  1  5  1  1
@@ -4063,7 +4078,7 @@ move TROOPJETPACKILLVELS 192 -38
 move TROOPRUNVELS 108
 move TROOPSTOPPED
 move DONTGETUP
-move SHRUNKVELS 32
+
 
 ai AITROOPSEEKENEMY  ATROOPWALKING   TROOPWALKVELS seekplayer
 ai AITROOPSEEKPLAYER ATROOPWALKING   TROOPWALKVELS seekplayer
@@ -4505,17 +4520,6 @@ state troopjetpackstate
   }
 ends
 
-state checksquished
-  ifsquished
-  {
-    addkills 1
-    sound SQUISHED
-    state standard_jibs
-    state random_ooz
-    killit
-  }
-ends
-
 state troopsufferingstate
   ifactioncount 2
   {
@@ -4809,8 +4813,21 @@ enda
 actor LIZTROOP TROOPSTRENGTH ATROOPSTAND
   state checktrooppalette
   state troopcode
-enda
 
+// jv
+  ifai 0
+  {
+	  ifcanseetarget
+	  {
+		  // jv
+		  ai AITROOPSEEKPLAYER
+		  sound PRED_RECOG
+		  // jv end
+	  }
+  }
+// jv end
+enda
+*/
 action ALIZSTAND     0
 action ALIZWALKING     0   4  5  1  15
 action ALIZRUNNING     0   4  5  1  11
@@ -6243,7 +6260,7 @@ ai AIBOSS1PALSHRINK ABOSS1WALK PALBOSS1SHRUNKRUNVELS furthestdir
 
 state boss1palshrunkstate
   ifcount SHRUNKDONECOUNT
-    ai AITROOPSEEKENEMY
+    ai AIBOSS1SEEKENEMY
   else
     ifcount SHRUNKCOUNT
       sizeto 40 40
@@ -6571,7 +6588,7 @@ state boss2palshrunkstate
   ifcount SHRUNKDONECOUNT
   {
     cstat 257
-    ai AITROOPSEEKENEMY
+    ai AIBOSS2SEEKENEMY
   }
   else
     ifcount SHRUNKCOUNT
@@ -6899,7 +6916,7 @@ ai AIBOSS3PALSHRINK ABOSS3WALK PALBOSS3SHRUNKRUNVELS faceplayer
 
 state boss3palshrunkstate
   ifcount SHRUNKDONECOUNT
-    ai AITROOPSEEKENEMY
+    ai AIBOSS3SEEKENEMY
   else
     ifcount SHRUNKCOUNT
       sizeto 40 40

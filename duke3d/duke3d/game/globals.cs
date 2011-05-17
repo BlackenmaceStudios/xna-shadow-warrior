@@ -91,6 +91,7 @@ namespace duke3d.game
         public Int32 entered_name,screen_tilting,shadows,fta_on,executions,auto_run;
         public Int32 coords,tickrate,m_coop,coop,screen_size,crosshair;
         public bool lockout;
+        
         public Int32[,] wchoice = new Int32[Game.MAXPLAYERS, Globals.MAX_WEAPONS];
         public Int32 playerai;
 
@@ -107,6 +108,7 @@ namespace duke3d.game
 
     public static class Globals
     {
+        public static string usermapboard;
         public static Gamescript script = new Gamescript();
         public const int MAXSLEEPDIST =  16384;
         public const int SLEEPTIME = 24*64;

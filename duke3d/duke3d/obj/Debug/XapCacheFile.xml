@@ -1,11 +1,12 @@
-﻿<xapCache source="c:\dev\duke3d\duke3d\Bin\Debug\duke3d.xap" wasSigned="False" certificateThumbprint="" TimeStampUrl="" lastWriteTime="5/15/2011 2:18:46 PM">
-  <file source="c:\dev\duke3d\duke3d\obj\Debug\duke3d.dll" archivePath="duke3d.dll" lastWriteTime="5/15/2011 2:14:07 PM" />
-  <file source="c:\dev\duke3d\build\Bin\Debug\build.dll" archivePath="build.dll" lastWriteTime="5/15/2011 9:00:42 AM" />
+﻿<xapCache source="c:\dev\duke3d\duke3d\Bin\Debug\duke3d.xap" wasSigned="False" certificateThumbprint="" TimeStampUrl="" lastWriteTime="5/17/2011 1:30:21 AM">
+  <file source="c:\dev\duke3d\duke3d\obj\Debug\duke3d.dll" archivePath="duke3d.dll" lastWriteTime="5/17/2011 1:30:06 AM" />
+  <file source="c:\dev\duke3d\build\Bin\Debug\build.dll" archivePath="build.dll" lastWriteTime="5/16/2011 11:43:37 PM" />
   <file source="c:\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\Microsoft.CSharp.dll" archivePath="Microsoft.CSharp.dll" lastWriteTime="4/1/2011 1:58:00 AM" />
   <file source="c:\dev\duke3d\duke3d\base\DUKE3D.GRP" archivePath="base\DUKE3D.GRP" lastWriteTime="12/11/1996 10:50:00 AM" />
-  <file source="c:\dev\duke3d\duke3d\base\game.dll" archivePath="base\game.dll" lastWriteTime="5/15/2011 2:18:22 PM" />
+  <file source="c:\dev\duke3d\duke3d\base\game.dll" archivePath="base\game.dll" lastWriteTime="5/16/2011 10:14:58 PM" />
   <file source="c:\dev\duke3d\duke3d\base\music\grabbag.mp3" archivePath="base\music\grabbag.mp3" lastWriteTime="5/5/2011 2:02:40 PM" />
   <file source="c:\dev\duke3d\duke3d\base\music\stalker.mp3" archivePath="base\music\stalker.mp3" lastWriteTime="5/5/2011 8:21:26 PM" />
   <file source="c:\dev\duke3d\duke3d\base\USER.CON" archivePath="base\USER.CON" lastWriteTime="5/14/2011 11:01:32 PM" />
+  <file source="c:\dev\duke3d\duke3d\base\testbox.map" archivePath="base\testbox.map" lastWriteTime="5/16/2011 11:38:55 PM" />
   <file source="c:\dev\duke3d\duke3d\Bin\Debug\AppManifest.xaml" archivePath="AppManifest.xaml" lastWriteTime="5/14/2011 8:01:21 PM" />
 </xapCache>

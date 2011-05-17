@@ -26,6 +26,14 @@ namespace duke3d.mact
 {
     public static class MathUtility
     {
+        public static int GetAngle(spritetype testsprite, spritetype p1)
+        {
+            int p0_x = testsprite.x;
+            double p0_y = testsprite.y - Math.Sqrt(Math.Abs(p1.x - testsprite.x) * Math.Abs(p1.x - testsprite.x) + Math.Abs(p1.y - testsprite.y) * Math.Abs(p1.y - testsprite.y));
+
+            return (int)((2 * Math.Atan2(p1.y - p0_y, p1.x - p0_x)) * 180 / Math.PI);
+        }
+
         public static Int32 FindDistance2D(Int32 x, Int32 y)
         {
             if ((x = pragmas.klabs(x)) < (y = pragmas.klabs(y))) 

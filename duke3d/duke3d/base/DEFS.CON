@@ -798,6 +798,10 @@ define jumptoplayer 257
 define seekplayer 512
 define furthestdir 1024
 define dodgebullet 4096
+// jv
+define findgoal 4097
+define firefreely 4098
+// jv end
 
 // Some misc defines
 define NO       0
